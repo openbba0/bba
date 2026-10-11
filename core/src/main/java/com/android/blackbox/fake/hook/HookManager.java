@@ -10,6 +10,7 @@ import com.android.blackbox.fake.delegate.AppInstrumentation;
 
 import com.android.blackbox.fake.service.HCallbackProxy;
 import com.android.blackbox.fake.service.IAccessibilityManagerProxy;
+import com.android.blackbox.fake.service.IAuthServiceProxy;
 import com.android.blackbox.fake.service.IAccountManagerProxy;
 import com.android.blackbox.fake.service.IActivityClientProxy;
 import com.android.blackbox.fake.service.IActivityManagerProxy;
@@ -192,6 +193,7 @@ public class HookManager {
             
             if (BuildCompat.isQ()) {
                 addInjector(new IActivityTaskManagerProxy());
+                addInjector(new IAuthServiceProxy());
             }
             
             if (BuildCompat.isPie()) {
