@@ -149,9 +149,10 @@ namespace SandHook {
     protected:
         Size calOffset(JNIEnv *jniEnv, art::mirror::ArtMethod *p) override {
             if (SDK_INT >= ANDROID_P) {
+                // declaring_class, access_flags, dex_method_index are packed.
+                // The extra uint32 used to be dex_code_item_offset, removed in Android 9.
                 return CastArtMethod::accessFlag->getOffset()
-                + CastArtMethod::accessFlag->size()
-                + sizeof(uint32_t);
+                + CastArtMethod::accessFlag->size();
             }
             int offset = 0;
             jint index = getIntFromJava(jniEnv, "com/swift/sandhook/SandHookMethodResolver",
