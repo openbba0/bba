@@ -8,7 +8,7 @@ import com.android.blackbox.fake.hook.MethodHook;
 import com.android.blackbox.fake.hook.ProxyMethod;
 import com.android.blackbox.utils.MethodParameterUtils;
 
-
+/** Hook {@code com.android.internal.telephony.IPhoneSubInfo}. */
 public class IPhoneSubInfoProxy extends ClassInvocationStub {
     public static final String TAG = "IPhoneSubInfoProxy";
 

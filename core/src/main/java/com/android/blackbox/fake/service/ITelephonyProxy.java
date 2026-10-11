@@ -2,10 +2,8 @@ package com.android.blackbox.fake.service;
 
 import android.content.Context;
 import android.os.IBinder;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -20,11 +18,14 @@ import com.android.blackbox.fake.hook.MethodHook;
 import com.android.blackbox.fake.hook.ProxyMethod;
 import com.android.blackbox.utils.Md5Utils;
 
+/**
+ * Hook {@code com.android.internal.telephony.ITelephony}
+ * ({@link Context#TELEPHONY_SERVICE}).
+ */
+public class ITelephonyProxy extends BinderInvocationStub {
+    public static final String TAG = "ITelephonyProxy";
 
-public class ITelephonyManagerProxy extends BinderInvocationStub {
-    public static final String TAG = "ITelephonyManagerProxy";
-
-    public ITelephonyManagerProxy() {
+    public ITelephonyProxy() {
         super(BRServiceManager.get().getService(Context.TELEPHONY_SERVICE));
     }
 

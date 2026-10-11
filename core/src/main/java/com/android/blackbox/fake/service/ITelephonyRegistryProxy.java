@@ -9,7 +9,7 @@ import com.android.blackbox.fake.hook.MethodHook;
 import com.android.blackbox.fake.hook.ProxyMethod;
 import com.android.blackbox.utils.MethodParameterUtils;
 
-
+/** Hook {@code com.android.internal.telephony.ITelephonyRegistry}. */
 public class ITelephonyRegistryProxy extends BinderInvocationStub {
     public ITelephonyRegistryProxy() {
         super(BRServiceManager.get().getService("telephony.registry"));
