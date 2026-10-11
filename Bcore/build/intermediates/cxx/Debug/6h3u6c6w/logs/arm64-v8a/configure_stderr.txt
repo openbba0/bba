@@ -1,0 +1,2 @@
+fcntl(): Bad file descriptor
+/Users/txc/Library/Android/sdk/ndk/25.2.9519653/build/core/add-application.mk:88: *** Android NDK: Aborting...    .  Stop.

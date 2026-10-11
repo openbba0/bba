@@ -1,0 +1,129 @@
+package black.android.location;
+
+import android.location.Location;
+import android.location.LocationListener;
+import android.os.Bundle;
+import android.os.IInterface;
+
+import java.util.HashMap;
+
+import com.android.blackreflection.annotation.BClassName;
+import com.android.blackreflection.annotation.BField;
+import com.android.blackreflection.annotation.BMethod;
+
+@BClassName("android.location.LocationManager")
+public interface LocationManager {
+    @BField
+    HashMap mGnssNmeaListeners();
+
+    @BField
+    HashMap mGnssStatusListeners();
+
+    @BField
+    HashMap mGpsNmeaListeners();
+
+    @BField
+    HashMap mGpsStatusListeners();
+
+    @BField
+    HashMap mListeners();
+
+    @BField
+    HashMap mNmeaListeners();
+
+    @BField
+    IInterface mService();
+
+    @BClassName("android.location.LocationManager$GnssStatusListenerTransport")
+    interface ListenerTransport {
+        @BField
+        LocationListener mListener();
+
+        @BField
+        Object this$0();
+
+        @BMethod
+        void onLocationChanged(Location Location0);
+
+        @BMethod
+        void onProviderDisabled(String String0);
+
+        @BMethod
+        void onProviderEnabled(String String0);
+
+        @BMethod
+        void onStatusChanged(String String0, int int1, Bundle Bundle2);
+    }
+
+    @BClassName("android.location.LocationManager$GnssStatusListenerTransport")
+    interface GpsStatusListenerTransportVIVO {
+        @BMethod
+        void onSvStatusChanged(int int0, int[] ints1, float[] floats2, float[] floats3, float[] floats4, int int5, int int6, int int7,  long[] longs8);
+    }
+
+    @BClassName("android.location.LocationManager$GpsStatusListenerTransport")
+    interface GpsStatusListenerTransportSumsungS5 {
+
+
+    }
+
+    @BClassName("android.location.LocationManager$GpsStatusListenerTransport")
+    interface GpsStatusListenerTransportOPPO_R815T {
+
+
+    }
+
+    @BClassName("android.location.LocationManager$GpsStatusListenerTransport")
+    interface GpsStatusListenerTransport {
+        @BField
+        Object mListener();
+
+        @BField
+        Object mNmeaListener();
+
+        @BField
+        Object this$0();
+
+        @BMethod
+        void onFirstFix(int int0);
+
+        @BMethod
+        void onGpsStarted();
+
+        @BMethod
+        void onNmeaReceived(long long0, String String1);
+
+
+
+    }
+
+    @BClassName("android.location.LocationManager$GnssStatusListenerTransport")
+    interface GnssStatusListenerTransportO {
+
+
+    }
+
+    @BClassName("android.location.LocationManager$GnssStatusListenerTransport")
+    interface GnssStatusListenerTransport {
+        @BField
+        Object mGpsListener();
+
+        @BField
+        Object mGpsNmeaListener();
+
+        @BField
+        Object this$0();
+
+        @BMethod
+        void onFirstFix(int int0);
+
+        @BMethod
+        void onGnssStarted();
+
+        @BMethod
+        void onNmeaReceived(long long0, String String1);
+
+
+
+    }
+}
