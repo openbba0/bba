@@ -1,5 +1,6 @@
 package com.android.blackbox.fake.service.context.providers;
 
+import android.os.Bundle;
 import android.os.IInterface;
 
 import java.lang.reflect.Method;
@@ -11,11 +12,14 @@ import com.android.blackbox.utils.compat.ContextCompat;
 
 
 public class SystemProviderStub extends ClassInvocationStub implements BContentProvider {
+    public static final String TAG = "SystemProviderStub";
     private IInterface mBase;
+    private String mAuthority;
 
     @Override
-    public IInterface wrapper(IInterface contentProviderProxy, String appPkg) {
+    public IInterface wrapper(IInterface contentProviderProxy, String appPkg, String authority) {
         mBase = contentProviderProxy;
+        mAuthority = authority;
         injectHook();
         return (IInterface) getProxyInvocation();
     }
@@ -63,7 +67,11 @@ public class SystemProviderStub extends ClassInvocationStub implements BContentP
                     }
                 }
             }
-            return method.invoke(mBase, args);
+            Object result = method.invoke(mBase, args);
+            if ("settings".equals(mAuthority) && result instanceof Bundle) {
+                SettingsInterception.intercept(args, (Bundle) result);
+            }
+            return result;
         }
         
         

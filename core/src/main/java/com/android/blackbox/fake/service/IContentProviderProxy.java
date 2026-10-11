@@ -1,8 +1,11 @@
 package com.android.blackbox.fake.service;
 
+import android.os.Bundle;
+
 import java.lang.reflect.Method;
 
 import com.android.blackbox.fake.hook.ClassInvocationStub;
+import com.android.blackbox.fake.service.context.providers.SettingsInterception;
 import com.android.blackbox.fake.hook.MethodHook;
 import com.android.blackbox.fake.hook.ProxyMethod;
 import com.android.blackbox.utils.Slog;
@@ -117,9 +120,11 @@ public class IContentProviderProxy extends ClassInvocationStub {
             try {
                 
                 AttributionSourceUtils.fixAttributionSourceInArgs(args);
-                
-                
-                return method.invoke(who, args);
+                Object result = method.invoke(who, args);
+                if (result instanceof Bundle) {
+                    SettingsInterception.intercept(args, (Bundle) result);
+                }
+                return result;
             } catch (SecurityException e) {
                 
                 String message = e.getMessage();

@@ -18,10 +18,13 @@ public class ContentProviderStub extends ClassInvocationStub implements BContent
     public static final String TAG = "ContentProviderStub";
     private IInterface mBase;
     private String mAppPkg;
+    private String mAuthority;
 
-    public IInterface wrapper(final IInterface contentProviderProxy, final String appPkg) {
+    @Override
+    public IInterface wrapper(final IInterface contentProviderProxy, final String appPkg, final String authority) {
         mBase = contentProviderProxy;
         mAppPkg = appPkg;
+        mAuthority = authority;
         injectHook();
         return (IInterface) getProxyInvocation();
     }
@@ -82,7 +85,11 @@ public class ContentProviderStub extends ClassInvocationStub implements BContent
             
             
             try {
-                return method.invoke(mBase, args);
+                Object result = method.invoke(mBase, args);
+                if ("call".equals(methodName) && "settings".equals(mAuthority) && result instanceof Bundle) {
+                    SettingsInterception.intercept(args, (Bundle) result);
+                }
+                return result;
             } catch (Throwable e) {
                 
                 Throwable cause = e.getCause();
