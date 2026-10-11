@@ -107,6 +107,7 @@ dependencies {
     implementation 'com.moandjiezana.toml:toml4j:0.7.2'
 
     implementation 'com.github.tiann:FreeReflection:3.2.2'
+    implementation project(':beer')
 
 
 
