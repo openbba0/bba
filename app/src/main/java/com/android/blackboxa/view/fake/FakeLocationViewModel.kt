@@ -1,7 +1,7 @@
 package com.android.blackboxa.view.fake
 
 import androidx.lifecycle.MutableLiveData
-import com.android.blackbox.entity.location.BLocation
+import com.android.blackbox.model.location.BLocation
 import com.android.blackboxa.bean.FakeLocationBean
 import com.android.blackboxa.data.FakeLocationRepository
 import com.android.blackboxa.view.base.BaseViewModel

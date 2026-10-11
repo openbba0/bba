@@ -1,7 +1,7 @@
 package com.android.blackbox.core.system.pm.installer;
 
 import com.android.blackbox.core.system.pm.BPackageSettings;
-import com.android.blackbox.entity.pm.InstallOption;
+import com.android.blackbox.model.pm.InstallOption;
 
 
 public interface Executor {

@@ -21,9 +21,9 @@ import com.android.blackbox.BlackBoxCore;
 import com.android.blackbox.app.BActivityThread;
 import com.android.blackbox.core.system.ServiceManager;
 import com.android.blackbox.core.system.pm.IBPackageManagerService;
-import com.android.blackbox.entity.pm.InstallOption;
-import com.android.blackbox.entity.pm.InstallResult;
-import com.android.blackbox.entity.pm.InstalledPackage;
+import com.android.blackbox.model.pm.InstallOption;
+import com.android.blackbox.model.pm.InstallResult;
+import com.android.blackbox.model.pm.InstalledPackage;
 import com.android.blackbox.utils.TransactionThrottler;
 
 

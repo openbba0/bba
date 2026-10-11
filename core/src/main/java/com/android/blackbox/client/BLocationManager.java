@@ -9,8 +9,8 @@ import java.util.List;
 import com.android.blackbox.app.BActivityThread;
 import com.android.blackbox.core.system.ServiceManager;
 import com.android.blackbox.core.system.location.IBLocationManagerService;
-import com.android.blackbox.entity.location.BCell;
-import com.android.blackbox.entity.location.BLocation;
+import com.android.blackbox.model.location.BCell;
+import com.android.blackbox.model.location.BLocation;
 
 
 public class BLocationManager extends BlackManager<IBLocationManagerService> {

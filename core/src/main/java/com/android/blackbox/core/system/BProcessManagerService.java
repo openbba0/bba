@@ -25,7 +25,7 @@ import com.android.blackbox.core.env.BEnvironment;
 import com.android.blackbox.core.system.notification.BNotificationManagerService;
 import com.android.blackbox.core.system.pm.BPackageManagerService;
 import com.android.blackbox.core.system.user.BUserHandle;
-import com.android.blackbox.entity.AppConfig;
+import com.android.blackbox.model.AppConfig;
 import com.android.blackbox.proxy.ProxyManifest;
 import com.android.blackbox.utils.FileUtils;
 import com.android.blackbox.utils.Slog;

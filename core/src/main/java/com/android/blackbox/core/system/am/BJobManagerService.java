@@ -19,7 +19,7 @@ import com.android.blackbox.core.system.BProcessManagerService;
 import com.android.blackbox.core.system.ISystemService;
 import com.android.blackbox.core.system.ProcessRecord;
 import com.android.blackbox.core.system.pm.BPackageManagerService;
-import com.android.blackbox.entity.JobRecord;
+import com.android.blackbox.model.JobRecord;
 import com.android.blackbox.proxy.ProxyManifest;
 
 

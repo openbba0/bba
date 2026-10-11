@@ -15,7 +15,7 @@ import black.android.location.provider.BRProviderProperties;
 import black.android.location.provider.ProviderProperties;
 import black.android.os.BRServiceManager;
 import com.android.blackbox.app.BActivityThread;
-import com.android.blackbox.entity.location.BLocation;
+import com.android.blackbox.model.location.BLocation;
 import com.android.blackbox.client.BLocationManager;
 import com.android.blackbox.hook.BinderInvocationStub;
 import com.android.blackbox.hook.MethodHook;

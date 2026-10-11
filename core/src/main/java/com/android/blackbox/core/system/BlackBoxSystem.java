@@ -24,7 +24,7 @@ import com.android.blackbox.core.system.pm.BPackageManagerService;
 
 import com.android.blackbox.core.system.user.BUserHandle;
 import com.android.blackbox.core.system.user.BUserManagerService;
-import com.android.blackbox.entity.pm.InstallOption;
+import com.android.blackbox.model.pm.InstallOption;
 import com.android.blackbox.utils.FileUtils;
 
 import com.android.blackbox.core.system.JarManager;

@@ -11,9 +11,9 @@ import android.content.pm.ProviderInfo;
 import android.content.Intent;
 import android.content.ComponentName;
 import java.util.List;
-import com.android.blackbox.entity.pm.InstallResult;
-import com.android.blackbox.entity.pm.InstallOption;
-import com.android.blackbox.entity.pm.InstalledPackage;
+import com.android.blackbox.model.pm.InstallResult;
+import com.android.blackbox.model.pm.InstallOption;
+import com.android.blackbox.model.pm.InstalledPackage;
 
 
 interface IBPackageManagerService {

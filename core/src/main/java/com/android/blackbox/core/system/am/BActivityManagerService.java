@@ -20,12 +20,12 @@ import com.android.blackbox.core.system.BProcessManagerService;
 import com.android.blackbox.core.system.ISystemService;
 import com.android.blackbox.core.system.ProcessRecord;
 import com.android.blackbox.core.system.pm.BPackageManagerService;
-import com.android.blackbox.entity.AppConfig;
-import com.android.blackbox.entity.UnbindRecord;
-import com.android.blackbox.entity.am.PendingResultData;
-import com.android.blackbox.entity.am.ReceiverData;
-import com.android.blackbox.entity.am.RunningAppProcessInfo;
-import com.android.blackbox.entity.am.RunningServiceInfo;
+import com.android.blackbox.model.AppConfig;
+import com.android.blackbox.model.UnbindRecord;
+import com.android.blackbox.model.am.PendingResultData;
+import com.android.blackbox.model.am.ReceiverData;
+import com.android.blackbox.model.am.RunningAppProcessInfo;
+import com.android.blackbox.model.am.RunningServiceInfo;
 import com.android.blackbox.utils.Slog;
 
 import static android.content.pm.PackageManager.GET_META_DATA;

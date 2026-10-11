@@ -10,7 +10,7 @@ import com.android.blackbox.core.system.pm.installer.CreateUserExecutor;
 import com.android.blackbox.core.system.pm.installer.Executor;
 import com.android.blackbox.core.system.pm.installer.RemoveAppExecutor;
 import com.android.blackbox.core.system.pm.installer.RemoveUserExecutor;
-import com.android.blackbox.entity.pm.InstallOption;
+import com.android.blackbox.model.pm.InstallOption;
 import com.android.blackbox.utils.Slog;
 
 

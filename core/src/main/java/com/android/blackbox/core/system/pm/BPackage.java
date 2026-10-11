@@ -19,7 +19,7 @@ import android.os.Parcelable;
 
 import java.util.ArrayList;
 
-import com.android.blackbox.entity.pm.InstallOption;
+import com.android.blackbox.model.pm.InstallOption;
 import com.android.blackbox.utils.compat.BuildCompat;
 
 

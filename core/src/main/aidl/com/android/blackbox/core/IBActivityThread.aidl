@@ -9,7 +9,7 @@ import android.content.Intent;
 import java.util.List;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ActivityInfo;
-import com.android.blackbox.entity.am.ReceiverData;
+import com.android.blackbox.model.am.ReceiverData;
 
 interface IBActivityThread {
     IBinder getActivityThread();

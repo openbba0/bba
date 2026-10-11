@@ -9,7 +9,7 @@ import android.os.Process;
 import java.util.Arrays;
 
 import com.android.blackbox.core.IBActivityThread;
-import com.android.blackbox.entity.AppConfig;
+import com.android.blackbox.model.AppConfig;
 import com.android.blackbox.proxy.ProxyManifest;
 
 public class ProcessRecord extends Binder {

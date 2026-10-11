@@ -28,7 +28,7 @@ import black.android.content.res.BRAssetManager;
 import com.android.blackbox.BlackBoxCore;
 import com.android.blackbox.core.env.AppSystemEnv;
 import com.android.blackbox.core.env.BEnvironment;
-import com.android.blackbox.entity.pm.InstallOption;
+import com.android.blackbox.model.pm.InstallOption;
 import com.android.blackbox.utils.ArrayUtils;
 import com.android.blackbox.utils.FileUtils;
 import com.android.blackbox.utils.compat.BuildCompat;

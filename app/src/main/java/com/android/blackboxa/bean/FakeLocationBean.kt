@@ -1,7 +1,7 @@
 package com.android.blackboxa.bean
 
 import android.graphics.drawable.Drawable
-import com.android.blackbox.entity.location.BLocation
+import com.android.blackbox.model.location.BLocation
 
 data class FakeLocationBean(
     val userID: Int,

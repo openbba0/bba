@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 
 import com.android.blackbox.BlackBoxCore;
 import com.android.blackbox.app.BActivityThread;
-import com.android.blackbox.entity.AppConfig;
+import com.android.blackbox.model.AppConfig;
 import com.android.blackbox.utils.compat.BundleCompat;
 
 

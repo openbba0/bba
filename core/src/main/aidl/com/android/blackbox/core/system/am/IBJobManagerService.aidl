@@ -6,7 +6,7 @@ import android.content.ComponentName;
 import android.os.IBinder;
 import java.lang.String;
 import android.app.job.JobInfo;
-import com.android.blackbox.entity.JobRecord;
+import com.android.blackbox.model.JobRecord;
 
 // Declare any non-default types here with import statements
 

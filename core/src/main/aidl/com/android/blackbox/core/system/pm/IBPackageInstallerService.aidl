@@ -2,7 +2,7 @@
 package com.android.blackbox.core.system.pm;
 
 import com.android.blackbox.core.system.pm.BPackageSettings;
-import com.android.blackbox.entity.pm.InstallOption;
+import com.android.blackbox.model.pm.InstallOption;
 
 // Declare any non-default types here with import statements
 

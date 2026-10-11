@@ -44,8 +44,8 @@ import com.android.blackbox.core.system.DaemonService;
 import com.android.blackbox.core.system.ServiceManager;
 import com.android.blackbox.core.system.user.BUserHandle;
 import com.android.blackbox.core.system.user.BUserInfo;
-import com.android.blackbox.entity.pm.InstallOption;
-import com.android.blackbox.entity.pm.InstallResult;
+import com.android.blackbox.model.pm.InstallOption;
+import com.android.blackbox.model.pm.InstallResult;
 
 import com.android.blackbox.hook.content.ContentProviderDelegate;
 import com.android.blackbox.client.BActivityManager;
@@ -1544,7 +1544,7 @@ public class BlackBoxCore extends ClientConfiguration {
         }
     }
 
-    public static com.android.blackbox.entity.AppConfig getAppConfig() {
+    public static com.android.blackbox.model.AppConfig getAppConfig() {
         try {
             return BActivityThread.getAppConfig();
         } catch (Exception e) {

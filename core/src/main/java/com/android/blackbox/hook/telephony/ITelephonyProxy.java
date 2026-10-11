@@ -11,7 +11,7 @@ import black.android.os.BRServiceManager;
 import black.com.android.internal.telephony.BRITelephonyStub;
 import com.android.blackbox.BlackBoxCore;
 import com.android.blackbox.app.BActivityThread;
-import com.android.blackbox.entity.location.BCell;
+import com.android.blackbox.model.location.BCell;
 import com.android.blackbox.client.BLocationManager;
 import com.android.blackbox.hook.BinderInvocationStub;
 import com.android.blackbox.hook.MethodHook;

@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.os.RemoteException;
 
 import com.android.blackbox.BlackBoxCore;
-import com.android.blackbox.entity.am.PendingResultData;
+import com.android.blackbox.model.am.PendingResultData;
 import com.android.blackbox.proxy.record.ProxyBroadcastRecord;
 
 

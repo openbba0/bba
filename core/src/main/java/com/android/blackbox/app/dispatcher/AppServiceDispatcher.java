@@ -12,8 +12,8 @@ import java.util.Map;
 
 import com.android.blackbox.BlackBoxCore;
 import com.android.blackbox.app.BActivityThread;
-import com.android.blackbox.entity.ServiceRecord;
-import com.android.blackbox.entity.UnbindRecord;
+import com.android.blackbox.model.ServiceRecord;
+import com.android.blackbox.model.UnbindRecord;
 import com.android.blackbox.proxy.record.ProxyServiceRecord;
 
 import static android.app.Service.START_NOT_STICKY;

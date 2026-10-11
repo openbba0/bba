@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import cbfg.rvadapter.RVAdapter
 import com.afollestad.materialdialogs.MaterialDialog
 import com.ferfalk.simplesearchview.SimpleSearchView
-import com.android.blackbox.entity.location.BLocation
+import com.android.blackbox.model.location.BLocation
 import com.android.blackbox.client.BLocationManager
 import com.android.blackboxa.R
 import com.android.blackboxa.bean.FakeLocationBean

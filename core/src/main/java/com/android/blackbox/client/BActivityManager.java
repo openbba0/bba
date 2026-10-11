@@ -12,11 +12,11 @@ import android.os.RemoteException;
 import com.android.blackbox.app.BActivityThread;
 import com.android.blackbox.core.system.ServiceManager;
 import com.android.blackbox.core.system.am.IBActivityManagerService;
-import com.android.blackbox.entity.AppConfig;
-import com.android.blackbox.entity.UnbindRecord;
-import com.android.blackbox.entity.am.PendingResultData;
-import com.android.blackbox.entity.am.RunningAppProcessInfo;
-import com.android.blackbox.entity.am.RunningServiceInfo;
+import com.android.blackbox.model.AppConfig;
+import com.android.blackbox.model.UnbindRecord;
+import com.android.blackbox.model.am.PendingResultData;
+import com.android.blackbox.model.am.RunningAppProcessInfo;
+import com.android.blackbox.model.am.RunningServiceInfo;
 import com.android.blackbox.utils.Slog;
 
 

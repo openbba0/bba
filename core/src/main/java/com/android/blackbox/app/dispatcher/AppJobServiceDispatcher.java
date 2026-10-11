@@ -9,7 +9,7 @@ import java.util.Map;
 
 import com.android.blackbox.BlackBoxCore;
 import com.android.blackbox.app.BActivityThread;
-import com.android.blackbox.entity.JobRecord;
+import com.android.blackbox.model.JobRecord;
 
 
 public class AppJobServiceDispatcher {

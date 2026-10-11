@@ -17,7 +17,7 @@ import com.android.blackbox.core.system.pm.BPackage;
 import com.android.blackbox.core.system.pm.BPackageManagerService;
 import com.android.blackbox.core.system.pm.BPackageSettings;
 import com.android.blackbox.core.system.pm.PackageMonitor;
-import com.android.blackbox.entity.am.PendingResultData;
+import com.android.blackbox.model.am.PendingResultData;
 import com.android.blackbox.proxy.ProxyBroadcastReceiver;
 import com.android.blackbox.utils.Slog;
 

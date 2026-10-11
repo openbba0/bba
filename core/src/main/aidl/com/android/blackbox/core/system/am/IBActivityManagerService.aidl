@@ -8,12 +8,12 @@ import android.content.pm.ProviderInfo;
 import android.os.IBinder;
 import java.lang.String;
 import android.app.IServiceConnection;
-import com.android.blackbox.entity.AppConfig;
-import com.android.blackbox.entity.UnbindRecord;
+import com.android.blackbox.model.AppConfig;
+import com.android.blackbox.model.UnbindRecord;
 import android.os.Bundle;
-import com.android.blackbox.entity.am.RunningAppProcessInfo;
-import com.android.blackbox.entity.am.PendingResultData;
-import com.android.blackbox.entity.am.RunningServiceInfo;
+import com.android.blackbox.model.am.RunningAppProcessInfo;
+import com.android.blackbox.model.am.PendingResultData;
+import com.android.blackbox.model.am.RunningServiceInfo;
 
 // Declare any non-default types here with import statements
 

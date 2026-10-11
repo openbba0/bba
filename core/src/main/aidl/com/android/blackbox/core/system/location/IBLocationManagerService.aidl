@@ -1,8 +1,8 @@
 // IFakeLocationManager.aidl
 package com.android.blackbox.core.system.location;
 
-import com.android.blackbox.entity.location.BLocation;
-import com.android.blackbox.entity.location.BCell;
+import com.android.blackbox.model.location.BLocation;
+import com.android.blackbox.model.location.BCell;
 
 import java.util.List;
 

@@ -11,7 +11,7 @@ import com.imuxuan.floatingview.FloatingMagnetView
 import com.imuxuan.floatingview.FloatingView
 import kotlin.math.cos
 import kotlin.math.sin
-import com.android.blackbox.entity.location.BLocation
+import com.android.blackbox.model.location.BLocation
 import com.android.blackbox.client.BLocationManager
 import com.android.blackboxa.app.App
 import com.android.blackboxa.widget.EnFloatView

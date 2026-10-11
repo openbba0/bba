@@ -6,7 +6,7 @@ import android.os.RemoteException;
 import com.android.blackbox.app.BActivityThread;
 import com.android.blackbox.core.system.ServiceManager;
 import com.android.blackbox.core.system.am.IBJobManagerService;
-import com.android.blackbox.entity.JobRecord;
+import com.android.blackbox.model.JobRecord;
 
 
 public class BJobManager extends BlackManager<IBJobManagerService> {

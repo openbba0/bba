@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.android.blackbox.BlackBoxCore;
-import com.android.blackbox.entity.pm.InstallResult;
+import com.android.blackbox.model.pm.InstallResult;
 
 
 public class GmsCore {

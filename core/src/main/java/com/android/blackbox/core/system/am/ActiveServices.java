@@ -23,8 +23,8 @@ import com.android.blackbox.core.IEmpty;
 import com.android.blackbox.core.system.BProcessManagerService;
 import com.android.blackbox.core.system.ProcessRecord;
 import com.android.blackbox.core.system.pm.BPackageManagerService;
-import com.android.blackbox.entity.UnbindRecord;
-import com.android.blackbox.entity.am.RunningServiceInfo;
+import com.android.blackbox.model.UnbindRecord;
+import com.android.blackbox.model.am.RunningServiceInfo;
 import com.android.blackbox.proxy.ProxyManifest;
 import com.android.blackbox.proxy.record.ProxyServiceRecord;
 

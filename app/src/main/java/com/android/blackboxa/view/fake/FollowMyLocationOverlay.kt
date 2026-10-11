@@ -13,7 +13,7 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
-import com.android.blackbox.entity.location.BLocation
+import com.android.blackbox.model.location.BLocation
 import com.android.blackboxa.databinding.ActivityOsmdroidBinding
 import com.android.blackboxa.util.inflate
 import com.android.blackboxa.util.toast
