@@ -15,7 +15,16 @@ public abstract class AppHook {
 
     public abstract String packageName();
 
+    /**
+     * Subclasses return false to leave this guest process unhooked.
+     */
+    protected abstract boolean enabled();
+
     public final void install(String packageName, String processName, Application application) throws Throwable {
+        if (!enabled()) {
+            Slog.i(tag(), "hooks disabled, package=" + packageName + ", process=" + processName);
+            return;
+        }
         prepare(packageName, processName, application);
         onHook(application);
         Slog.i(tag(), "hooks installed, package=" + packageName + ", process=" + processName);

@@ -16,6 +16,11 @@ public final class XhsHook extends AppHook {
     }
 
     @Override
+    protected boolean enabled() {
+        return false;
+    }
+
+    @Override
     protected void onHook(Application application) {
         ClassLoader loader = application.getClassLoader();
         Class<?> builder = XposedHelpers.findClassIfExists("okhttp3.Request$Builder", loader);
