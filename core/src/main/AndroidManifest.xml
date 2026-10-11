@@ -495,7 +495,7 @@
 
         
         <provider
-            android:name=".fake.provider.FileProvider"
+            android:name=".hook.system.FileProvider"
             android:authorities="${applicationId}.blackbox.FileProvider"
             android:exported="false"
             android:grantUriPermissions="true">

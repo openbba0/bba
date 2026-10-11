@@ -67,12 +67,12 @@ import com.android.blackbox.core.system.user.BUserHandle;
 import com.android.blackbox.entity.AppConfig;
 import com.android.blackbox.entity.am.ReceiverData;
 
-import com.android.blackbox.fake.delegate.AppInstrumentation;
-import com.android.blackbox.fake.delegate.ContentProviderDelegate;
+import com.android.blackbox.hook.app.AppInstrumentation;
+import com.android.blackbox.hook.content.ContentProviderDelegate;
 
-import com.android.blackbox.beer.BeerEntry;
-import com.android.blackbox.fake.hook.HookManager;
-import com.android.blackbox.fake.service.HCallbackProxy;
+import com.android.blackbox.hook.guest.HookEntry;
+import com.android.blackbox.hook.HookManager;
+import com.android.blackbox.hook.system.HCallbackProxy;
 import com.android.blackbox.utils.Reflector;
 import com.android.blackbox.utils.Slog;
 import com.android.blackbox.utils.compat.ActivityManagerCompat;
@@ -1185,7 +1185,7 @@ public class BActivityThread extends IBActivityThread.Stub {
     }
 
     private void onBeforeApplicationOnCreate(String packageName, String processName, Application application) {
-        BeerEntry.install(packageName, processName, application);
+        HookEntry.install(packageName, processName, application);
         for (AppLifecycleCallback appLifecycleCallback : BlackBoxCore.get().getAppLifecycleCallbacks()) {
             appLifecycleCallback.beforeApplicationOnCreate(packageName, processName, application, BActivityThread.getUserId());
         }

@@ -9,8 +9,8 @@ import androidx.annotation.Nullable;
 
 import com.android.blackbox.BlackBoxCore;
 import com.android.blackbox.app.BActivityThread;
-import com.android.blackbox.fake.hook.HookManager;
-import com.android.blackbox.fake.service.HCallbackProxy;
+import com.android.blackbox.hook.HookManager;
+import com.android.blackbox.hook.system.HCallbackProxy;
 import com.android.blackbox.proxy.record.ProxyActivityRecord;
 import com.android.blackbox.proxy.record.ProxyPendingRecord;
 import com.android.blackbox.utils.Slog;

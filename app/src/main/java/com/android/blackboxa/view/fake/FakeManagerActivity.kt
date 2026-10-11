@@ -13,7 +13,7 @@ import cbfg.rvadapter.RVAdapter
 import com.afollestad.materialdialogs.MaterialDialog
 import com.ferfalk.simplesearchview.SimpleSearchView
 import com.android.blackbox.entity.location.BLocation
-import com.android.blackbox.fake.frameworks.BLocationManager
+import com.android.blackbox.client.BLocationManager
 import com.android.blackboxa.R
 import com.android.blackboxa.bean.FakeLocationBean
 import com.android.blackboxa.databinding.ActivityListBinding

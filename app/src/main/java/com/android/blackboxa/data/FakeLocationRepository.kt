@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.android.blackbox.BlackBoxCore
 import com.android.blackbox.entity.location.BLocation
-import com.android.blackbox.fake.frameworks.BLocationManager
+import com.android.blackbox.client.BLocationManager
 import com.android.blackboxa.bean.FakeLocationBean
 
 

@@ -47,14 +47,14 @@ import com.android.blackbox.core.system.user.BUserInfo;
 import com.android.blackbox.entity.pm.InstallOption;
 import com.android.blackbox.entity.pm.InstallResult;
 
-import com.android.blackbox.fake.delegate.ContentProviderDelegate;
-import com.android.blackbox.fake.frameworks.BActivityManager;
-import com.android.blackbox.fake.frameworks.BJobManager;
-import com.android.blackbox.fake.frameworks.BPackageManager;
-import com.android.blackbox.fake.frameworks.BStorageManager;
-import com.android.blackbox.fake.frameworks.BUserManager;
+import com.android.blackbox.hook.content.ContentProviderDelegate;
+import com.android.blackbox.client.BActivityManager;
+import com.android.blackbox.client.BJobManager;
+import com.android.blackbox.client.BPackageManager;
+import com.android.blackbox.client.BStorageManager;
+import com.android.blackbox.client.BUserManager;
 
-import com.android.blackbox.fake.hook.HookManager;
+import com.android.blackbox.hook.HookManager;
 import com.android.blackbox.proxy.ProxyManifest;
 import com.android.blackbox.utils.FileUtils;
 import com.android.blackbox.utils.ShellUtils;

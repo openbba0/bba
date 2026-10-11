@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.android.blackbox.BlackBoxCore;
-import com.android.blackbox.fake.service.ClassLoaderProxy;
+import com.android.blackbox.hook.resources.ClassLoaderProxy;
 
 
 public class NativeCrashPrevention {

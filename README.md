@@ -14,9 +14,9 @@ BlackBox runs cloned apps inside a host process on Android, without installing t
 
 ## Guest hooks
 
-`BActivityThread` calls `BeerEntry.install` before the guest `Application.onCreate`. `BeerEntry` only dispatches by package name. Each guest app has its own `AppHook` subclass.
+`BActivityThread` calls `HookEntry.install` before the guest `Application.onCreate`. `HookEntry` only dispatches by package name. Each guest app has its own `AppHook` subclass.
 
-A new hook is a public class with a public no-arg constructor. Rebuild `core` and the annotation processor writes `AppHookRegistry`. Do not edit `BeerEntry` or the generated registry.
+A new hook is a public class with a public no-arg constructor. Rebuild `core` and the annotation processor writes `AppHookRegistry`. Do not edit `HookEntry` or the generated registry.
 
 The subclass implements three methods:
 
@@ -26,7 +26,7 @@ The subclass implements three methods:
 
 Use `com.scorpion.IHook.XposedHelpers` and `XC_MethodHook`. That is the API shipped in `beer`, not `de.robv.android.xposed`.
 
-`XhsHook` hooks `okhttp3.Request.Builder.url` for `com.xingin.xhs` and logs the URL plus a short stack. It stays off while `enabled()` returns false.
+`RednoteHook` hooks `okhttp3.Request.Builder.url` for `com.xingin.xhs` and logs the URL plus a short stack. It stays off while `enabled()` returns false.
 
 ## Requirements
 

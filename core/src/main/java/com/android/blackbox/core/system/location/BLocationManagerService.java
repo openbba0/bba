@@ -25,7 +25,7 @@ import com.android.blackbox.core.system.ISystemService;
 import com.android.blackbox.entity.location.BCell;
 import com.android.blackbox.entity.location.BLocation;
 import com.android.blackbox.entity.location.BLocationConfig;
-import com.android.blackbox.fake.frameworks.BLocationManager;
+import com.android.blackbox.client.BLocationManager;
 import com.android.blackbox.utils.CloseUtils;
 import com.android.blackbox.utils.FileUtils;
 import com.android.blackbox.utils.Slog;
