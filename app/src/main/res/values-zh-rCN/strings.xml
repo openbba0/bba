@@ -57,6 +57,8 @@
     <string name="uninstall_module_toast">Xposed模块请在管理界面卸载</string>
     <string name="other">其它</string>
     <string name="daemon_enable">开启守护进程</string>
+    <string name="xhs_fingerprint_dump">小红书设备指纹 dump</string>
+    <string name="xhs_fingerprint_dump_summary">压缩前把设备指纹参数写到小红书外部目录</string>
     <string name="gms_manager">GMS管理</string>
     <string name="jump_gms">跳转到GMS管理界面</string>
     <string name="enable_gms">开启服务</string>

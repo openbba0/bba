@@ -1265,6 +1265,11 @@ public class BlackBoxCore extends ClientConfiguration {
         return mClientConfiguration.isDisableFlagSecure();
     }
 
+    @Override
+    public boolean isXhsFingerprintDump() {
+        return mClientConfiguration != null && mClientConfiguration.isXhsFingerprintDump();
+    }
+
 
 
     @Override

@@ -30,6 +30,10 @@ public abstract class ClientConfiguration {
         return false;
     }
 
+    public boolean isXhsFingerprintDump() {
+        return false;
+    }
+
     
     public boolean requestInstallPackage(File file, int userId) {
         return false;

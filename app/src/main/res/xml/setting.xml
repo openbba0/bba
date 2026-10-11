@@ -35,6 +35,12 @@
                 app:title="@string/disable_flag_secure"
                 app:summary="@string/disable_flag_secure_summary" />
 
+        <SwitchPreferenceCompat
+                app:iconSpaceReserved="false"
+                app:key="xhs_fingerprint_dump"
+                app:title="@string/xhs_fingerprint_dump"
+                app:summary="@string/xhs_fingerprint_dump_summary" />
+
         <Preference
                 android:key="send_logs"
                 android:title="@string/send_logs"

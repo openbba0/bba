@@ -14,6 +14,7 @@ import com.android.blackbox.BlackBoxCore;
 import com.android.blackbox.app.BActivityThread;
 import com.android.blackbox.utils.compat.DexFileCompat;
 
+import com.android.blackbox.core.env.BEnvironment;
 import com.android.blackbox.core.system.JarManager;
 import com.android.blackbox.utils.Slog;
 
@@ -112,6 +113,39 @@ public class NativeCore {
     @Keep
     public static File redirectPath(File path) {
         return IOCore.get().redirectPath(path);
+    }
+
+    @Keep
+    public static String getAppPackageName() {
+        return BlackBoxCore.getAppPackageName();
+    }
+
+    @Keep
+    public static boolean isXhsFingerprintDumpEnabled() {
+        try {
+            return BlackBoxCore.get().isXhsFingerprintDump();
+        } catch (Throwable t) {
+            Log.w(TAG, "isXhsFingerprintDumpEnabled failed: " + t.getMessage());
+            return false;
+        }
+    }
+
+    @Keep
+    public static String getFingerprintDumpDir() {
+        try {
+            String packageName = BlackBoxCore.getAppPackageName();
+            if (packageName == null) {
+                return null;
+            }
+            File dir = BEnvironment.getExternalDataDir(packageName, BlackBoxCore.getUserId());
+            if (!dir.exists() && !dir.mkdirs()) {
+                Log.w(TAG, "getFingerprintDumpDir mkdir failed: " + dir);
+            }
+            return dir.getAbsolutePath();
+        } catch (Throwable t) {
+            Log.w(TAG, "getFingerprintDumpDir failed: " + t.getMessage());
+            return null;
+        }
     }
 
     @Keep

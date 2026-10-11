@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreferenceCompat
 import com.android.blackbox.BlackBoxCore
 import com.android.blackboxa.R
 import com.android.blackboxa.app.AppManager
@@ -65,6 +66,16 @@ class SettingFragment : PreferenceFragmentCompat() {
             disableFlagSecurePreference
         }
 
+        invalidHideState {
+            val dumpPreference: Preference = (findPreference("xhs_fingerprint_dump")!!)
+            val enabled = AppManager.mBlackBoxLoader.xhsFingerprintDump()
+            dumpPreference.setDefaultValue(enabled)
+            if (dumpPreference is SwitchPreferenceCompat) {
+                dumpPreference.isChecked = enabled
+            }
+            dumpPreference
+        }
+
         initSendLogs()
     }
 
@@ -100,6 +111,9 @@ class SettingFragment : PreferenceFragmentCompat() {
                 }
                 "disable_flag_secure" -> {
                     AppManager.mBlackBoxLoader.invalidDisableFlagSecure(tmpHide)
+                }
+                "xhs_fingerprint_dump" -> {
+                    AppManager.mBlackBoxLoader.invalidXhsFingerprintDump(tmpHide)
                 }
             }
 

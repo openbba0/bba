@@ -25,6 +25,8 @@ class BlackBoxLoader {
 
     private var mDisableFlagSecure by AppSharedPreferenceDelegate(App.getContext(), false)
 
+    private var mXhsFingerprintDump by AppSharedPreferenceDelegate(App.getContext(), false)
+
     fun hideRoot(): Boolean {
         return try {
             mHideRoot
@@ -90,6 +92,23 @@ class BlackBoxLoader {
             this.mShowShortcutPermissionDialog = show
         } catch (e: Exception) {
             Log.e(TAG, "Error setting showShortcutPermissionDialog: ${e.message}")
+        }
+    }
+
+    fun xhsFingerprintDump(): Boolean {
+        return try {
+            mXhsFingerprintDump
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting xhsFingerprintDump: ${e.message}")
+            false
+        }
+    }
+
+    fun invalidXhsFingerprintDump(enable: Boolean) {
+        try {
+            this.mXhsFingerprintDump = enable
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting xhsFingerprintDump: ${e.message}")
         }
     }
 
@@ -267,6 +286,15 @@ class BlackBoxLoader {
                                         mDisableFlagSecure
                                     } catch (e: Exception) {
                                         Log.e(TAG, "Error checking disableFlagSecure: ${e.message}")
+                                        false
+                                    }
+                                }
+
+                                override fun isXhsFingerprintDump(): Boolean {
+                                    return try {
+                                        mXhsFingerprintDump
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Error checking xhsFingerprintDump: ${e.message}")
                                         false
                                     }
                                 }
