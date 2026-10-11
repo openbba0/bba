@@ -5,11 +5,11 @@ plugins {
 
 android {
 
-    namespace 'com.android.blackboxa'
+    namespace 'com.android.bba'
     compileSdk rootProject.ext.compileSdkVersion
     ndkVersion = "25.2.9519653"
     defaultConfig {
-        applicationId "com.android.blackboxa"
+        applicationId "com.android.bba"
         minSdk rootProject.ext.minSdk
         targetSdk rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode

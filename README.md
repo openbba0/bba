@@ -1,6 +1,6 @@
 # BlackBox
 
-BlackBox runs cloned apps inside a host process on Android, without installing those APKs as normal apps. The host application id is `com.android.blackboxa`. Minimum SDK is 21, compile SDK is 35, and the app targets SDK 28.
+BlackBox runs cloned apps inside a host process on Android, without installing those APKs as normal apps. The host application id is `com.android.bba`. Minimum SDK is 21, compile SDK is 35, and the app targets SDK 28.
 
 ## Modules
 

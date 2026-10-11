@@ -106,7 +106,7 @@ static int new_deflate(z_streamp strm, int flush) {
 }
 
 void ZlibHook::init(JNIEnv *env) {
-    jclass clazz = env->FindClass("com/android/blackbox/core/NativeCore");
+    jclass clazz = env->FindClass("com/android/bb/core/NativeCore");
     if (clazz == nullptr) {
         env->ExceptionClear();
         ALOGE("ZlibHook: NativeCore class not found");

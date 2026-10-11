@@ -7,7 +7,7 @@
 
 #include <jni.h>
 
-#define VMCORE_CLASS "com/android/blackbox/core/NativeCore"
+#define VMCORE_CLASS "com/android/bb/core/NativeCore"
 
 class BoxCore {
 public:

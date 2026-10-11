@@ -20,7 +20,7 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class com.android.blackbox.** {*; }
+-keep class com.android.bb.** {*; }
 -keep class com.android.jnihook.** {*; }
 -keep class mirror.** {*; }
 -keep class android.** {*; }

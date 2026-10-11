@@ -16,7 +16,7 @@
 
     <androidx.fragment.app.FragmentContainerView
             android:id="@+id/apps_container"
-            android:name="com.android.blackboxa.view.apps.AppsFragment"
+            android:name="com.android.bba.view.apps.AppsFragment"
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:layout_constraintBottom_toTopOf="@id/bottom_nav"
@@ -26,7 +26,7 @@
 
     <androidx.fragment.app.FragmentContainerView
             android:id="@+id/setting_container"
-            android:name="com.android.blackboxa.view.setting.SettingFragment"
+            android:name="com.android.bba.view.setting.SettingFragment"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:visibility="gone"
@@ -37,7 +37,7 @@
 
     <androidx.fragment.app.FragmentContainerView
             android:id="@+id/me_container"
-            android:name="com.android.blackboxa.view.me.MeFragment"
+            android:name="com.android.bba.view.me.MeFragment"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:visibility="gone"
@@ -57,7 +57,7 @@
             app:layout_constraintBottom_toTopOf="@id/bottom_nav"
             app:layout_constraintRight_toRightOf="parent" />
 
-    <com.android.blackboxa.widget.MainBottomNavView
+    <com.android.bba.widget.MainBottomNavView
             android:id="@+id/bottom_nav"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

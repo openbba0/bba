@@ -12,4 +12,5 @@
     <color name="nav_apps">#3D7EFF</color>
     <color name="nav_setting">#F08C2A</color>
     <color name="nav_me">#22A06B</color>
+    <color name="ic_launcher_background">#14161A</color>
 </resources>

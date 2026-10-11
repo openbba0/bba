@@ -35,8 +35,8 @@ import javax.tools.Diagnostic;
 @SupportedAnnotationTypes("*")
 public class AppHookProcessor extends AbstractProcessor {
 
-    private static final String APP_HOOK = "com.android.blackbox.hook.guest.AppHook";
-    private static final String PACKAGE = "com.android.blackbox.hook.guest";
+    private static final String APP_HOOK = "com.android.bb.hook.guest.AppHook";
+    private static final String PACKAGE = "com.android.bb.hook.guest";
     private static final String REGISTRY = "AppHookRegistry";
 
     private boolean collected;

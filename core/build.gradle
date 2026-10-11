@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
-    namespace 'com.android.blackbox'
+    namespace 'com.android.bb'
 
     compileSdk rootProject.ext.compileSdkVersion
 
