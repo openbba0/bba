@@ -29,4 +29,15 @@
         <item name="android:windowBackground">@drawable/splash</item>
     </style>
 
+    <style name="PageTitle">
+        <item name="android:textColor">@color/primary_text</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="PageSubtitle">
+        <item name="android:textColor">@color/secondary_text</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
 </resources>

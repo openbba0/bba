@@ -6,25 +6,19 @@ import android.net.Uri
 import android.net.VpnService
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
+import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.edit
 import androidx.viewpager2.widget.ViewPager2
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.input.input
 import com.android.blackbox.BlackBoxCore
 import com.android.blackboxa.R
 import com.android.blackboxa.app.App
-import com.android.blackboxa.app.AppManager
 import com.android.blackboxa.databinding.ActivityMainBinding
 import com.android.blackboxa.util.Resolution
 import com.android.blackboxa.util.inflate
 import com.android.blackboxa.view.apps.AppsFragment
 import com.android.blackboxa.view.base.LoadingActivity
-import com.android.blackboxa.view.fake.FakeManagerActivity
 import com.android.blackboxa.view.list.ListActivity
-import com.android.blackboxa.view.setting.SettingActivity
 
 class MainActivity : LoadingActivity() {
 
@@ -58,10 +52,9 @@ class MainActivity : LoadingActivity() {
             }
 
             setContentView(viewBinding.root)
-            initToolbar(viewBinding.toolbarLayout.toolbar, R.string.app_name)
             initViewPager()
             initFab()
-            initToolbarSubTitle()
+            initBottomNav()
 
             
             checkStoragePermission()
@@ -246,39 +239,6 @@ class MainActivity : LoadingActivity() {
         }
     }
 
-    private fun initToolbarSubTitle() {
-        try {
-            updateUserRemark(0)
-            
-            viewBinding.toolbarLayout.toolbar.getChildAt(1)?.setOnClickListener {
-                try {
-                    MaterialDialog(this).show {
-                        title(res = R.string.userRemark)
-                        input(
-                                hintRes = R.string.userRemark,
-                                prefill = viewBinding.toolbarLayout.toolbar.subtitle
-                        ) { _, input ->
-                            try {
-                                AppManager.mRemarkSharedPreferences.edit {
-                                    putString("Remark$currentUser", input.toString())
-                                    viewBinding.toolbarLayout.toolbar.subtitle = input
-                                }
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Error saving user remark: ${e.message}")
-                            }
-                        }
-                        positiveButton(res = R.string.done)
-                        negativeButton(res = R.string.cancel)
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error showing remark dialog: ${e.message}")
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in initToolbarSubTitle: ${e.message}")
-        }
-    }
-
     private fun initViewPager() {
         try {
             val userList = BlackBoxCore.get().users
@@ -297,7 +257,6 @@ class MainActivity : LoadingActivity() {
                             try {
                                 super.onPageSelected(position)
                                 currentUser = fragmentList[position].userID
-                                updateUserRemark(currentUser)
                                 showFloatButton(true)
                             } catch (e: Exception) {
                                 Log.e(TAG, "Error in onPageSelected: ${e.message}")
@@ -327,7 +286,29 @@ class MainActivity : LoadingActivity() {
         }
     }
 
+    private fun initBottomNav() {
+        viewBinding.bottomNav.onTabSelected = { tabId -> applyNavChrome(tabId) }
+    }
+
+    private fun applyNavChrome(tabId: Int) {
+        val showApps = tabId == R.id.nav_apps
+        val showSetting = tabId == R.id.nav_setting
+        viewBinding.viewPager.visibility = if (showApps) View.VISIBLE else View.GONE
+        viewBinding.dotsIndicator.visibility = if (showApps) View.VISIBLE else View.GONE
+        viewBinding.settingContainer.visibility = if (showSetting) View.VISIBLE else View.GONE
+        viewBinding.meContainer.visibility = if (tabId == R.id.nav_me) View.VISIBLE else View.GONE
+        if (showApps) {
+            viewBinding.fab.animate().cancel()
+            viewBinding.fab.translationY = 0f
+            viewBinding.fab.alpha = 1f
+            viewBinding.fab.visibility = View.VISIBLE
+        } else {
+            viewBinding.fab.visibility = View.GONE
+        }
+    }
+
     fun showFloatButton(show: Boolean) {
+        if (viewBinding.bottomNav.selectedTabId() != R.id.nav_apps) return
         try {
             val tranY: Float = Resolution.convertDpToPixel(120F, App.getContext())
             val time = 200L
@@ -357,21 +338,6 @@ class MainActivity : LoadingActivity() {
         }
     }
 
-    private fun updateUserRemark(userId: Int) {
-        try {
-            var remark =
-                    AppManager.mRemarkSharedPreferences.getString("Remark$userId", "User $userId")
-            if (remark.isNullOrEmpty()) {
-                remark = "User $userId"
-            }
-
-            viewBinding.toolbarLayout.toolbar.subtitle = remark
-        } catch (e: Exception) {
-            Log.e(TAG, "Error updating user remark: ${e.message}")
-            viewBinding.toolbarLayout.toolbar.subtitle = "User $userId"
-        }
-    }
-
     private val apkPathResult =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
                 try {
@@ -389,46 +355,4 @@ class MainActivity : LoadingActivity() {
                 }
             }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        try {
-            menuInflater.inflate(R.menu.menu_main, menu)
-            return true
-        } catch (e: Exception) {
-            Log.e(TAG, "Error creating options menu: ${e.message}")
-            return false
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        try {
-            when (item.itemId) {
-                R.id.main_git -> {
-                    val intent =
-                            Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse("https://github.com/ALEX5402/NewBlackbox")
-                            )
-                    startActivity(intent)
-                }
-                R.id.main_setting -> {
-                    SettingActivity.start(this)
-                }
-                R.id.main_tg -> {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/newblackboxa"))
-                    startActivity(intent)
-                }
-                R.id.fake_location -> {
-                    
-                    val intent = Intent(this, FakeManagerActivity::class.java)
-                    intent.putExtra("userID", 0)
-                    startActivity(intent)
-                }
-            }
-
-            return true
-        } catch (e: Exception) {
-            Log.e(TAG, "Error handling menu item selection: ${e.message}")
-            return false
-        }
-    }
 }

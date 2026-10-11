@@ -63,4 +63,17 @@
     <string name="disable_gms">禁用服務</string>
     <string name="disable_gms_hint">清除當前的穀歌服務環境？ 穀歌服務數據將被清除。</string>
     <string name="no_gms">現時，手機上沒有穀歌服務環境。</string>
+    <string name="nav_apps">應用</string>
+    <string name="apps_subtitle">點擊啟動，長按可管理</string>
+    <string name="nav_setting">設定</string>
+    <string name="setting_subtitle">沙盒運行與網路</string>
+    <string name="setting_section">功能</string>
+    <string name="send_logs">發送日誌</string>
+    <string name="send_logs_summary">上傳調試日誌給開發者</string>
+    <string name="nav_me">我的</string>
+    <string name="me_title">我的</string>
+    <string name="me_subtitle">版本與其他</string>
+    <string name="me_version_title">版本</string>
+    <string name="me_current_version">當前版本  v%s</string>
+    <string name="me_version_code">版本號  %d</string>
 </resources>

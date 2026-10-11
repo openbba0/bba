@@ -1,40 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        app:iconSpaceReserved="false">
 
-
-
-    <PreferenceCategory app:title="@string/other">
+    <PreferenceCategory
+            app:iconSpaceReserved="false"
+            app:title="@string/setting_section">
 
         <Preference
                 android:key="gms_manager"
                 android:title="@string/gms_manager"
-                android:summary="@string/jump_gms"/>
-
-
+                android:summary="@string/jump_gms"
+                app:iconSpaceReserved="false" />
 
         <SwitchPreferenceCompat
+                app:iconSpaceReserved="false"
                 app:key="root_hide"
                 app:title="@string/hide_root" />
 
         <SwitchPreferenceCompat
+                app:iconSpaceReserved="false"
                 app:key="daemon_enable"
                 app:title="@string/daemon_enable" />
 
         <SwitchPreferenceCompat
+                app:iconSpaceReserved="false"
                 app:key="use_vpn_network"
                 app:title="@string/use_vpn_network"
                 app:summary="@string/use_vpn_network_summary" />
 
         <SwitchPreferenceCompat
+                app:iconSpaceReserved="false"
                 app:key="disable_flag_secure"
                 app:title="@string/disable_flag_secure"
                 app:summary="@string/disable_flag_secure_summary" />
 
         <Preference
                 android:key="send_logs"
-                android:title="Send Logs"
-                android:summary="Upload debug logs to developer" />
+                android:title="@string/send_logs"
+                android:summary="@string/send_logs_summary"
+                app:iconSpaceReserved="false" />
 
     </PreferenceCategory>
 

@@ -1,1 +1,0 @@
-Android NDK: Your APP_BUILD_SCRIPT points to an unknown file: /Users/txc/NewBlackbox/Bcore/src/main/cpp/Android.mk    

@@ -64,4 +64,17 @@
     <string name="disable_gms">关闭服务</string>
     <string name="disable_gms_hint">是否清除当前Google服务环境？Google服务数据将被清空。</string>
     <string name="no_gms">当前手机没有Google服务环境。</string>
+    <string name="nav_apps">应用</string>
+    <string name="apps_subtitle">点击启动，长按可管理</string>
+    <string name="nav_setting">设置</string>
+    <string name="setting_subtitle">沙盒运行与网络</string>
+    <string name="setting_section">功能</string>
+    <string name="send_logs">发送日志</string>
+    <string name="send_logs_summary">上传调试日志给开发者</string>
+    <string name="nav_me">我的</string>
+    <string name="me_title">我的</string>
+    <string name="me_subtitle">版本与其他</string>
+    <string name="me_version_title">版本</string>
+    <string name="me_current_version">当前版本  v%s</string>
+    <string name="me_version_code">版本号  %d</string>
 </resources>

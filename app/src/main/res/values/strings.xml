@@ -68,4 +68,17 @@
     <string name="disable_gms">Disable Service</string>
     <string name="disable_gms_hint">Clear the current Google service environment? Google service data will be cleared.</string>
     <string name="no_gms">Currently, there is no Google service environment on mobile phones.</string>
+    <string name="nav_apps">Apps</string>
+    <string name="apps_subtitle">Tap to open, long press to manage</string>
+    <string name="nav_setting">Settings</string>
+    <string name="setting_subtitle">Sandbox runtime and network</string>
+    <string name="setting_section">Features</string>
+    <string name="send_logs">Send logs</string>
+    <string name="send_logs_summary">Upload debug logs to the developer</string>
+    <string name="nav_me">Me</string>
+    <string name="me_title">Me</string>
+    <string name="me_subtitle">Version and more</string>
+    <string name="me_version_title">Version</string>
+    <string name="me_current_version">Current version  v%s</string>
+    <string name="me_version_code">Version code  %d</string>
 </resources>

@@ -7,4 +7,9 @@
     <color name="primary_text">#212121</color>
     <color name="secondary_text">#757575</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="surface">#F5F5F5</color>
+    <color name="divider">#E0E0E0</color>
+    <color name="nav_apps">#3D7EFF</color>
+    <color name="nav_setting">#F08C2A</color>
+    <color name="nav_me">#22A06B</color>
 </resources>

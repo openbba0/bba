@@ -1,6 +1,10 @@
 package com.android.blackboxa.view.setting
 
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.android.blackbox.BlackBoxCore
@@ -10,6 +14,23 @@ import com.android.blackboxa.util.toast
 import com.android.blackboxa.view.gms.GmsManagerActivity
 
 class SettingFragment : PreferenceFragmentCompat() {
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        val preferenceView = super.onCreateView(inflater, container, savedInstanceState)
+        val root = inflater.inflate(R.layout.fragment_setting, container, false)
+        root.findViewById<ViewGroup>(R.id.prefHost).addView(
+            preferenceView,
+            ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
+        )
+        return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        listView.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.surface))
+        listView.clipToPadding = false
+        listView.setPadding(0, 4, 0, 24)
+    }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.setting, rootKey)
