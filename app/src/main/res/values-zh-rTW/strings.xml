@@ -64,7 +64,7 @@
     <string name="disable_gms_hint">清除當前的穀歌服務環境？ 穀歌服務數據將被清除。</string>
     <string name="no_gms">現時，手機上沒有穀歌服務環境。</string>
     <string name="nav_apps">應用</string>
-    <string name="apps_subtitle">點擊啟動，長按可管理</string>
+    <string name="apps_subtitle">同一應用可多次安裝，圖示數字區分分身</string>
     <string name="nav_setting">設定</string>
     <string name="setting_subtitle">沙盒運行與網路</string>
     <string name="setting_section">功能</string>

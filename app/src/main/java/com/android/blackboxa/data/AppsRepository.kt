@@ -391,6 +391,79 @@ class AppsRepository {
         }
     }
 
+    fun getAllVmInstallList(appsLiveData: MutableLiveData<List<AppInfo>>) {
+        try {
+            val blackBoxCore = BlackBoxCore.get()
+            val users = blackBoxCore.users.sortedBy { it.id }
+            val merged = mutableListOf<AppInfo>()
+            for (user in users) {
+                val applicationList = try {
+                    blackBoxCore.getInstalledApplications(0, user.id)
+                } catch (e: Exception) {
+                    Log.e(TAG, "getAllVmInstallList: user ${user.id}: ${e.message}")
+                    null
+                } ?: continue
+                for (applicationInfo in applicationList) {
+                    if (applicationInfo?.packageName.isNullOrBlank()) continue
+                    merged.add(
+                        AppInfo(
+                            safeLoadAppLabel(applicationInfo),
+                            safeLoadAppIcon(applicationInfo),
+                            applicationInfo.packageName,
+                            applicationInfo.sourceDir ?: "",
+                            false,
+                            user.id,
+                        )
+                    )
+                }
+            }
+            val indexed = merged.groupBy { it.packageName }.flatMap { (_, items) ->
+                items.sortedBy { it.userId }.mapIndexed { index, info -> info.copy(cloneIndex = index + 1) }
+            }
+            val order = AppManager.mRemarkSharedPreferences.getString("AppListAll", "")
+                ?.split(",")
+                ?.mapIndexed { index, key -> key to index }
+                ?.toMap()
+                .orEmpty()
+            val sorted = indexed.sortedWith(
+                compareBy(
+                    { order["${it.packageName}#${it.userId}"] ?: Int.MAX_VALUE },
+                    { it.name.lowercase() },
+                    { it.cloneIndex },
+                )
+            )
+            appsLiveData.postValue(sorted)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in getAllVmInstallList: ${e.message}")
+            appsLiveData.postValue(emptyList())
+        }
+    }
+
+    private fun resolvePackageName(source: String): String? {
+        return try {
+            if (URLUtil.isValidUrl(source)) {
+                null
+            } else if (File(source).exists()) {
+                BlackBoxCore.getPackageManager().getPackageArchiveInfo(source, 0)?.packageName
+            } else {
+                source.takeIf { it.isNotBlank() && !it.contains("/") }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not resolve package name: ${e.message}")
+            null
+        }
+    }
+
+    private fun nextUserId(packageName: String): Int {
+        val core = BlackBoxCore.get()
+        val ids = core.users.map { it.id }.toSet()
+        var candidate = 0
+        while (candidate in ids && core.isInstalled(packageName, candidate)) {
+            candidate++
+        }
+        return candidate
+    }
+
     fun installApk(source: String, userId: Int, resultLiveData: MutableLiveData<String>) {
         try {
             
@@ -425,16 +498,17 @@ class AppsRepository {
             }
 
             val blackBoxCore = BlackBoxCore.get()
+            val targetUser = resolvePackageName(source)?.let { nextUserId(it) } ?: userId
             val installResult =
                     if (URLUtil.isValidUrl(source)) {
                         val uri = Uri.parse(source)
-                        blackBoxCore.installPackageAsUser(uri, userId)
+                        blackBoxCore.installPackageAsUser(uri, targetUser)
                     } else {
-                        blackBoxCore.installPackageAsUser(source, userId)
+                        blackBoxCore.installPackageAsUser(source, targetUser)
                     }
 
             if (installResult.success) {
-                updateAppSortList(userId, installResult.packageName, true)
+                updateAppSortList(targetUser, installResult.packageName, true)
                 resultLiveData.postValue(getString(R.string.install_success))
             } else {
                 resultLiveData.postValue(getString(R.string.install_fail, installResult.msg))
@@ -538,6 +612,17 @@ class AppsRepository {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error updating APK order: ${e.message}")
+        }
+    }
+
+    fun updateAllApkOrder(dataList: List<AppInfo>) {
+        try {
+            AppManager.mRemarkSharedPreferences.edit().apply {
+                putString("AppListAll", dataList.joinToString(",") { "${it.packageName}#${it.userId}" })
+                apply()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating all APK order: ${e.message}")
         }
     }
 }

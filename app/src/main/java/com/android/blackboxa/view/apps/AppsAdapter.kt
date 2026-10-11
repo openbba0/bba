@@ -69,6 +69,7 @@ class AppsAdapter : RVHolderFactory() {
                 
                 
                 binding.name.text = item.name ?: "Unknown App"
+                binding.bindCloneBadge(item.cloneIndex)
                 
                 
                 if (item.isXpModule) {
@@ -141,6 +142,7 @@ class AppsAdapter : RVHolderFactory() {
             try {
                 binding.icon.setImageDrawable(createDefaultIcon())
                 binding.name.text = "Unknown App"
+                binding.cloneBadge.visibility = View.GONE
                 binding.cornerLabel.visibility = View.INVISIBLE
             } catch (e: Exception) {
                 Log.e(TAG, "Error setting safe defaults: ${e.message}")
@@ -157,10 +159,20 @@ class AppsAdapter : RVHolderFactory() {
                 
                 binding.icon.setImageDrawable(ColorDrawable(DEFAULT_ICON_COLOR))
                 binding.name.text = item.name ?: "Unknown App"
+                binding.bindCloneBadge(item.cloneIndex)
                 binding.cornerLabel.visibility = View.INVISIBLE
             } catch (e: Exception) {
                 Log.e(TAG, "Error in fallback ViewHolder: ${e.message}")
             }
         }
+    }
+}
+
+private fun ItemAppBinding.bindCloneBadge(cloneIndex: Int) {
+    if (cloneIndex <= 1) {
+        cloneBadge.visibility = View.GONE
+    } else {
+        cloneBadge.visibility = View.VISIBLE
+        cloneBadge.text = cloneIndex.toString()
     }
 }

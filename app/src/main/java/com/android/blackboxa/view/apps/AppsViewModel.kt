@@ -23,6 +23,12 @@ class AppsViewModel(private val repo: AppsRepository) : BaseViewModel() {
             repo.getVmInstallList(userId, appsLiveData)
         }
     }
+
+    fun getInstalledApps() {
+        launchOnUI {
+            repo.getAllVmInstallList(appsLiveData)
+        }
+    }
     
     
     fun getInstalledAppsWithRetry(userId: Int, maxRetries: Int = 3) {
@@ -30,7 +36,7 @@ class AppsViewModel(private val repo: AppsRepository) : BaseViewModel() {
         
         fun attemptLoad() {
             launchOnUI {
-                repo.getVmInstallList(userId, appsLiveData)
+                repo.getAllVmInstallList(appsLiveData)
                 
                 
                 val currentApps = appsLiveData.value
@@ -76,6 +82,12 @@ class AppsViewModel(private val repo: AppsRepository) : BaseViewModel() {
     fun updateApkOrder(userID: Int,dataList:List<AppInfo>){
         launchOnUI {
             repo.updateApkOrder(userID,dataList)
+        }
+    }
+
+    fun updateApkOrder(dataList: List<AppInfo>) {
+        launchOnUI {
+            repo.updateAllApkOrder(dataList)
         }
     }
 }

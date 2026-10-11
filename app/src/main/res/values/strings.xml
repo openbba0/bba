@@ -69,7 +69,7 @@
     <string name="disable_gms_hint">Clear the current Google service environment? Google service data will be cleared.</string>
     <string name="no_gms">Currently, there is no Google service environment on mobile phones.</string>
     <string name="nav_apps">Apps</string>
-    <string name="apps_subtitle">Tap to open, long press to manage</string>
+    <string name="apps_subtitle">Install the same app more than once. The number marks each copy</string>
     <string name="nav_setting">Settings</string>
     <string name="setting_subtitle">Sandbox runtime and network</string>
     <string name="setting_section">Features</string>

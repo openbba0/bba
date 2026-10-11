@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.viewpager2.widget.ViewPager2
 import com.afollestad.materialdialogs.MaterialDialog
 import com.android.blackbox.BlackBoxCore
 import com.android.blackboxa.R
@@ -23,12 +22,6 @@ import com.android.blackboxa.view.list.ListActivity
 class MainActivity : LoadingActivity() {
 
     private val viewBinding: ActivityMainBinding by inflate()
-
-    private lateinit var mViewPagerAdapter: ViewPagerAdapter
-
-    private val fragmentList = mutableListOf<AppsFragment>()
-
-    private var currentUser = 0
 
     companion object {
         private const val TAG = "MainActivity"
@@ -52,7 +45,6 @@ class MainActivity : LoadingActivity() {
             }
 
             setContentView(viewBinding.root)
-            initViewPager()
             initFab()
             initBottomNav()
 
@@ -239,44 +231,11 @@ class MainActivity : LoadingActivity() {
         }
     }
 
-    private fun initViewPager() {
-        try {
-            val userList = BlackBoxCore.get().users
-            userList.forEach { fragmentList.add(AppsFragment.newInstance(it.id)) }
-
-            currentUser = userList.firstOrNull()?.id ?: 0
-            fragmentList.add(AppsFragment.newInstance(userList.size))
-
-            mViewPagerAdapter = ViewPagerAdapter(this)
-            mViewPagerAdapter.replaceData(fragmentList)
-            viewBinding.viewPager.adapter = mViewPagerAdapter
-            viewBinding.dotsIndicator.setViewPager2(viewBinding.viewPager)
-            viewBinding.viewPager.registerOnPageChangeCallback(
-                    object : ViewPager2.OnPageChangeCallback() {
-                        override fun onPageSelected(position: Int) {
-                            try {
-                                super.onPageSelected(position)
-                                currentUser = fragmentList[position].userID
-                                showFloatButton(true)
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Error in onPageSelected: ${e.message}")
-                            }
-                        }
-                    }
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in initViewPager: ${e.message}")
-        }
-    }
-
     private fun initFab() {
         try {
             viewBinding.fab.setOnClickListener {
                 try {
-                    val userId = viewBinding.viewPager.currentItem
-                    val intent = Intent(this, ListActivity::class.java)
-                    intent.putExtra("userID", userId)
-                    apkPathResult.launch(intent)
+                    apkPathResult.launch(Intent(this, ListActivity::class.java))
                 } catch (e: Exception) {
                     Log.e(TAG, "Error launching ListActivity: ${e.message}")
                 }
@@ -293,8 +252,7 @@ class MainActivity : LoadingActivity() {
     private fun applyNavChrome(tabId: Int) {
         val showApps = tabId == R.id.nav_apps
         val showSetting = tabId == R.id.nav_setting
-        viewBinding.viewPager.visibility = if (showApps) View.VISIBLE else View.GONE
-        viewBinding.dotsIndicator.visibility = if (showApps) View.VISIBLE else View.GONE
+        viewBinding.appsContainer.visibility = if (showApps) View.VISIBLE else View.GONE
         viewBinding.settingContainer.visibility = if (showSetting) View.VISIBLE else View.GONE
         viewBinding.meContainer.visibility = if (tabId == R.id.nav_me) View.VISIBLE else View.GONE
         if (showApps) {
@@ -322,32 +280,14 @@ class MainActivity : LoadingActivity() {
         }
     }
 
-    fun scanUser() {
-        try {
-            val userList = BlackBoxCore.get().users
-
-            if (fragmentList.size == userList.size) {
-                fragmentList.add(AppsFragment.newInstance(fragmentList.size))
-            } else if (fragmentList.size > userList.size + 1) {
-                fragmentList.removeLast()
-            }
-
-            mViewPagerAdapter.notifyDataSetChanged()
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in scanUser: ${e.message}")
-        }
-    }
-
     private val apkPathResult =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
                 try {
                     if (it.resultCode == RESULT_OK) {
-                        it.data?.let { data ->
-                            val userId = data.getIntExtra("userID", 0)
-                            val source = data.getStringExtra("source")
-                            if (source != null) {
-                                fragmentList[userId].installApk(source)
-                            }
+                        val source = it.data?.getStringExtra("source")
+                        if (source != null) {
+                            val apps = supportFragmentManager.findFragmentById(R.id.apps_container) as? AppsFragment
+                            apps?.installApk(source)
                         }
                     }
                 } catch (e: Exception) {

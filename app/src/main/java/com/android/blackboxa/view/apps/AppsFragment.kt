@@ -61,7 +61,7 @@ class AppsFragment : Fragment() {
             super.onCreate(savedInstanceState)
             viewModel =
                 ViewModelProvider(this, InjectionUtil.getAppsFactory()).get(AppsViewModel::class.java)
-            userID = requireArguments().getInt("userID", 0)
+            userID = arguments?.getInt("userID", 0) ?: 0
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreate: ${e.message}")
         }
@@ -148,7 +148,7 @@ class AppsFragment : Fragment() {
             mAdapter.setItemClickListener { _, data, _ ->
                 try {
                     showLoading()
-                    viewModel.launchApk(data.packageName, userID)
+                    viewModel.launchApk(data.packageName, data.userId)
                 } catch (e: Exception) {
                     Log.e(TAG, "Error launching app: ${e.message}")
                     hideLoading()
@@ -183,13 +183,13 @@ class AppsFragment : Fragment() {
                 BlackBoxCore.get().addServiceAvailableCallback {
                     Log.d(TAG, "Services became available, refreshing app list")
                     
-                    viewModel.getInstalledAppsWithRetry(userID)
+                    viewModel.getInstalledApps()
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error registering service available callback: ${e.message}")
             }
             
-            viewModel.getInstalledAppsWithRetry(userID)
+            viewModel.getInstalledApps()
         } catch (e: Exception) {
             Log.e(TAG, "Error in onStart: ${e.message}")
         }
@@ -357,7 +357,7 @@ class AppsFragment : Fragment() {
                                     }
 
                                     R.id.app_shortcut -> {
-                                        ShortcutUtil.createShortcut(requireContext(), userID, data)
+                                        ShortcutUtil.createShortcut(requireContext(), data.userId, data)
                                     }
                                 }
                                 return@setOnMenuItemClickListener true
@@ -380,7 +380,7 @@ class AppsFragment : Fragment() {
     private fun initData() {
         try {
             viewBinding.stateView.showLoading()
-            viewModel.getInstalledApps(userID)
+            viewModel.getInstalledApps()
             viewModel.appsLiveData.observe(viewLifecycleOwner) {
                 try {
                     if (it != null) {
@@ -401,8 +401,7 @@ class AppsFragment : Fragment() {
                     if (!TextUtils.isEmpty(it)) {
                         hideLoading()
                         requireContext().toast(it)
-                        viewModel.getInstalledApps(userID)
-                        scanUser()
+                        viewModel.getInstalledApps()
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error observing result data: ${e.message}")
@@ -425,7 +424,7 @@ class AppsFragment : Fragment() {
             viewModel.updateSortLiveData.observe(viewLifecycleOwner) {
                 try {
                     if (this::mAdapter.isInitialized) {
-                        viewModel.updateApkOrder(userID, mAdapter.getItems())
+                        viewModel.updateApkOrder(mAdapter.getItems())
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error observing sort data: ${e.message}")
@@ -454,7 +453,7 @@ class AppsFragment : Fragment() {
                 positiveButton(R.string.done) {
                     try {
                         showLoading()
-                        viewModel.unInstall(info.packageName, userID)
+                        viewModel.unInstall(info.packageName, info.userId)
                     } catch (e: Exception) {
                         Log.e(TAG, "Error uninstalling app: ${e.message}")
                         hideLoading()
@@ -475,7 +474,7 @@ class AppsFragment : Fragment() {
                 message(text = getString(R.string.app_stop_hint,info.name))
                 positiveButton(R.string.done) {
                     try {
-                        BlackBoxCore.get().stopPackage(info.packageName, userID)
+                        BlackBoxCore.get().stopPackage(info.packageName, info.userId)
                         toast(getString(R.string.is_stop,info.name))
                     } catch (e: Exception) {
                         Log.e(TAG, "Error stopping app: ${e.message}")
@@ -497,7 +496,7 @@ class AppsFragment : Fragment() {
                 positiveButton(R.string.done) {
                     try {
                         showLoading()
-                        viewModel.clearApkData(info.packageName, userID)
+                        viewModel.clearApkData(info.packageName, info.userId)
                     } catch (e: Exception) {
                         Log.e(TAG, "Error clearing app data: ${e.message}")
                         hideLoading()
@@ -513,18 +512,10 @@ class AppsFragment : Fragment() {
     fun installApk(source: String) {
         try {
             showLoading()
-            viewModel.install(source, userID)
+            viewModel.install(source, 0)
         } catch (e: Exception) {
             Log.e(TAG, "Error installing APK: ${e.message}")
             hideLoading()
-        }
-    }
-
-    private fun scanUser() {
-        try {
-            (requireActivity() as? MainActivity)?.scanUser()
-        } catch (e: Exception) {
-            Log.e(TAG, "Error scanning user: ${e.message}")
         }
     }
 

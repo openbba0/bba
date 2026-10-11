@@ -31,6 +31,17 @@
                 app:text="XP"
                 app:text_color="@color/white"
                 app:text_size="8sp" />
+
+        <TextView
+                android:id="@+id/cloneBadge"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="bottom|end"
+                android:background="@drawable/bg_clone_badge"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold" />
     </FrameLayout>
 
     <TextView

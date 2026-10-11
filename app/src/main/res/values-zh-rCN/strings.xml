@@ -65,7 +65,7 @@
     <string name="disable_gms_hint">是否清除当前Google服务环境？Google服务数据将被清空。</string>
     <string name="no_gms">当前手机没有Google服务环境。</string>
     <string name="nav_apps">应用</string>
-    <string name="apps_subtitle">点击启动，长按可管理</string>
+    <string name="apps_subtitle">同一应用可多次安装，图标数字区分分身</string>
     <string name="nav_setting">设置</string>
     <string name="setting_subtitle">沙盒运行与网络</string>
     <string name="setting_section">功能</string>

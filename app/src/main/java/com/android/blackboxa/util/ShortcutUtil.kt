@@ -23,7 +23,7 @@ object ShortcutUtil {
     fun createShortcut(context: Context,userID: Int, info: AppInfo) {
 
         if (ShortcutManagerCompat.isRequestPinShortcutSupported(context)) {
-            val labelName = info.name + userID
+            val labelName = if (info.cloneIndex <= 1) info.name else info.name + info.cloneIndex
             val intent = Intent(context, ShortcutActivity::class.java)
                 .setAction(Intent.ACTION_MAIN)
                 .putExtra("pkg", info.packageName)
