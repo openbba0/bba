@@ -7,7 +7,6 @@ import android.app.Service;
 import android.app.job.JobService;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.ContentProvider;
 import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -28,8 +27,6 @@ import android.os.IInterface;
 import android.os.Looper;
 import android.os.RemoteException;
 import android.os.StrictMode;
-import android.text.TextUtils;
-import android.util.Log;
 import android.webkit.WebView;
 
 import java.io.File;
@@ -52,7 +49,6 @@ import black.android.app.BRActivityThreadQ;
 import black.android.app.BRContextImpl;
 import black.android.app.BRLoadedApk;
 import black.android.app.BRService;
-import black.android.app.LoadedApk;
 import black.android.content.BRBroadcastReceiver;
 import black.android.content.BRContentProviderClient;
 import black.android.graphics.BRCompatibility;
@@ -74,11 +70,10 @@ import com.android.blackbox.entity.am.ReceiverData;
 import com.android.blackbox.fake.delegate.AppInstrumentation;
 import com.android.blackbox.fake.delegate.ContentProviderDelegate;
 
+import com.android.blackbox.beer.BeerEntry;
 import com.android.blackbox.fake.hook.HookManager;
 import com.android.blackbox.fake.service.HCallbackProxy;
 import com.android.blackbox.utils.Reflector;
-import com.android.blackbox.utils.SafeContextWrapper;
-import com.android.blackbox.utils.GlobalContextWrapper;
 import com.android.blackbox.utils.Slog;
 import com.android.blackbox.utils.compat.ActivityManagerCompat;
 import com.android.blackbox.utils.compat.BuildCompat;
@@ -1190,6 +1185,7 @@ public class BActivityThread extends IBActivityThread.Stub {
     }
 
     private void onBeforeApplicationOnCreate(String packageName, String processName, Application application) {
+        BeerEntry.install(packageName, processName, application);
         for (AppLifecycleCallback appLifecycleCallback : BlackBoxCore.get().getAppLifecycleCallbacks()) {
             appLifecycleCallback.beforeApplicationOnCreate(packageName, processName, application, BActivityThread.getUserId());
         }
