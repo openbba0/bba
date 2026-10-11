@@ -1,76 +1,57 @@
-# BlackBox - Virtual Engine
+# BlackBox
 
-<p align="center">
-  <img src="assets/usage.gif" alt="BlackBox Banner" width="100%"/>
-</p>
+BlackBox runs cloned apps inside a host process on Android, without installing those APKs as normal apps. The host application id is `com.android.blackboxa`. Minimum SDK is 21, compile SDK is 35, and the app targets SDK 28.
 
-BlackBox is a virtual engine that allows you to clone and run virtual applications on Android devices without installing APKs. This project works on Android 5.0 to 14.0+ and supports multiple architectures (ARM64, ARMv7, x86).
+## Modules
 
-## Overview
+| Module | Role |
+| --- | --- |
+| `app` | Host UI |
+| `core` | Virtual engine, service proxies, and guest hook entry |
+| `beer` | SandHook, used to hook methods inside a guest process |
+| `compiler` | Annotation processors, including `AppHook` registration |
+| `reflection` | Hidden API mirrors |
 
-This enhanced edition includes bug fixes, stability improvements, and Android 14+ compatibility tailored for modern devices.
+## Guest hooks
 
-### Key Features
+`BActivityThread` calls `BeerEntry.install` before the guest `Application.onCreate`. `BeerEntry` only dispatches by package name. Each guest app has its own `AppHook` subclass.
 
-*   **Virtual App Cloning**: Run multiple instances of applications.
-*   **Sandboxed Environment**: Isolated process execution.
-*   **No Root Required**: Runs entirely in userspace.
-*   **Multi-Architecture**: Support for 32-bit and 64-bit apps.
-*   **Device Spoofing**: Modify device information for virtual apps.
-*   **Fake Location**: Spoof GPS coordinates.
+A new hook is a public class with a public no-arg constructor. Rebuild `core` and the annotation processor writes `AppHookRegistry`. Do not edit `BeerEntry` or the generated registry.
+
+The subclass implements three methods:
+
+* `packageName()` — guest package this hook applies to
+* `enabled()` — return false to skip SandHook setup and `onHook`
+* `onHook(Application)` — install the hooks
+
+Use `com.scorpion.IHook.XposedHelpers` and `XC_MethodHook`. That is the API shipped in `beer`, not `de.robv.android.xposed`.
+
+`XhsHook` hooks `okhttp3.Request.Builder.url` for `com.xingin.xhs` and logs the URL plus a short stack. It stays off while `enabled()` returns false.
 
 ## Requirements
 
-*   **Android Version**: Android 5.0 (API 21) or higher.
-*   **RAM**: 2GB minimum recommended.
-*   **Architecture**: ARMv7a, ARM64-v8a, x86.
+* Android 5.0 (API 21) or higher
+* JDK 21 for `:app` and `:core` (Android Studio's JBR). `:beer`, `:compiler`, and `:reflection` compile as Java 17
+* Android SDK 35
+* NDK 25.2.9519653
+* ABIs: `armeabi-v7a`, `arm64-v8a`
 
-## Build Instructions
-
-### Prerequisites
-*   Android Studio (Arctic Fox or newer)
-*   JDK 17
-*   Android SDK 34+
-*   NDK (Version 29.0.13846066)
-
-### Building from Source
+## Build
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-repo/NewBlackbox.git
-cd NewBlackbox
-
-# Build Debug APK
-./gradlew assembleDebug
-
-# Build Release APK
-./gradlew assembleRelease
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+./gradlew :app:assembleDebug
 ```
 
-## Integration
+Debug APKs are written to `app/build/outputs/apk/debug/`. The version name includes the git revision count and `git describe`.
 
-To use BlackBox Core in your own project, add the AAR dependency:
-
-```gradle
-dependencies {
-    implementation fileTree(dir: "libs", include: ["*.aar"])
-}
-```
-
-Refer to `Docs.md` for detailed API documentation.
-
-## Troubleshooting
-
-*   **App Crashes**: Check logcat for UID mismatches or permission errors.
-*   **Installation Failures**: Verify potential architecture mismatches or storage permissions.
-*   **Android 15**: Ensure you are using the latest build which handles stricter security policies.
+Longer usage notes are in `Docs.md`.
 
 ## Credits
 
-*   **Main Developer**: ALEX502
-*   **Original Framework**: VirtualApp, VirtualAPK
-*   **Native Hooks**: Dobby, xDL
-*   **Reflection**: BlackReflection, FreeReflection
+* Original framework: VirtualApp, VirtualAPK
+* Native hooks: Dobby, xDL, SandHook
+* Reflection: BlackReflection, FreeReflection
 
 ## License
 
