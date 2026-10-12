@@ -51,8 +51,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           apk=$(ls app/build/outputs/apk/release/*.apk)
-          title=$(basename "$apk" .apk)
-          tag="build-${GITHUB_RUN_NUMBER}"
+          number=$(git rev-list --count HEAD)
+          tag="V${number}"
+          title="$tag"
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$tag" "$apk" --repo "$GITHUB_REPOSITORY" --clobber
           else
