@@ -21,11 +21,6 @@ public abstract class ClientConfiguration {
         return true;
     }
 
-    
-    public boolean isUseVpnNetwork() {
-        return false;
-    }
-
     public boolean isDisableFlagSecure() {
         return false;
     }

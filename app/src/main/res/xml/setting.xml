@@ -25,12 +25,6 @@
 
         <SwitchPreferenceCompat
                 app:iconSpaceReserved="false"
-                app:key="use_vpn_network"
-                app:title="@string/use_vpn_network"
-                app:summary="@string/use_vpn_network_summary" />
-
-        <SwitchPreferenceCompat
-                app:iconSpaceReserved="false"
                 app:key="disable_flag_secure"
                 app:title="@string/disable_flag_secure"
                 app:summary="@string/disable_flag_secure_summary" />

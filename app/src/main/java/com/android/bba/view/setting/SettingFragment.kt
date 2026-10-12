@@ -53,13 +53,6 @@ class SettingFragment : PreferenceFragmentCompat() {
         }
 
         invalidHideState {
-            val vpnPreference: Preference = (findPreference("use_vpn_network")!!)
-            val mUseVpnNetwork = AppManager.mBlackBoxLoader.useVpnNetwork()
-            vpnPreference.setDefaultValue(mUseVpnNetwork)
-            vpnPreference
-        }
-
-        invalidHideState {
             val disableFlagSecurePreference: Preference = (findPreference("disable_flag_secure")!!)
             val mDisableFlagSecure = AppManager.mBlackBoxLoader.disableFlagSecure()
             disableFlagSecurePreference.setDefaultValue(mDisableFlagSecure)
@@ -105,9 +98,6 @@ class SettingFragment : PreferenceFragmentCompat() {
                 }
                 "daemon_enable" -> {
                     AppManager.mBlackBoxLoader.invalidDaemonEnable(tmpHide)
-                }
-                "use_vpn_network" -> {
-                    AppManager.mBlackBoxLoader.invalidUseVpnNetwork(tmpHide)
                 }
                 "disable_flag_secure" -> {
                     AppManager.mBlackBoxLoader.invalidDisableFlagSecure(tmpHide)
