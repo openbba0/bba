@@ -36,26 +36,27 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build debug APK
-        run: chmod +x ./gradlew && ./gradlew :app:assembleDebug --stacktrace
+      - name: Build release APK
+        run: chmod +x ./gradlew && ./gradlew :app:assembleRelease --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: BlackBox-debug
-          path: app/build/outputs/apk/debug/*.apk
+          name: release
+          path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          apk=$(ls app/build/outputs/apk/release/*.apk)
+          title=$(basename "$apk" .apk)
           tag="build-${GITHUB_RUN_NUMBER}"
-          title="BlackBox build ${GITHUB_RUN_NUMBER}"
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$tag" app/build/outputs/apk/debug/*.apk --repo "$GITHUB_REPOSITORY" --clobber
+            gh release upload "$tag" "$apk" --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create "$tag" app/build/outputs/apk/debug/*.apk \
+            gh release create "$tag" "$apk" \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
               --title "$title" \

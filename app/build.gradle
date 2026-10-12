@@ -17,14 +17,8 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        splits {
-            abi {
-                enable true
-                reset()
-                
-                include 'armeabi-v7a', "arm64-v8a"
-                universalApk true
-            }
+        ndk {
+            abiFilters 'arm64-v8a'
         }
     }
 
@@ -56,7 +50,7 @@ android {
     }
     applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
-            output.outputFileName = "BlackBox_${variant.versionName}_${output.baseName}.apk"
+            output.outputFileName = "com.android.bba_${variant.versionCode}_${variant.buildType.name}.apk"
         }
     }
 }
