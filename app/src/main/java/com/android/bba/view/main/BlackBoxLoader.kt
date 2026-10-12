@@ -15,31 +15,12 @@ import com.android.bba.app.AppSharedPreferenceDelegate
 
 class BlackBoxLoader {
 
-    private var mHideRoot by AppSharedPreferenceDelegate(App.getContext(), false)
-
     private var mDaemonEnable by AppSharedPreferenceDelegate(App.getContext(), false)
     private var mShowShortcutPermissionDialog by AppSharedPreferenceDelegate(App.getContext(), true)
 
     private var mDisableFlagSecure by AppSharedPreferenceDelegate(App.getContext(), false)
 
     private var mXhsFingerprintDump by AppSharedPreferenceDelegate(App.getContext(), false)
-
-    fun hideRoot(): Boolean {
-        return try {
-            mHideRoot
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting hideRoot: ${e.message}")
-            false
-        }
-    }
-
-    fun invalidHideRoot(hideRoot: Boolean) {
-        try {
-            this.mHideRoot = hideRoot
-        } catch (e: Exception) {
-            Log.e(TAG, "Error setting hideRoot: ${e.message}")
-        }
-    }
 
     fun disableFlagSecure(): Boolean {
         return try {
@@ -231,15 +212,6 @@ class BlackBoxLoader {
                                     } catch (e: Exception) {
                                         Log.e(TAG, "Error getting package name: ${e.message}")
                                         "unknown"
-                                    }
-                                }
-
-                                override fun isHideRoot(): Boolean {
-                                    return try {
-                                        mHideRoot
-                                    } catch (e: Exception) {
-                                        Log.e(TAG, "Error checking hideRoot: ${e.message}")
-                                        false
                                     }
                                 }
 

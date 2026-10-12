@@ -23,7 +23,6 @@
     <string name="module_setting">模块管理</string>
     <string name="enable_xposed">启用Xposed框架</string>
     <string name="hider">伪装</string>
-    <string name="hide_root">隐藏Root</string>
     <string name="hide_xposed">隐藏Xposed框架</string>
     <string name="userRemark">用户备注</string>
     <string name="done">确定</string>

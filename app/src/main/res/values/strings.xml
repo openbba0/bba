@@ -22,7 +22,6 @@
     <string name="module_setting">Module Manager</string>
     <string name="enable_xposed">Enable Xposed Framework</string>
     <string name="hider">Hide</string>
-    <string name="hide_root">Hide Root</string>
     <string name="hide_xposed">Hide Xposed</string>
     <string name="userRemark">User Remark</string>
     <string name="done">Done</string>

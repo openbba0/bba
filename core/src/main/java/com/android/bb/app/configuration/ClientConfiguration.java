@@ -6,7 +6,7 @@ import java.io.File;
 public abstract class ClientConfiguration {
 
     public boolean isHideRoot() {
-        return false;
+        return true;
     }
 
 

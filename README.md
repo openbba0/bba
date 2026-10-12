@@ -10,7 +10,7 @@ BBA（界面名 BlackBox）是一个 Android 应用分身沙箱。宿主把已�
 - 给分身创建桌面快捷方式。
 - 在沙箱里维护自己的包管理、活动栈、任务、通知、账号、存储和定位。
 - 可选接入本机已有的 Google 服务环境，供依赖 GMS 的分身使用。
-- 设置里可以打开：隐藏 Root、守护进程、允许截图（关闭 `FLAG_SECURE`）、小红书指纹落盘。
+- 设置里可以打开：守护进程、允许截图（关闭 `FLAG_SECURE`）、小红书指纹落盘。分身默认隐藏常见 Root 路径和旧的超级用户应用。
 - 定位页可以给单个分身指定伪造坐标（预览功能）。
 - 开发机可以通过 Spindle 连上宿主，把脚本送进指定分身进程。arm64 上内置 Frida Gum 的 Interceptor 和 Stalker。
 
@@ -128,7 +128,7 @@ tools/               spindle 客户端和示例脚本
 `WelcomeActivity` 是启动页，`MainActivity` 是主页，底栏三项：
 
 - **应用**：按用户号分页的分身网格。长按可以强停、清数据、卸载、建快捷方式。
-- **设置**：GMS、隐藏 Root、守护进程、关闭 `FLAG_SECURE`、小红书指纹落盘、发送日志。
+- **设置**：GMS、守护进程、关闭 `FLAG_SECURE`、小红书指纹落盘、发送日志。
 - **我**：版本名和 versionCode。
 
 伪造定位在分身菜单里进入 `FakeManagerActivity`，地图用 osmdroid。

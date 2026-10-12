@@ -21,7 +21,6 @@
     <string name="module_setting">模塊管理器</string>
     <string name="enable_xposed">啟用Xposed框架</string>
     <string name="hider">偽裝</string>
-    <string name="hide_root">隱藏Root</string>
     <string name="hide_xposed">隱藏Xposed</string>
     <string name="userRemark">用戶備註</string>
     <string name="done">確定</string>

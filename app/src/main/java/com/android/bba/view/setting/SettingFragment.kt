@@ -39,13 +39,6 @@ class SettingFragment : PreferenceFragmentCompat() {
         initGms()
 
         invalidHideState {
-            val rootHidePreference: Preference = (findPreference("root_hide")!!)
-            val hideRoot = AppManager.mBlackBoxLoader.hideRoot()
-            rootHidePreference.setDefaultValue(hideRoot)
-            rootHidePreference
-        }
-
-        invalidHideState {
             val daemonPreference: Preference = (findPreference("daemon_enable")!!)
             val mDaemonEnable = AppManager.mBlackBoxLoader.daemonEnable()
             daemonPreference.setDefaultValue(mDaemonEnable)
@@ -92,10 +85,6 @@ class SettingFragment : PreferenceFragmentCompat() {
         pref.setOnPreferenceChangeListener { preference, newValue ->
             val tmpHide = (newValue == true)
             when (preference.key) {
-                "root_hide" -> {
-
-                    AppManager.mBlackBoxLoader.invalidHideRoot(tmpHide)
-                }
                 "daemon_enable" -> {
                     AppManager.mBlackBoxLoader.invalidDaemonEnable(tmpHide)
                 }

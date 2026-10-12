@@ -15,11 +15,6 @@
 
         <SwitchPreferenceCompat
                 app:iconSpaceReserved="false"
-                app:key="root_hide"
-                app:title="@string/hide_root" />
-
-        <SwitchPreferenceCompat
-                app:iconSpaceReserved="false"
                 app:key="daemon_enable"
                 app:title="@string/daemon_enable" />
 
