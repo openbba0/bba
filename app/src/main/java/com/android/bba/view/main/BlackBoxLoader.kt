@@ -15,7 +15,7 @@ import com.android.bba.app.AppSharedPreferenceDelegate
 
 class BlackBoxLoader {
 
-    private var mDaemonEnable by AppSharedPreferenceDelegate(App.getContext(), false)
+    private var mDaemonEnable by AppSharedPreferenceDelegate(App.getContext(), true)
     private var mShowShortcutPermissionDialog by AppSharedPreferenceDelegate(App.getContext(), true)
 
     private var mDisableFlagSecure by AppSharedPreferenceDelegate(App.getContext(), false)

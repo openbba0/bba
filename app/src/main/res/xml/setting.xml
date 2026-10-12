@@ -15,6 +15,7 @@
 
         <SwitchPreferenceCompat
                 app:iconSpaceReserved="false"
+                app:defaultValue="true"
                 app:key="daemon_enable"
                 app:title="@string/daemon_enable" />
 

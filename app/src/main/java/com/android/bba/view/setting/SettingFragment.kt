@@ -42,6 +42,9 @@ class SettingFragment : PreferenceFragmentCompat() {
             val daemonPreference: Preference = (findPreference("daemon_enable")!!)
             val mDaemonEnable = AppManager.mBlackBoxLoader.daemonEnable()
             daemonPreference.setDefaultValue(mDaemonEnable)
+            if (daemonPreference is SwitchPreferenceCompat) {
+                daemonPreference.isChecked = mDaemonEnable
+            }
             daemonPreference
         }
 
