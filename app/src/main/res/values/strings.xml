@@ -84,4 +84,13 @@
     <string name="me_version_title">Version</string>
     <string name="me_current_version">Current version  v%s</string>
     <string name="me_version_code">Version code  %d</string>
+    <string name="me_check_update">Check for updates</string>
+    <string name="me_update_checking">Checking…</string>
+    <string name="me_update_latest">Already up to date</string>
+    <string name="me_update_available">%1$s is available. Tap to update</string>
+    <string name="me_update_downloading">Downloading %1$d%%</string>
+    <string name="me_update_downloading_unknown">Downloading…</string>
+    <string name="me_update_installing">Opening the installer</string>
+    <string name="me_update_install_permission">Allow this app to install updates</string>
+    <string name="me_update_failed">Update failed. Tap to retry</string>
 </resources>

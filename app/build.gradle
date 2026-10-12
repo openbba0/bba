@@ -22,9 +22,18 @@ android {
         }
     }
 
+    signingConfigs {
+        bba {
+            storeFile file("bba-release.jks")
+            storePassword "bba-update"
+            keyAlias "bba"
+            keyPassword "bba-update"
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.bba
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }

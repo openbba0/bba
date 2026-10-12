@@ -79,4 +79,13 @@
     <string name="me_version_title">版本</string>
     <string name="me_current_version">當前版本  v%s</string>
     <string name="me_version_code">版本號  %d</string>
+    <string name="me_check_update">檢查更新</string>
+    <string name="me_update_checking">正在檢查…</string>
+    <string name="me_update_latest">已是最新版本</string>
+    <string name="me_update_available">發現新版本 %1$s，點擊更新</string>
+    <string name="me_update_downloading">正在下載 %1$d%%</string>
+    <string name="me_update_downloading_unknown">正在下載…</string>
+    <string name="me_update_installing">正在打開安裝</string>
+    <string name="me_update_install_permission">請允許安裝更新</string>
+    <string name="me_update_failed">更新失敗，點擊重試</string>
 </resources>
