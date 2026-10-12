@@ -486,7 +486,7 @@ class AppsRepository {
                                             .getPackageArchiveInfo(source, 0)
                             if (packageInfo != null && packageInfo.packageName == hostPackageName) {
                                 resultLiveData.postValue(
-                                        "Cannot install BlackBox app from within BlackBox. This would create infinite recursion and is not allowed for security reasons."
+                                        "Cannot install BBA from within BBA. This would create infinite recursion and is not allowed for security reasons."
                                 )
                                 return
                             }

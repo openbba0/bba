@@ -672,7 +672,7 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
             String packageName = packageArchiveInfo.packageName;
             String hostPackageName = BlackBoxCore.getHostPkg();
             if (packageName.equals(hostPackageName)) {
-                return result.installError("Cannot clone BlackBox app from within BlackBox. This would create infinite recursion and is not allowed for security reasons.");
+                return result.installError("Cannot clone BBA from within BBA. This would create infinite recursion and is not allowed for security reasons.");
             }
             
             

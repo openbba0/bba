@@ -521,7 +521,7 @@ public class BPackageManager extends BlackManager<IBPackageManagerService> {
                         String hostPackageName = BlackBoxCore.getHostPkg();
                         if (packageName.equals(hostPackageName)) {
                             Log.w(TAG, "Attempt to install BlackBox app detected and blocked: " + packageName);
-                            return new InstallResult().installError("Cannot clone BlackBox app from within BlackBox. This would create infinite recursion and is not allowed for security reasons.");
+                            return new InstallResult().installError("Cannot clone BBA from within BBA. This would create infinite recursion and is not allowed for security reasons.");
                         }
                     }
                 } catch (Exception e) {

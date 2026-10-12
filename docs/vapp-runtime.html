@@ -6,74 +6,86 @@
 <title>BBA 里的 VApp 怎么跑起来</title>
 <style>
   :root {
-    --ink: #1c1915;
-    --muted: #5c564c;
-    --line: #e4ddd2;
-    --paper: #f7f3ec;
-    --card: #fffdf9;
-    --accent: #9a3b24;
-    --accent-soft: #f3e4dc;
-    --code: #2a241e;
-    --chip: #efe8dc;
+    --surface: #0C0D11;
+    --card: #17191F;
+    --gold: #C6A36A;
+    --chrome: #F3F0E8;
+    --muted: #9A948A;
+    --line: #2C2E34;
+    --ink: #14120E;
+    --page: 820px;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
     margin: 0;
-    color: var(--ink);
-    background: var(--paper);
-    font: 17px/1.65 "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", serif;
+    color: var(--chrome);
+    background: var(--surface);
+    font: 16px/1.7 "PingFang SC", "Noto Sans SC", "Avenir Next", sans-serif;
   }
-  header {
-    padding: 64px 24px 28px;
-    border-bottom: 1px solid var(--line);
+  header, nav, main, footer { max-width: var(--page); margin: 0 auto; }
+  header { padding: 48px 24px 8px; }
+  .mark {
+    margin: 0;
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 0.34em;
   }
-  header, main { max-width: 820px; margin: 0 auto; }
   h1 {
-    margin: 0 0 12px;
-    font-size: 40px;
-    line-height: 1.15;
+    margin: 14px 0 0;
+    font-size: 28px;
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.06em;
+    line-height: 1.25;
   }
-  .lede { margin: 0; color: var(--muted); font-size: 19px; }
+  h1::after {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 2px;
+    margin-top: 12px;
+    background: var(--gold);
+  }
+  .lede { margin: 14px 0 0; color: var(--muted); font-size: 15px; }
   nav {
-    max-width: 820px;
-    margin: 0 auto;
-    padding: 18px 24px 0;
+    padding: 22px 24px 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 14px;
+    gap: 8px 16px;
   }
   nav a {
-    color: var(--accent);
+    color: var(--gold);
     text-decoration: none;
-    font: 13px/1.4 "Avenir Next", "PingFang SC", sans-serif;
-    letter-spacing: 0.01em;
+    font-size: 13px;
+    letter-spacing: 0.04em;
   }
-  nav a:hover { text-decoration: underline; }
-  main { padding: 8px 24px 80px; }
+  nav a:hover { color: var(--chrome); }
+  main { padding: 8px 24px 72px; }
   h2 {
-    margin: 42px 0 10px;
-    font-size: 24px;
+    margin: 40px 0 12px;
+    font-size: 20px;
     font-weight: 600;
+    letter-spacing: 0.04em;
   }
-  h3 { margin: 26px 0 8px; font-size: 18px; }
+  h3 { margin: 22px 0 8px; font-size: 16px; color: var(--chrome); }
   p { margin: 0 0 14px; }
+  a { color: var(--gold); }
   code, pre {
-    font-family: "IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
     font-size: 0.86em;
   }
   code {
-    background: var(--chip);
+    background: #1C1F27;
+    color: var(--gold);
     padding: 0.1em 0.35em;
     border-radius: 4px;
   }
   pre {
-    background: var(--code);
-    color: #f4efe6;
+    background: var(--card);
+    color: var(--chrome);
+    border: 1px solid var(--line);
+    border-radius: 16px;
     padding: 16px 18px;
-    border-radius: 10px;
     overflow: auto;
     line-height: 1.5;
   }
@@ -82,36 +94,32 @@
     width: 100%;
     border-collapse: collapse;
     margin: 8px 0 18px;
-    font: 15px/1.45 "Avenir Next", "PingFang SC", sans-serif;
     background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
   }
   th, td {
     text-align: left;
     vertical-align: top;
-    padding: 10px 12px;
+    padding: 12px 14px;
     border-bottom: 1px solid var(--line);
   }
-  th { font-weight: 600; color: var(--muted); font-size: 13px; }
-  .flow {
-    display: grid;
-    gap: 0;
-    margin: 18px 0 8px;
-  }
-  .step {
-    display: grid;
-    grid-template-columns: 36px 1fr;
-    gap: 12px;
-  }
+  th { font-weight: 600; color: var(--gold); font-size: 12px; letter-spacing: 0.06em; }
+  tr:last-child td { border-bottom: 0; }
+  .flow { display: grid; margin: 18px 0 8px; }
+  .step { display: grid; grid-template-columns: 36px 1fr; gap: 12px; }
   .step .n {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: var(--accent);
-    color: #fff;
+    background: var(--gold);
+    color: var(--ink);
     display: flex;
     align-items: center;
     justify-content: center;
-    font: 14px/1 "Avenir Next", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
     position: relative;
   }
   .step:not(:last-child) .n::after {
@@ -121,16 +129,15 @@
     left: 17px;
     width: 2px;
     height: calc(100% + 8px);
-    background: #e7cfc6;
+    background: var(--line);
   }
   .step .body {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 16px;
     padding: 12px 14px 10px;
     margin-bottom: 10px;
   }
-  .step strong { font-family: "Avenir Next", "PingFang SC", sans-serif; }
   .who {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -140,34 +147,48 @@
   .who article {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 14px;
+    border-radius: 16px;
+    padding: 16px;
   }
-  .who h3 { margin: 0 0 6px; font-size: 16px; }
-  .who p { margin: 0; font-size: 15px; color: var(--muted); }
+  .who h3 { margin: 0 0 6px; font-size: 15px; letter-spacing: 0.04em; }
+  .who p { margin: 0; font-size: 14px; color: var(--muted); }
+  figure.rel {
+    margin: 6px 0 22px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 12px 8px 8px;
+  }
+  figure.rel svg { display: block; width: 100%; height: auto; }
+  figure.rel figcaption {
+    margin: 8px 10px 4px;
+    color: var(--muted);
+    font-size: 13px;
+  }
   .note {
-    background: var(--accent-soft);
-    border-radius: 10px;
+    background: var(--card);
+    border-left: 2px solid var(--gold);
+    border-radius: 0 16px 16px 0;
     padding: 12px 14px;
     margin: 14px 0;
+    color: var(--chrome);
   }
   footer {
-    max-width: 820px;
-    margin: 0 auto;
     padding: 0 24px 48px;
     color: var(--muted);
-    font: 13px/1.5 "Avenir Next", "PingFang SC", sans-serif;
+    font-size: 13px;
   }
   @media (max-width: 700px) {
-    h1 { font-size: 32px; }
+    h1 { font-size: 24px; letter-spacing: 0.03em; }
     .who { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>BBA 里的 VApp 怎么跑起来</h1>
-  <p class="lede">VApp 是装进沙箱的那一份应用。系统里看不到它，真正活着的是宿主名下的一个桩进程；进程起来之后，再换上访客自己的 Application、组件和数据目录。</p>
+  <p class="mark">BBA</p>
+  <h1>VApp 怎么跑起来</h1>
+  <p class="lede">三道镀铬，一座座舱。装进沙箱的那一份应用在系统里看不到，活着的是宿主名下的桩进程；进程起来之后，再换上访客自己的 Application、组件和数据目录。</p>
 </header>
 <nav>
   <a href="#what">是什么</a>
@@ -185,22 +206,71 @@
 <main>
 
 <h2 id="what">是什么</h2>
-<p>BBA（界面名 BlackBox）是一个应用分身沙箱。宿主包名 <code>com.android.bba</code>，引擎包名 <code>com.android.bb</code>。同一份 APK 可以开多份，份与份之间用用户号 <code>userId</code> 分开，0 是第一份。</p>
+<p>BBA 是一个应用分身沙箱。宿主包名 <code>com.android.bba</code>，引擎包名 <code>com.android.bb</code>。同一份 APK 可以开多份，份与份之间用用户号 <code>userId</code> 分开，0 是第一份。</p>
 <p>代码里这份访客叫 <code>BAppClient</code>。它不是系统安装器装出来的独立应用：包信息记在宿主自己的包数据库里，Activity、Service、Provider 都先落到宿主 Manifest 里预先声明的桩组件，再在桩进程里还原成访客真正的类。</p>
 <div class="note">
   内核看到的 uid 始终是宿主的 uid。访客以为自己有独立包名、独立进程名、独立数据目录，这些是 Java 层改写和路径重定向做出来的。
 </div>
 
 <h2 id="procs">三种进程</h2>
-<p><code>BlackBoxCore.doAttachBaseContext</code> 用进程名把当前进程分成三类。</p>
+<p><code>BlackBoxCore.doAttachBaseContext</code> 用进程名把当前进程分成三类。主进程和访客都不自己实现虚拟系统，两边都向 <code>:black</code> 要 Binder。</p>
+<figure class="rel">
+  <svg viewBox="0 0 760 460" role="img" aria-labelledby="procTitle procDesc">
+    <title id="procTitle">主进程、虚拟系统进程和访客进程的关系</title>
+    <desc id="procDesc">主进程拉起 :black 并用 call("VM") 取服务。:black 叫醒 :pN。访客把 IBActivityThread 交回 :black，同样用 call("VM") 取服务。</desc>
+    <defs>
+      <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 1.2 L 9 5 L 0 8.8 Z" fill="#C6A36A"/>
+      </marker>
+      <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 1.2 L 9 5 L 0 8.8 Z" fill="#F3F0E8"/>
+      </marker>
+    </defs>
+    <style>
+      .box { fill: #0C0D11; }
+      .h { font-size: 15px; font-weight: 600; fill: #F3F0E8; }
+      .s { font-size: 12.5px; fill: #9A948A; }
+      .tag { font-size: 12px; fill: #C6A36A; font-weight: 600; }
+    </style>
+
+    <rect class="box" x="16" y="16" width="348" height="112" rx="12" stroke="#C6A36A" stroke-width="1.75"/>
+    <text class="h" x="32" y="46">主进程 Main</text>
+    <text class="s" x="32" y="70">com.android.bba</text>
+    <text class="s" x="32" y="94">界面、装包、请求启动分身</text>
+
+    <rect class="box" x="396" y="16" width="348" height="112" rx="12" stroke="#C6A36A" stroke-width="1.75"/>
+    <text class="h" x="412" y="46">访客进程 VApp</text>
+    <text class="s" x="412" y="70">com.android.bba:p0 … :p49</text>
+    <text class="s" x="412" y="94">BActivityThread 绑定真应用</text>
+
+    <path d="M190 128 V268" stroke="#C6A36A" stroke-width="1.6" marker-end="url(#ag)"/>
+    <text class="tag" x="204" y="176">拉起 :black</text>
+    <text class="tag" x="204" y="196">call("VM") · 请求启动</text>
+
+    <path d="M520 268 V128" stroke="#C6A36A" stroke-width="1.6" marker-end="url(#ag)"/>
+    <text class="tag" x="532" y="188">叫醒 :pN</text>
+
+    <path d="M650 128 V268" stroke="#F3F0E8" stroke-width="1.6" marker-end="url(#ak)"/>
+    <text class="s" x="532" y="214">交回 Binder</text>
+    <text class="s" x="532" y="234">call("VM")</text>
+
+    <rect class="box" x="108" y="268" width="544" height="156" rx="12" stroke="#2f6b4f" stroke-width="1.75"/>
+    <text class="h" x="124" y="300">虚拟系统进程 Server</text>
+    <text class="s" x="124" y="324">com.android.bba:black</text>
+    <text class="s" x="124" y="352">包管理 · 活动栈 · 进程槽位 · 通知</text>
+    <text class="s" x="124" y="376">SystemCallProvider.call("VM") 给出服务 Binder</text>
+    <text class="s" x="124" y="400">TCP 127.0.0.1:2408 只在这里监听</text>
+  </svg>
+  <figcaption>金色箭头是控制：主进程拉起 <code>:black</code>，<code>:black</code> 再用桩 ContentProvider 叫醒 <code>:pN</code>。浅色箭头是 Binder：访客把 <code>IBActivityThread</code> 交回去，主进程和访客都用 <code>call("VM")</code> 取同一套虚拟服务。<code>:black</code> 对这条 Binder 做 <code>linkToDeath</code>。</figcaption>
+</figure>
 <div class="who">
   <article>
     <h3>Main</h3>
-    <p>进程名固定为 <code>com.android.bba</code>。界面、装包、启动分身、Spindle 的 TCP 监听都在这里。</p>
+    <p>进程名固定为 <code>com.android.bba</code>。界面、装包和启动分身的请求都在这里。虚拟服务和 Spindle 的 TCP 不在这个进程里。</p>
   </article>
   <article>
     <h3>Server</h3>
-    <p>进程名以 <code>black_box_service_name</code> 结尾。<code>SystemCallProvider.onCreate</code> 拉起 <code>BlackBoxSystem</code>，虚拟包管理、活动栈、用户、账号、定位、通知都住在这个进程。</p>
+    <p>进程名以 <code>:black</code> 结尾。<code>SystemCallProvider.onCreate</code> 拉起 <code>BlackBoxSystem</code>。守护进程默认开启：<code>DaemonService</code> 以常驻前台服务把这个进程留住，避免它被收进缓存后查包失败。</p>
   </article>
   <article>
     <h3>VApp</h3>
@@ -314,14 +384,14 @@
     <tr><td><code>/proc/self/cmdline</code>、<code>/proc/&lt;pid&gt;/cmdline</code></td><td><code>blackbox/proc/&lt;bpid&gt;/cmdline</code>，内容是访客进程名</td></tr>
   </tbody>
 </table>
-<p><code>/sdcard/Pictures</code> 在黑名单里，不跟随整盘重定向。设置里打开隐藏 Root 时，常见的 <code>su</code> 路径会被指到一个不存在的 <code>*-fake</code> 路径。</p>
+<p>前缀树取最长的目录前缀，并且只在路径段边界上命中，所以 <code>/data/data/&lt;包名&gt;/lib</code> 会落到 native 库目录，而不是被更短的数据目录盖住。<code>/sdcard/Pictures</code> 在黑名单里，不跟随整盘重定向。隐藏 Root 始终开启：常见 <code>su</code> 路径被指到不存在的 <code>*-fake</code> 文件，虚拟包管理器也不再列出 SuperSU 等旧的超级用户应用。</p>
 <p>同一套规则还要从 libc 生效，否则访客用 native 打开文件会绕过 Java。所以 <code>enableIO</code> 之后会挂钩文件系统、<code>UnixFileSystem</code>、<code>DexFile</code>、<code>VMClassLoader</code>、Binder 和 zlib。</p>
 
 <h2 id="native">Native</h2>
-<p><code>libbba.so</code> 在 <code>JNI_OnLoad</code> 里注册 <code>NativeCore</code> 的本地方法。<code>init</code> 只做准备：记下 API 级别、缓存 <code>redirectPath</code> 和 <code>getCallingUid</code> 的方法 ID，初始化 JNI hook，并在主进程里启动 Spindle。真正的 inline hook 推迟到 <code>enableIO</code>，也就是 VApp 绑定应用的时候。</p>
-<p>符号用 xdl 解析，inline hook 用 Gum Interceptor。另外会关掉 hidden API 检查。属性伪装把一部分 <code>ro.*</code> 改成 Pixel 6 / Android 12 的值，只在 arm64 上挂钩。</p>
-<p>arm64 上还静态链进 Capstone（只开 AArch64 反汇编）和 Frida Gum 的 Interceptor、Stalker。对应 JNI 是 <code>gumReplace</code>、<code>gumRevert</code>、<code>gumStalkerFollow</code>。Stalker 会把 <code>libbba.so</code> 自己的可执行段排除掉。armeabi-v7a 没有这层。</p>
-<p>Java hook 是另一条线。<code>HookEntry</code> 在 <code>Application.onCreate</code> 之前按包名查找编译期登记的 <code>AppHook</code>。子类先准备 SandHook / Xposed 兼容层，再执行自己的 <code>onHook</code>。<code>enabled()</code> 为 false 的包不会安装。</p>
+<p><code>libbba.so</code> 在 <code>JNI_OnLoad</code> 里注册 <code>NativeCore</code> 的本地方法。<code>init</code> 只做准备：记下 API 级别、缓存 <code>redirectPath</code> 和 <code>getCallingUid</code> 的方法 ID，初始化 JNI hook，并在 <code>:black</code> 里启动 Spindle。真正的 inline hook 推迟到 <code>enableIO</code>，也就是 VApp 绑定应用的时候。</p>
+<p>工程只编译 <code>arm64-v8a</code>。符号用 xdl 解析，inline hook 用 Gum Interceptor。JNI hook 换掉系统 native 方法，并改 ART 访问标志以绕过 hidden API。<code>VirtualSpoof</code> 在 <code>libbba.so</code> 加载时挂钩 <code>__system_property_get</code>，把一部分 <code>ro.*</code> 改成 Pixel 6 / Android 12 的值。这个函数会在 linker 持锁时被调用，和访客自己的 hook 叠在一起时可能卡住后续的 <code>dlopen</code>。</p>
+<p>同一份 so 里静态链进 Capstone（只开 AArch64）和 Frida Gum 的 Interceptor、Stalker，以及 QuickJS。对应 JNI 是 <code>gumReplace</code>、<code>gumRevert</code>、<code>gumStalkerFollow</code>。Stalker 会把 <code>libbba.so</code> 自己的可执行段排除掉。Spindle 送来的脚本由 QuickJS 执行。</p>
+<p>Java hook 是另一条线。<code>HookEntry</code> 在 <code>Application.onCreate</code> 之前按包名查找编译期登记的 <code>AppHook</code>。子类先准备 SandHook / Xposed 兼容层，再执行自己的 <code>onHook</code>。<code>enabled()</code> 为 false 的包不会安装。当前 <code>RednoteHook.enabled()</code> 返回 false。</p>
 <p>开发机要往这个进程送脚本时，走 Spindle。VApp 在 <code>onBeforeApplicationOnCreate</code> 里已经用进程名注册过。通道本身见 <a href="spindle.html">Spindle 在 BBA 里怎么工作</a>。</p>
 
 <h2 id="tree">目录</h2>

@@ -1142,7 +1142,7 @@ public class BlackBoxCore extends ClientConfiguration {
         try {
             
             if (packageName.equals(getHostPkg())) {
-                return new InstallResult().installError("Cannot clone BlackBox app from within BlackBox. This would create infinite recursion and is not allowed for security reasons.");
+                return new InstallResult().installError("Cannot clone BBA from within BBA. This would create infinite recursion and is not allowed for security reasons.");
             }
             
             PackageInfo packageInfo = getPackageManager().getPackageInfo(packageName, 0);
@@ -1160,7 +1160,7 @@ public class BlackBoxCore extends ClientConfiguration {
             if (packageInfo != null) {
                 String packageName = packageInfo.packageName;
                 if (packageName.equals(getHostPkg())) {
-                    return new InstallResult().installError("Cannot clone BlackBox app from within BlackBox. This would create infinite recursion and is not allowed for security reasons.");
+                    return new InstallResult().installError("Cannot clone BBA from within BBA. This would create infinite recursion and is not allowed for security reasons.");
                 }
             }
         } catch (Exception e) {

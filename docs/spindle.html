@@ -6,74 +6,86 @@
 <title>Spindle 在 BBA 里怎么工作</title>
 <style>
   :root {
-    --ink: #1c1915;
-    --muted: #5c564c;
-    --line: #e4ddd2;
-    --paper: #f7f3ec;
-    --card: #fffdf9;
-    --accent: #9a3b24;
-    --accent-soft: #f3e4dc;
-    --code: #2a241e;
-    --chip: #efe8dc;
+    --surface: #0C0D11;
+    --card: #17191F;
+    --gold: #C6A36A;
+    --chrome: #F3F0E8;
+    --muted: #9A948A;
+    --line: #2C2E34;
+    --ink: #14120E;
+    --page: 1200px;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
     margin: 0;
-    color: var(--ink);
-    background: var(--paper);
-    font: 17px/1.65 "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", serif;
+    color: var(--chrome);
+    background: var(--surface);
+    font: 16px/1.7 "PingFang SC", "Noto Sans SC", "Avenir Next", sans-serif;
   }
-  header {
-    padding: 64px 24px 28px;
-    border-bottom: 1px solid var(--line);
+  header, nav, main, footer { max-width: var(--page); margin: 0 auto; }
+  header { padding: 48px 24px 8px; }
+  .mark {
+    margin: 0;
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 0.34em;
   }
-  header, main { max-width: 1200px; margin: 0 auto; }
   h1 {
-    margin: 0 0 12px;
-    font-size: 40px;
-    line-height: 1.15;
+    margin: 14px 0 0;
+    font-size: 28px;
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.06em;
+    line-height: 1.25;
   }
-  .lede { margin: 0; color: var(--muted); font-size: 19px; }
+  h1::after {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 2px;
+    margin-top: 12px;
+    background: var(--gold);
+  }
+  .lede { margin: 14px 0 0; color: var(--muted); font-size: 15px; }
   nav {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 18px 24px 0;
+    padding: 22px 24px 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 14px;
+    gap: 8px 16px;
   }
   nav a {
-    color: var(--accent);
+    color: var(--gold);
     text-decoration: none;
-    font: 13px/1.4 "Avenir Next", "PingFang SC", sans-serif;
-    letter-spacing: 0.01em;
+    font-size: 13px;
+    letter-spacing: 0.04em;
   }
-  nav a:hover { text-decoration: underline; }
-  main { padding: 8px 24px 80px; }
+  nav a:hover { color: var(--chrome); }
+  main { padding: 8px 24px 72px; }
   h2 {
-    margin: 42px 0 10px;
-    font-size: 24px;
+    margin: 40px 0 12px;
+    font-size: 20px;
     font-weight: 600;
+    letter-spacing: 0.04em;
   }
-  h3 { margin: 26px 0 8px; font-size: 18px; }
+  h3 { margin: 22px 0 8px; font-size: 16px; }
   p { margin: 0 0 14px; }
+  a { color: var(--gold); }
   code, pre {
-    font-family: "IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
     font-size: 0.86em;
   }
   code {
-    background: var(--chip);
+    background: #1C1F27;
+    color: var(--gold);
     padding: 0.1em 0.35em;
     border-radius: 4px;
   }
   pre {
-    background: var(--code);
-    color: #f4efe6;
+    background: var(--card);
+    color: var(--chrome);
+    border: 1px solid var(--line);
+    border-radius: 16px;
     padding: 16px 18px;
-    border-radius: 10px;
     overflow: auto;
     line-height: 1.5;
   }
@@ -82,36 +94,32 @@
     width: 100%;
     border-collapse: collapse;
     margin: 8px 0 18px;
-    font: 15px/1.45 "Avenir Next", "PingFang SC", sans-serif;
     background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
   }
   th, td {
     text-align: left;
     vertical-align: top;
-    padding: 10px 12px;
+    padding: 12px 14px;
     border-bottom: 1px solid var(--line);
   }
-  th { font-weight: 600; color: var(--muted); font-size: 13px; }
-  .flow {
-    display: grid;
-    gap: 0;
-    margin: 18px 0 8px;
-  }
-  .step {
-    display: grid;
-    grid-template-columns: 36px 1fr;
-    gap: 12px;
-  }
+  th { font-weight: 600; color: var(--gold); font-size: 12px; letter-spacing: 0.06em; }
+  tr:last-child td { border-bottom: 0; }
+  .flow { display: grid; margin: 18px 0 8px; }
+  .step { display: grid; grid-template-columns: 36px 1fr; gap: 12px; }
   .step .n {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: var(--accent);
-    color: #fff;
+    background: var(--gold);
+    color: var(--ink);
     display: flex;
     align-items: center;
     justify-content: center;
-    font: 14px/1 "Avenir Next", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
     position: relative;
   }
   .step:not(:last-child) .n::after {
@@ -121,16 +129,15 @@
     left: 17px;
     width: 2px;
     height: calc(100% + 8px);
-    background: #e7cfc6;
+    background: var(--line);
   }
   .step .body {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 16px;
     padding: 12px 14px 10px;
     margin-bottom: 10px;
   }
-  .step strong { font-family: "Avenir Next", "PingFang SC", sans-serif; }
   .who {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -140,47 +147,47 @@
   .who article {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 14px;
+    border-radius: 16px;
+    padding: 16px;
   }
-  .who h3 { margin: 0 0 6px; font-size: 16px; }
-  .who p { margin: 0; font-size: 15px; color: var(--muted); }
+  .who h3 { margin: 0 0 6px; font-size: 15px; letter-spacing: 0.04em; }
+  .who p { margin: 0; font-size: 14px; color: var(--muted); }
   figure.rel {
     margin: 6px 0 22px;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 12px 8px 8px;
   }
   figure.rel svg { display: block; width: 100%; height: auto; }
   figure.rel figcaption {
-    margin: 2px 10px 8px;
+    margin: 8px 10px;
     color: var(--muted);
-    font: 13px/1.45 "Avenir Next", "PingFang SC", sans-serif;
+    font-size: 13px;
   }
   .note {
-    background: var(--accent-soft);
-    border-radius: 10px;
+    background: var(--card);
+    border-left: 2px solid var(--gold);
+    border-radius: 0 16px 16px 0;
     padding: 12px 14px;
     margin: 14px 0;
   }
   footer {
-    max-width: 1200px;
-    margin: 0 auto;
     padding: 0 24px 48px;
     color: var(--muted);
-    font: 13px/1.5 "Avenir Next", "PingFang SC", sans-serif;
+    font-size: 13px;
   }
   @media (max-width: 700px) {
-    h1 { font-size: 32px; }
+    h1 { font-size: 24px; letter-spacing: 0.03em; }
     .who { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>Spindle 在 BBA 里怎么工作</h1>
-  <p class="lede">开发机把一段脚本送进宿主或某个分身进程。通道只负责把字节交到目标进程，不负责解释这些字节。</p>
+  <p class="mark">BBA</p>
+  <h1>Spindle</h1>
+  <p class="lede">开发机把一段脚本送进宿主或某个分身进程。arm64 上由 QuickJS 执行，日志再沿原路回到开发机。</p>
 </header>
 <nav>
   <a href="#roles">进程</a>
@@ -201,26 +208,26 @@
     <desc id="relDesc">开发机的 TCP 由 com.android.bba:black 接受。主进程和分身通过 ContentProvider 拿到 ISpindleService，用 Binder 注册并接收脚本。</desc>
     <defs>
       <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-        <path d="M 0 1.2 L 9 5 L 0 8.8 Z" fill="#9a3b24"/>
+        <path d="M 0 1.2 L 9 5 L 0 8.8 Z" fill="#C6A36A"/>
       </marker>
       <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-        <path d="M 0 1.2 L 9 5 L 0 8.8 Z" fill="#1c1915"/>
+        <path d="M 0 1.2 L 9 5 L 0 8.8 Z" fill="#F3F0E8"/>
       </marker>
       <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-        <path d="M 0 1.2 L 9 5 L 0 8.8 Z" fill="#2f6b4f"/>
+        <path d="M 0 1.2 L 9 5 L 0 8.8 Z" fill="#C6A36A"/>
       </marker>
     </defs>
     <style>
-      .box { fill: #fffdf9; }
-      .phone { fill: #efe8dc; stroke: #d4cbbd; }
-      text { font-family: "Avenir Next", "PingFang SC", "Songti SC", sans-serif; fill: #1c1915; }
+      .box { fill: #17191F; }
+      .phone { fill: #12141A; stroke: #2C2E34; }
+      text { font-family: "PingFang SC", "Avenir Next", sans-serif; fill: #F3F0E8; }
       .h { font-size: 15px; font-weight: 600; }
-      .s { font-size: 12.5px; fill: #5c564c; }
-      .tag { font-size: 12px; fill: #9a3b24; font-weight: 600; }
-      .sys { font-size: 12px; fill: #2f6b4f; font-weight: 600; }
+      .s { font-size: 12.5px; fill: #9A948A; }
+      .tag { font-size: 12px; fill: #C6A36A; font-weight: 600; }
+      .sys { font-size: 12px; fill: #C6A36A; font-weight: 600; }
     </style>
 
-    <rect class="box" x="16" y="288" width="176" height="148" rx="12" stroke="#1c1915" stroke-width="1.5"/>
+    <rect class="box" x="16" y="288" width="176" height="148" rx="12" stroke="#2C2E34" stroke-width="1.5"/>
     <text class="h" x="32" y="320">开发机</text>
     <text class="s" x="32" y="346">tools/spindle</text>
     <text class="s" x="32" y="370">只连环回端口</text>
@@ -229,47 +236,47 @@
 
     <text class="tag" x="198" y="302">adb forward</text>
     <text class="s" x="206" y="322">环回 :2408</text>
-    <path d="M192 348 H292" stroke="#9a3b24" stroke-width="1.6" marker-end="url(#ah)"/>
+    <path d="M192 348 H292" stroke="#C6A36A" stroke-width="1.6" marker-end="url(#ah)"/>
     <text class="tag" x="206" y="370">脚本 / RPC</text>
-    <path d="M292 388 H192" stroke="#9a3b24" stroke-width="1.6" marker-end="url(#ah)"/>
+    <path d="M292 388 H192" stroke="#C6A36A" stroke-width="1.6" marker-end="url(#ah)"/>
     <text class="tag" x="226" y="410">日志</text>
 
     <rect class="phone" x="268" y="16" width="596" height="438" rx="18"/>
     <text class="tag" x="288" y="40">手机</text>
 
-    <rect class="box" x="292" y="52" width="172" height="132" rx="12" stroke="#1c1915" stroke-width="1.5"/>
+    <rect class="box" x="292" y="52" width="172" height="132" rx="12" stroke="#2C2E34" stroke-width="1.5"/>
     <text class="h" x="308" y="82">宿主主进程</text>
     <text class="s" x="308" y="106">com.android.bba</text>
     <text class="s" x="308" y="130">也是一个 agent</text>
     <text class="s" x="308" y="154">后台限制时帮着启动</text>
 
-    <rect class="box" x="480" y="52" width="172" height="132" rx="12" stroke="#1c1915" stroke-width="1.5"/>
+    <rect class="box" x="480" y="52" width="172" height="132" rx="12" stroke="#2C2E34" stroke-width="1.5"/>
     <text class="h" x="496" y="82">分身进程</text>
     <text class="s" x="496" y="106">克隆包的进程名</text>
     <text class="s" x="496" y="130">onCreate 前注册</text>
     <text class="s" x="496" y="154">脚本进这个进程</text>
 
-    <rect class="box" x="668" y="52" width="172" height="132" rx="12" stroke="#1c1915" stroke-width="1.5"/>
+    <rect class="box" x="668" y="52" width="172" height="132" rx="12" stroke="#2C2E34" stroke-width="1.5"/>
     <text class="h" x="684" y="82">另一个分身</text>
     <text class="s" x="684" y="106">各自一块 Binder</text>
     <text class="s" x="684" y="130">同包可有多个 pid</text>
     <text class="s" x="684" y="154">一次只挂一个</text>
 
-    <path d="M378 184 V292" stroke="#1c1915" stroke-width="1.6" marker-end="url(#ak)"/>
-    <path d="M566 184 V292" stroke="#1c1915" stroke-width="1.6" marker-end="url(#ak)"/>
-    <path d="M754 184 V292" stroke="#1c1915" stroke-width="1.6" marker-end="url(#ak)"/>
+    <path d="M378 184 V292" stroke="#2C2E34" stroke-width="1.6" marker-end="url(#ak)"/>
+    <path d="M566 184 V292" stroke="#2C2E34" stroke-width="1.6" marker-end="url(#ak)"/>
+    <path d="M754 184 V292" stroke="#2C2E34" stroke-width="1.6" marker-end="url(#ak)"/>
     <text class="s" x="390" y="236">Binder</text>
     <text class="s" x="578" y="236">Binder</text>
     <text class="s" x="766" y="236">Binder</text>
     <text class="sys" x="400" y="260">call(&quot;VM&quot;) 取 spindle</text>
 
-    <rect class="box" x="292" y="292" width="548" height="140" rx="12" stroke="#2f6b4f" stroke-width="1.75"/>
+    <rect class="box" x="292" y="292" width="548" height="140" rx="12" stroke="#C6A36A" stroke-width="1.75"/>
     <text class="h" x="308" y="322">虚拟系统进程</text>
     <text class="s" x="308" y="346">com.android.bba:black · 监听 TCP 127.0.0.1:2408</text>
     <text class="s" x="308" y="370">按 Binder 记录 pid、uid，并在这里拉起分身</text>
     <text class="s" x="308" y="394">SystemCallProvider · DaemonService · 包管理 · 活动 · 通知</text>
   </svg>
-  <figcaption>红线是开发机的 TCP，由 <code>:black</code> 接受。黑线是 Binder：主进程和分身用 <code>call(&quot;VM&quot;)</code> 拿到 <code>ISpindleService</code>，注册之后脚本也从这条 Binder 送回来。</figcaption>
+  <figcaption>金色线是开发机的 TCP，由 <code>:black</code> 接受。浅色线是 Binder：主进程和分身用 <code>call(&quot;VM&quot;)</code> 拿到 <code>ISpindleService</code>，注册之后脚本也从这条 Binder 送回来。</figcaption>
 </figure>
 <div class="who">
   <article>
@@ -352,7 +359,7 @@
 <h2 id="script">脚本落到哪</h2>
 <p><code>NativeCore.onSpindleScript</code> 把字节按 UTF-8 转成字符串。如果有人调用过 <code>setScriptHandler</code>，就在当前线程回调 <code>onScript</code>。没有 handler 时，只打一条日志。</p>
 <div class="note">
-  当前仓库没有 JavaScript 解释器。对主进程或分身发 <code>RPC</code>，<code>onFrame</code> 立刻返回 <code>{"ok":false,"e":"js runtime is not in bba"}</code>，由 <code>:black</code> 写回 TCP。<code>tools/test_*.js</code> 写的是打算提供的 API（<code>Memory</code>、<code>Interceptor</code>、<code>Stalker</code>、<code>Java</code>、<code>rpc.exports</code>），这条链路还没执行它们。arm64 上的 Gum Interceptor / Stalker 是另一组 JNI（<code>gumReplace</code>、<code>gumStalkerFollow</code>），不由 Spindle 的脚本帧调用。
+  脚本到达进程后，<code>NativeCore.onSpindleScript</code> 先交给已注册的 <code>ScriptHandler</code>，再调用 <code>spindleRunJs</code>。arm64 上由 QuickJS 执行，提供 <code>Interceptor</code>、<code>Stalker</code>、<code>Java</code>、<code>Memory</code>、<code>Process</code> 和 <code>console</code>。<code>console.log</code> 经 <code>onSpindleLog</code> 回到 <code>:black</code>，再写进开发机的 TCP。RPC 调用 <code>rpc.exports</code>。工程只编译 arm64，所以发布的 APK 带这个运行时；非 arm64 的构建会回 <code>{"ok":false,"e":"js runtime is not in bba"}</code>。
 </div>
 
 <h2 id="cli">命令行</h2>
