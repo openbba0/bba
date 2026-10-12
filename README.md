@@ -19,7 +19,7 @@ BBA（界面名 BlackBox）是一个 Android 应用分身沙箱。宿主把已�
 | 模块 | 角色 |
 | --- | --- |
 | `:app` | Kotlin 界面。应用列表、设置、GMS、伪造定位、关于页。入口是 `com.android.bba.app.App`。 |
-| `:core` | 虚拟化引擎。Java/AIDL 系统服务、Binder 代理、IO 重定向，以及 `libblackbox.so`。 |
+| `:core` | 虚拟化引擎。Java/AIDL 系统服务、Binder 代理、IO 重定向，以及 `libbba.so`。 |
 | `:beer` | SandHook 与 Xposed 兼容层，给访客进程里的 Java hook 用。 |
 | `:reflection` | `BlackReflection` 运行时。用注解描述隐藏 API，运行时再反射调用。生成类在 `black.android.*`。 |
 | `:compiler` | 对应的注解处理器，编译期生成反射代理。 |
@@ -60,7 +60,7 @@ BBA（界面名 BlackBox）是一个 Android 应用分身沙箱。宿主把已�
 
 Java 侧 `HookManager` 替换一批系统 Binder：活动、包、通知、定位、电话、网络、账号、存储、WebView，以及小米相关服务。调用落到宿主自己的服务，或被改写成当前分身的 uid、包名和路径。
 
-Native 侧 `libblackbox.so`（`BoxCore`）在初始化时做这些事：
+Native 侧 `libbba.so`（`BoxCore`）在初始化时做这些事：
 
 - 用 Dobby 做 inline hook，用 xdl 解析符号。
 - `IO` 按规则把访客看到的路径重定向到沙箱目录（`NativeCore.addIORule` / `enableIO`）。
@@ -71,7 +71,7 @@ Native 侧 `libblackbox.so`（`BoxCore`）在初始化时做这些事：
 只在 **arm64** 编进两份静态库：
 
 - Capstone，只开 AArch64 反汇编。
-- Frida Gum 的一个子集：Interceptor（`replace` / `attach`）和 Stalker。`GumEngine` 会把 `libblackbox.so` 自己的可执行段排除出 Stalker。
+- Frida Gum 的一个子集：Interceptor（`replace` / `attach`）和 Stalker。`GumEngine` 会把 `libbba.so` 自己的可执行段排除出 Stalker。
 
 对应 JNI 在 `NativeCore`：`gumReplace`、`gumRevert`、`gumStalkerFollow`、`gumStalkerUnfollow`、`gumStalkerExclude`、`gumStalkerEventCount`。armeabi-v7a 没有这层。
 
@@ -111,7 +111,7 @@ app/                 宿主界面（Kotlin）
 core/                虚拟化引擎
   src/main/java/com/android/bb/   BlackBoxCore、系统服务、Java hook、客户端
   src/main/java/black/            隐藏 API 的反射声明
-  src/main/cpp/                   libblackbox.so
+  src/main/cpp/                   libbba.so
     hook/            Dobby hook、GumEngine、SpindleServer
     utils/           路径、属性伪装、反检测
     gum/             arm64 Gum 子集

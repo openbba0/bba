@@ -318,9 +318,9 @@
 <p>同一套规则还要从 libc 生效，否则访客用 native 打开文件会绕过 Java。所以 <code>enableIO</code> 之后会挂钩文件系统、<code>UnixFileSystem</code>、<code>DexFile</code>、<code>VMClassLoader</code>、Binder 和 zlib。</p>
 
 <h2 id="native">Native</h2>
-<p><code>libblackbox.so</code> 在 <code>JNI_OnLoad</code> 里注册 <code>NativeCore</code> 的本地方法。<code>init</code> 只做准备：记下 API 级别、缓存 <code>redirectPath</code> 和 <code>getCallingUid</code> 的方法 ID，初始化 JNI hook，并在主进程里启动 Spindle。真正的 inline hook 推迟到 <code>enableIO</code>，也就是 VApp 绑定应用的时候。</p>
+<p><code>libbba.so</code> 在 <code>JNI_OnLoad</code> 里注册 <code>NativeCore</code> 的本地方法。<code>init</code> 只做准备：记下 API 级别、缓存 <code>redirectPath</code> 和 <code>getCallingUid</code> 的方法 ID，初始化 JNI hook，并在主进程里启动 Spindle。真正的 inline hook 推迟到 <code>enableIO</code>，也就是 VApp 绑定应用的时候。</p>
 <p>符号用 xdl 解析，跳转用 Dobby。另外会关掉 hidden API 检查。属性伪装把一部分 <code>ro.*</code> 改成 Pixel 6 / Android 12 的值。</p>
-<p>arm64 上还静态链进 Capstone（只开 AArch64 反汇编）和 Frida Gum 的 Interceptor、Stalker。对应 JNI 是 <code>gumReplace</code>、<code>gumRevert</code>、<code>gumStalkerFollow</code>。Stalker 会把 <code>libblackbox.so</code> 自己的可执行段排除掉。armeabi-v7a 没有这层。</p>
+<p>arm64 上还静态链进 Capstone（只开 AArch64 反汇编）和 Frida Gum 的 Interceptor、Stalker。对应 JNI 是 <code>gumReplace</code>、<code>gumRevert</code>、<code>gumStalkerFollow</code>。Stalker 会把 <code>libbba.so</code> 自己的可执行段排除掉。armeabi-v7a 没有这层。</p>
 <p>Java hook 是另一条线。<code>HookEntry</code> 在 <code>Application.onCreate</code> 之前按包名查找编译期登记的 <code>AppHook</code>。子类先准备 SandHook / Xposed 兼容层，再执行自己的 <code>onHook</code>。<code>enabled()</code> 为 false 的包不会安装。</p>
 <p>开发机要往这个进程送脚本时，走 Spindle。VApp 在 <code>onBeforeApplicationOnCreate</code> 里已经用进程名注册过。通道本身见 <a href="spindle.html">Spindle 在 BBA 里怎么工作</a>。</p>
 

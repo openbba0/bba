@@ -35,7 +35,7 @@ public class NativeCore {
 
     static {
 
-        System.loadLibrary("blackbox");
+        System.loadLibrary("bba");
     }
 
     public static native void init(int apiLevel);

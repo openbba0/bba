@@ -25,7 +25,7 @@ static std::atomic<int> g_event_count{0};
 static int exclude_self(struct dl_phdr_info *info, size_t size, void *data) {
     (void) size;
     (void) data;
-    if (info->dlpi_name == nullptr || strstr(info->dlpi_name, "libblackbox.so") == nullptr) {
+    if (info->dlpi_name == nullptr || strstr(info->dlpi_name, "libbba.so") == nullptr) {
         return 0;
     }
     for (int i = 0; i < info->dlpi_phnum; i++) {
