@@ -37,7 +37,7 @@ class MeFragment : Fragment() {
         binding.fakeLocationRow.setOnClickListener {
             startActivity(Intent(requireContext(), FakeManagerActivity::class.java).putExtra("userID", 0))
         }
-        binding.openSourceRow.setOnClickListener { openLink("https://github.com/ALEX5402/NewBlackbox") }
+        binding.openSourceRow.setOnClickListener { openLink("https://github.com/openbba0/bba") }
         binding.telegramRow.setOnClickListener { openLink("https://t.me/newblackboxa") }
     }
 
