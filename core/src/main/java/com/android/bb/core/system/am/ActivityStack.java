@@ -38,6 +38,7 @@ import com.android.bb.proxy.ProxyActivity;
 import com.android.bb.proxy.ProxyManifest;
 import com.android.bb.proxy.record.ProxyActivityRecord;
 import com.android.bb.utils.ComponentUtils;
+import com.android.bb.utils.compat.IntentRedirectCompat;
 import com.android.bb.utils.Slog;
 import com.android.bb.utils.compat.ActivityManagerCompat;
 
@@ -286,8 +287,36 @@ public class ActivityStack {
         shadow.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         shadow.addFlags(launchMode);
 
+        IntentRedirectCompat.prepare(shadow);
         BlackBoxCore.getContext().startActivity(shadow);
         return 0;
+    }
+
+    /**
+     * Start the guest process and run Application.onCreate before the real
+     * activity launch. The proxy window is transparent until the first frame;
+     * doing this inside the launch transaction lets HyperOS time out and leave
+     * that window black.
+     */
+    public void prepareLaunch(int userId, Intent intent) {
+        if (intent == null) {
+            return;
+        }
+        ResolveInfo resolveInfo = BPackageManagerService.get().resolveActivity(intent, GET_ACTIVITIES, null, userId);
+        if (resolveInfo == null || resolveInfo.activityInfo == null) {
+            return;
+        }
+        ActivityInfo info = resolveInfo.activityInfo;
+        ProcessRecord app = BProcessManagerService.get().startProcessLocked(
+                info.packageName, info.processName, userId, -1, Binder.getCallingPid());
+        if (app == null || app.bActivityThread == null) {
+            return;
+        }
+        try {
+            app.bActivityThread.bindApplication();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     private int startActivityInSourceTask(Intent intent, String resolvedType,
@@ -312,6 +341,7 @@ public class ActivityStack {
             flags &= ~ActivityManagerCompat.START_FLAG_NATIVE_DEBUGGING;
             flags &= ~ActivityManagerCompat.START_FLAG_TRACK_ALLOCATION;
 
+            IntentRedirectCompat.prepare(intent);
             BRIActivityManager.get(BRActivityManagerNative.get().getDefault()).startActivity(appThread, BlackBoxCore.getHostPkg(), intent,
                     resolvedType, resultTo, resultWho, requestCode, flags, null, options);
         } catch (Throwable e) {

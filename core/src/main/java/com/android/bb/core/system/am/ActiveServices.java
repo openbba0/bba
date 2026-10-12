@@ -27,6 +27,7 @@ import com.android.bb.model.UnbindRecord;
 import com.android.bb.model.am.RunningServiceInfo;
 import com.android.bb.proxy.ProxyManifest;
 import com.android.bb.proxy.record.ProxyServiceRecord;
+import com.android.bb.utils.compat.IntentRedirectCompat;
 
 
 @SuppressLint("NewApi")
@@ -56,6 +57,7 @@ public class ActiveServices {
             @Override
             public void run() {
                 try {
+                    IntentRedirectCompat.prepare(stubServiceIntent);
                     BlackBoxCore.getContext().startService(stubServiceIntent);
                 } catch (Throwable e) {
                     e.printStackTrace();

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BBA 里的 VApp 怎么跑起来</title>
+<style>
+  :root {
+    --ink: #1c1915;
+    --muted: #5c564c;
+    --line: #e4ddd2;
+    --paper: #f7f3ec;
+    --card: #fffdf9;
+    --accent: #9a3b24;
+    --accent-soft: #f3e4dc;
+    --code: #2a241e;
+    --chip: #efe8dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--paper);
+    font: 17px/1.65 "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", serif;
+  }
+  header {
+    padding: 64px 24px 28px;
+    border-bottom: 1px solid var(--line);
+  }
+  header, main { max-width: 820px; margin: 0 auto; }
+  h1 {
+    margin: 0 0 12px;
+    font-size: 40px;
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .lede { margin: 0; color: var(--muted); font-size: 19px; }
+  nav {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 18px 24px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font: 13px/1.4 "Avenir Next", "PingFang SC", sans-serif;
+    letter-spacing: 0.01em;
+  }
+  nav a:hover { text-decoration: underline; }
+  main { padding: 8px 24px 80px; }
+  h2 {
+    margin: 42px 0 10px;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  h3 { margin: 26px 0 8px; font-size: 18px; }
+  p { margin: 0 0 14px; }
+  code, pre {
+    font-family: "IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 0.86em;
+  }
+  code {
+    background: var(--chip);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--code);
+    color: #f4efe6;
+    padding: 16px 18px;
+    border-radius: 10px;
+    overflow: auto;
+    line-height: 1.5;
+  }
+  pre code { background: transparent; padding: 0; color: inherit; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 18px;
+    font: 15px/1.45 "Avenir Next", "PingFang SC", sans-serif;
+    background: var(--card);
+  }
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  th { font-weight: 600; color: var(--muted); font-size: 13px; }
+  .flow {
+    display: grid;
+    gap: 0;
+    margin: 18px 0 8px;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 12px;
+  }
+  .step .n {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 14px/1 "Avenir Next", sans-serif;
+    position: relative;
+  }
+  .step:not(:last-child) .n::after {
+    content: "";
+    position: absolute;
+    top: 36px;
+    left: 17px;
+    width: 2px;
+    height: calc(100% + 8px);
+    background: #e7cfc6;
+  }
+  .step .body {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px 10px;
+    margin-bottom: 10px;
+  }
+  .step strong { font-family: "Avenir Next", "PingFang SC", sans-serif; }
+  .who {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 12px 0 18px;
+  }
+  .who article {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .who h3 { margin: 0 0 6px; font-size: 16px; }
+  .who p { margin: 0; font-size: 15px; color: var(--muted); }
+  .note {
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 14px 0;
+  }
+  footer {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 24px 48px;
+    color: var(--muted);
+    font: 13px/1.5 "Avenir Next", "PingFang SC", sans-serif;
+  }
+  @media (max-width: 700px) {
+    h1 { font-size: 32px; }
+    .who { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>BBA 里的 VApp 怎么跑起来</h1>
+  <p class="lede">VApp 是装进沙箱的那一份应用。系统里看不到它，真正活着的是宿主名下的一个桩进程；进程起来之后，再换上访客自己的 Application、组件和数据目录。</p>
+</header>
+<nav>
+  <a href="#what">是什么</a>
+  <a href="#procs">三种进程</a>
+  <a href="#id">身份</a>
+  <a href="#install">装进去</a>
+  <a href="#launch">点开之后</a>
+  <a href="#bind">换上真应用</a>
+  <a href="#proxy">组件桩</a>
+  <a href="#svc">虚拟系统</a>
+  <a href="#io">路径</a>
+  <a href="#native">Native</a>
+  <a href="#tree">目录</a>
+</nav>
+<main>
+
+<h2 id="what">是什么</h2>
+<p>BBA（界面名 BlackBox）是一个应用分身沙箱。宿主包名 <code>com.android.bba</code>，引擎包名 <code>com.android.bb</code>。同一份 APK 可以开多份，份与份之间用用户号 <code>userId</code> 分开，0 是第一份。</p>
+<p>代码里这份访客叫 <code>BAppClient</code>。它不是系统安装器装出来的独立应用：包信息记在宿主自己的包数据库里，Activity、Service、Provider 都先落到宿主 Manifest 里预先声明的桩组件，再在桩进程里还原成访客真正的类。</p>
+<div class="note">
+  内核看到的 uid 始终是宿主的 uid。访客以为自己有独立包名、独立进程名、独立数据目录，这些是 Java 层改写和路径重定向做出来的。
+</div>
+
+<h2 id="procs">三种进程</h2>
+<p><code>BlackBoxCore.doAttachBaseContext</code> 用进程名把当前进程分成三类。</p>
+<div class="who">
+  <article>
+    <h3>Main</h3>
+    <p>进程名固定为 <code>com.android.bba</code>。界面、装包、启动分身、Spindle 的 TCP 监听都在这里。</p>
+  </article>
+  <article>
+    <h3>Server</h3>
+    <p>进程名以 <code>black_box_service_name</code> 结尾。<code>SystemCallProvider.onCreate</code> 拉起 <code>BlackBoxSystem</code>，虚拟包管理、活动栈、用户、账号、定位、通知都住在这个进程。</p>
+  </article>
+  <article>
+    <h3>VApp</h3>
+    <p>其余进程，也就是 <code>com.android.bba:p0</code> 到 <code>:p49</code>。一个槽位跑一个访客进程。<code>BActivityThread</code> 在这里完成绑定。</p>
+  </article>
+</div>
+<p>槽位一共 50 个，<code>ProxyManifest.FREE_COUNT</code>。每个槽位在 Manifest 里配齐一套 <code>ProxyActivity$P&lt;n&gt;</code>、<code>ProxyService$P&lt;n&gt;</code>、<code>ProxyJobService$P&lt;n&gt;</code>、<code>ProxyContentProvider$P&lt;n&gt;</code>，并且 <code>android:process=":p&lt;n&gt;"</code>。系统要启动这个进程时，只要碰一下对应的 ContentProvider，进程就会被拉起来。</p>
+<p>主进程第一次需要虚拟服务时，会确认 Server 进程在跑。Server 没起来就先启动它；服务 Binder 拿不到时，主进程会放一份本地的 fallback 服务顶上。</p>
+
+<h2 id="id">一份 VApp 的身份</h2>
+<p>进程记录是 <code>ProcessRecord</code>，交给访客的是可跨进程的 <code>AppConfig</code>。</p>
+<table>
+  <thead><tr><th>字段</th><th>含义</th></tr></thead>
+  <tbody>
+    <tr><td><code>packageName</code></td><td>访客包名，例如 <code>com.example.app</code></td></tr>
+    <tr><td><code>processName</code></td><td>访客自己的进程名。默认等于包名，多进程应用会带上 <code>:push</code> 这类后缀</td></tr>
+    <tr><td><code>userId</code></td><td>分身号。界面分页的第几份，从 0 开始</td></tr>
+    <tr><td><code>bpid</code></td><td>桩槽位，0 到 49。对应进程名 <code>com.android.bba:p&lt;bpid&gt;</code>，不是 Linux pid</td></tr>
+    <tr><td><code>buid</code></td><td>虚拟 appId，由包管理器分配。进程表的键是 <code>userId * 100000 + appId</code></td></tr>
+    <tr><td><code>uid</code></td><td>真实 uid，也就是宿主 uid</td></tr>
+    <tr><td><code>callingBUid</code></td><td>把这次启动发起者映射回虚拟 appId，供后续调用方身份使用</td></tr>
+  </tbody>
+</table>
+<p>同一个包名、同一个 <code>userId</code>、同一个 <code>processName</code> 只会占一个槽。已经绑定过的进程直接复用，正在初始化的会在 <code>initLock</code> 上等到 <code>BActivityThread</code> 回传 Binder。50 个槽都占满时，<code>startProcessLocked</code> 抛出 <code>No processes available</code>。</p>
+
+<h2 id="install">装进去</h2>
+<p>界面调用 <code>BlackBoxCore.installPackageAsUser</code>。源可以是本机已安装应用的 <code>sourceDir</code>，也可以是一份 APK 文件或 Uri。宿主不允许安装自己，避免套娃。</p>
+<p>请求进到 Server 进程的 <code>BPackageManagerService</code>，再交给 <code>BPackageInstallerService</code>，按顺序执行三个步骤：</p>
+<div class="flow">
+  <div class="step"><div class="n">1</div><div class="body"><strong>CreateUserExecutor。</strong>保证这个 <code>userId</code> 在虚拟用户表里存在。</div></div>
+  <div class="step"><div class="n">2</div><div class="body"><strong>CreatePackageExecutor。</strong>解析 APK，写入包数据库，记下组件、权限和 appId。</div></div>
+  <div class="step"><div class="n">3</div><div class="body"><strong>CopyExecutor。</strong>把 APK 和原生库放到沙箱目录。之后查到的 <code>ApplicationInfo.sourceDir</code> 指向这份拷贝。</div></div>
+</div>
+<p>对外给出 <code>ApplicationInfo</code> 时，<code>PackageManagerCompat.generateApplicationInfo</code> 把数据目录改写成沙箱路径：<code>dataDir</code> 是 <code>blackbox/data/user/&lt;userId&gt;/&lt;包名&gt;</code>，<code>deviceProtectedDataDir</code> 是 <code>data/user_de/...</code>。非系统安装的包，<code>nativeLibraryDir</code> 指向 <code>blackbox/data/app/&lt;包名&gt;/lib</code>。</p>
+
+<h2 id="launch">点开之后</h2>
+<p><code>BlackBoxCore.launchApk(packageName, userId)</code> 向虚拟包管理器要启动 Intent，再交给 <code>BActivityManager</code>。Server 里的 <code>ActivityStack.startActivityLocked</code> 用虚拟包信息解析 Activity，并按 <code>launchMode</code>、<code>taskAffinity</code>、<code>FLAG_ACTIVITY_NEW_TASK</code>、<code>CLEAR_TOP</code>、<code>SINGLE_TOP</code> 维护自己的任务栈。命中已有栈顶时走 <code>handleNewIntent</code>，不再新建进程。</p>
+<p>需要新界面时，<code>startActivityProcess</code> 做两件事：先确保目标进程活着，再造一个系统真正能启动的影子 Intent。</p>
+<div class="flow">
+  <div class="step"><div class="n">1</div><div class="body"><strong>分配槽位。</strong><code>BProcessManagerService</code> 扫一遍正在运行的 <code>com.android.bba:p*</code>，挑一个空闲的 <code>bpid</code>。</div></div>
+  <div class="step"><div class="n">2</div><div class="body"><strong>叫醒桩进程。</strong><code>ProviderCall</code> 调用 <code>com.android.bba.proxy_content_provider_&lt;bpid&gt;</code> 的 <code>_Black_|_init_process_</code>，Bundle 里放着 <code>AppConfig</code>。这个 Provider 的 <code>android:process</code> 就是 <code>:p&lt;bpid&gt;</code>，所以系统会把该进程拉起来。</div></div>
+  <div class="step"><div class="n">3</div><div class="body"><strong>访客收下配置。</strong><code>ProxyContentProvider.call</code> 把 <code>AppConfig</code> 交给 <code>BActivityThread.initProcess</code>，再把 <code>IBActivityThread</code> 这个 Binder 放回 <code>_Black_|_client_</code>。</div></div>
+  <div class="step"><div class="n">4</div><div class="body"><strong>Server 挂上死亡回调。</strong>Binder 断了就 <code>onProcessDie</code>：清进程表、删掉伪造的 cmdline、清掉这个包的通知。</div></div>
+  <div class="step"><div class="n">5</div><div class="body"><strong>造影子 Intent。</strong>组件换成 <code>ProxyActivity$P&lt;bpid&gt;</code>。主题是透明窗口时换成 <code>TransparentProxyActivity$P&lt;bpid&gt;</code>。真正的 Intent、<code>ActivityInfo</code>、<code>userId</code>、活动记录 Binder 塞进 extra：<code>_B_|_target_</code>、<code>_B_|_activity_info_</code>、<code>_B_|_user_id_</code>、<code>_B_|_activity_record_v_</code>。</div></div>
+  <div class="step"><div class="n">6</div><div class="body"><strong>交给系统。</strong>新任务用宿主 Context 的 <code>startActivity</code>，并带上 <code>NEW_TASK</code>。已有任务则通过系统 <code>IActivityManager.startActivity</code>，调用方包名写成宿主包名，这样系统检查的是宿主，不是尚未安装的访客。</div></div>
+</div>
+
+<h2 id="bind">桩进程里换上真应用</h2>
+<p>系统把 <code>LAUNCH_ACTIVITY</code>（Android 9 起是 <code>EXECUTE_TRANSACTION</code>）投进 <code>ActivityThread.mH</code>。<code>HCallbackProxy</code> 替换了这个 Handler 的 <code>mCallback</code>，在框架创建 Activity 之前改掉消息内容。</p>
+<div class="flow">
+  <div class="step"><div class="n">1</div><div class="body"><strong>还没有 AppConfig。</strong>说明这次启动没有先走过 Provider 初始化。<code>restartProcess</code> 用当前进程补一次 <code>initProcess</code>，然后把消息插回队列头。</div></div>
+  <div class="step"><div class="n">2</div><div class="body"><strong>还没 bind。</strong><code>BActivityThread.bindApplication</code> 在主线程执行 <code>handleBindApplication</code>。完成后同样把启动消息插回队列头，下一次再进回调时应用已经就绪。</div></div>
+  <div class="step"><div class="n">3</div><div class="body"><strong>替换启动参数。</strong>把事务里的 Intent 换成 <code>_B_|_target_</code>，<code>ActivityInfo</code> 换成访客的。Android 12 上还要把 <code>ActivityClientRecord.packageInfo</code> 设成已经换好的 <code>LoadedApk</code>。返回 false，框架按改过的参数创建真正的 Activity。</div></div>
+</div>
+<p><code>handleBindApplication</code> 是 VApp 成型的地方，顺序固定：</p>
+<div class="flow">
+  <div class="step"><div class="n">1</div><div class="body"><strong>取出访客包信息。</strong>从虚拟包管理器读 <code>PackageInfo</code> 和 Provider 列表。</div></div>
+  <div class="step"><div class="n">2</div><div class="body"><strong>换掉 ActivityThread 上的绑定数据。</strong><code>createPackageContext</code> 得到访客的 <code>LoadedApk</code>，写回 <code>mBoundApplication</code> 的 <code>appInfo</code>、<code>info</code>、<code>processName</code>、<code>providers</code>。同时放行 <code>mSecurityViolation</code>，因为这段代码不是由系统安装器加载的。</div></div>
+  <div class="step"><div class="n">3</div><div class="body"><strong>改进程名。</strong><code>VirtualRuntime.setupRuntime</code> 调用 <code>Process.setArgV0(processName)</code>，调试器看到的名字也改成访客进程名。目标 SDK 设成访客自己的 <code>targetSdkVersion</code>。</div></div>
+  <div class="step"><div class="n">4</div><div class="body"><strong>打开 Native 和 IO。</strong><code>NativeCore.init</code> 记下 API 级别并准备路径回调。<code>IOCore.enableRedirect</code> 把数据目录、外置存储、<code>/proc/self/cmdline</code> 指到沙箱，然后 <code>enableIO</code> 装上 libc 层的 hook。</div></div>
+  <div class="step"><div class="n">5</div><div class="body"><strong>做出 Application。</strong><code>LoadedApk.makeApplication</code> 走访客的 <code>Application</code> 类。<code>makeApplication</code> 失败时会再试一次强制创建。</div></div>
+  <div class="step"><div class="n">6</div><div class="body"><strong>onCreate 之前。</strong>安装访客自己的 ContentProvider，装上按包名登记的 <code>HookEntry</code>，并 <code>NativeCore.spindleAgent(processName)</code> 向 <code>:black</code> 里的 Spindle 注册这条进程。然后才调用 <code>Application.onCreate</code>。</div></div>
+</div>
+<div class="note">
+  <code>ProxyActivity.onCreate</code> 是钩子没改写事务时的退路：它立刻 <code>finish</code>，再把 extra 里的目标 Intent 重新 <code>startActivity</code>。正常路径上，框架创建的已经是访客 Activity，不会走进这个桩。
+</div>
+
+<h2 id="proxy">组件桩</h2>
+<p>系统只能启动 Manifest 里写过的组件，所以四种组件都有桩。桩的类名带槽位，保证组件和进程对得上。</p>
+<table>
+  <thead><tr><th>访客组件</th><th>系统看到的</th><th>还原发生在</th></tr></thead>
+  <tbody>
+    <tr><td>Activity</td><td><code>ProxyActivity$P&lt;n&gt;</code> 或透明变体</td><td><code>HCallbackProxy.handleLaunchActivity</code> 替换 Intent 和 <code>ActivityInfo</code></td></tr>
+    <tr><td>Service</td><td><code>ProxyService$P&lt;n&gt;</code></td><td><code>BActivityThread.createService</code> 用访客 ClassLoader 构造真实 Service，再 <code>attach</code> 和 <code>onCreate</code></td></tr>
+    <tr><td>JobService</td><td><code>ProxyJobService$P&lt;n&gt;</code></td><td>同一套 <code>createJobService</code></td></tr>
+    <tr><td>ContentProvider</td><td>启动用的是桩 Provider</td><td>绑定应用时 <code>installProviders</code> 安装访客自己的 Provider</td></tr>
+    <tr><td>BroadcastReceiver</td><td>宿主里的 <code>stub_receiver</code></td><td><code>BActivityThread</code> 在主线程构造接收者并 <code>onReceive</code></td></tr>
+  </tbody>
+</table>
+<p>Service 也有一条反向拦截：桩进程里如果系统要创建的 Service 不是本槽位的 <code>ProxyService</code> / <code>ProxyJobService</code>，<code>HCallbackProxy.handleCreateService</code> 会改走 <code>BActivityManager.startService</code>，由虚拟活动管理决定进哪个进程。</p>
+
+<h2 id="svc">虚拟系统服务</h2>
+<p>Server 进程里 <code>BlackBoxSystem.startup</code> 只跑一次。它先建好 <code>blackbox/</code> 目录，再让这些服务 <code>systemReady</code>：</p>
+<table>
+  <thead><tr><th>服务</th><th>访客以为自己在调</th></tr></thead>
+  <tbody>
+    <tr><td><code>BPackageManagerService</code></td><td>包的安装、解析、ApplicationInfo</td></tr>
+    <tr><td><code>BUserManagerService</code></td><td>虚拟用户</td></tr>
+    <tr><td><code>BActivityManagerService</code></td><td>活动、服务、广播、进程</td></tr>
+    <tr><td><code>BJobManagerService</code></td><td>JobScheduler</td></tr>
+    <tr><td><code>BStorageManagerService</code></td><td>存储卷</td></tr>
+    <tr><td><code>BPackageInstallerService</code></td><td>安装和卸载流水线</td></tr>
+    <tr><td><code>BProcessManagerService</code></td><td>槽位和进程生死</td></tr>
+    <tr><td><code>BAccountManagerService</code></td><td>账号</td></tr>
+    <tr><td><code>BLocationManagerService</code></td><td>定位，可按分身伪造坐标</td></tr>
+    <tr><td><code>BNotificationManagerService</code></td><td>通知</td></tr>
+  </tbody>
+</table>
+<p>主进程和 VApp 不直接 new 这些对象。它们通过 <code>SystemCallProvider.call("VM")</code> 按名字取 Binder，名字如 <code>activity_manager</code>、<code>package_manager</code>。客户端封装在 <code>BActivityManager</code>、<code>BPackageManager</code> 这一层。</p>
+<p><code>HookManager.init</code> 在 VApp 和 Server 进程里替换一批系统 Binder：活动、包、通知、定位、电话、网络、账号、存储、窗口、AppOps、WebView，以及小米相关服务。调用要么落到上面的虚拟服务，要么在参数里把访客包名、uid 改回宿主，让系统的权限检查通过。<code>MethodParameterUtils</code> 负责这种改写：已安装的包名换成宿主包名，虚拟 uid 换成宿主 uid。</p>
+
+<h2 id="io">路径</h2>
+<p>Java 侧 <code>IOCore</code> 用一棵前缀树保存规则，<code>NativeCore.addIORule</code> 把同一条规则交给 native。规则在 <code>enableRedirect</code> 里按当前访客填好，然后 <code>enableIO</code> 才真正挂钩。已经位于 <code>/blackbox/</code> 下的路径不再改写。</p>
+<table>
+  <thead><tr><th>访客看到的</th><th>实际落到</th></tr></thead>
+  <tbody>
+    <tr><td><code>/data/data/&lt;包名&gt;</code>、<code>/data/user/&lt;系统用户&gt;/&lt;包名&gt;</code></td><td><code>ApplicationInfo.dataDir</code>，即 <code>blackbox/data/user/&lt;userId&gt;/&lt;包名&gt;</code></td></tr>
+    <tr><td>上面两个路径的 <code>/lib</code></td><td><code>nativeLibraryDir</code></td></tr>
+    <tr><td><code>/data/misc/profiles</code></td><td><code>blackbox/profiles</code>，并按 userId 和包名拆出 cur / ref</td></tr>
+    <tr><td><code>/sdcard</code>、<code>/storage/emulated/&lt;系统用户&gt;</code></td><td><code>外部存储/blackbox/storage/emulated/&lt;userId&gt;/</code></td></tr>
+    <tr><td><code>/proc/self/cmdline</code>、<code>/proc/&lt;pid&gt;/cmdline</code></td><td><code>blackbox/proc/&lt;bpid&gt;/cmdline</code>，内容是访客进程名</td></tr>
+  </tbody>
+</table>
+<p><code>/sdcard/Pictures</code> 在黑名单里，不跟随整盘重定向。设置里打开隐藏 Root 时，常见的 <code>su</code> 路径会被指到一个不存在的 <code>*-fake</code> 路径。</p>
+<p>同一套规则还要从 libc 生效，否则访客用 native 打开文件会绕过 Java。所以 <code>enableIO</code> 之后会挂钩文件系统、<code>UnixFileSystem</code>、<code>DexFile</code>、<code>VMClassLoader</code>、Binder 和 zlib。</p>
+
+<h2 id="native">Native</h2>
+<p><code>libblackbox.so</code> 在 <code>JNI_OnLoad</code> 里注册 <code>NativeCore</code> 的本地方法。<code>init</code> 只做准备：记下 API 级别、缓存 <code>redirectPath</code> 和 <code>getCallingUid</code> 的方法 ID，初始化 JNI hook，并在主进程里启动 Spindle。真正的 inline hook 推迟到 <code>enableIO</code>，也就是 VApp 绑定应用的时候。</p>
+<p>符号用 xdl 解析，跳转用 Dobby。另外会关掉 hidden API 检查。属性伪装把一部分 <code>ro.*</code> 改成 Pixel 6 / Android 12 的值。</p>
+<p>arm64 上还静态链进 Capstone（只开 AArch64 反汇编）和 Frida Gum 的 Interceptor、Stalker。对应 JNI 是 <code>gumReplace</code>、<code>gumRevert</code>、<code>gumStalkerFollow</code>。Stalker 会把 <code>libblackbox.so</code> 自己的可执行段排除掉。armeabi-v7a 没有这层。</p>
+<p>Java hook 是另一条线。<code>HookEntry</code> 在 <code>Application.onCreate</code> 之前按包名查找编译期登记的 <code>AppHook</code>。子类先准备 SandHook / Xposed 兼容层，再执行自己的 <code>onHook</code>。<code>enabled()</code> 为 false 的包不会安装。</p>
+<p>开发机要往这个进程送脚本时，走 Spindle。VApp 在 <code>onBeforeApplicationOnCreate</code> 里已经用进程名注册过。通道本身见 <a href="spindle.html">Spindle 在 BBA 里怎么工作</a>。</p>
+
+<h2 id="tree">目录</h2>
+<p>虚拟根在宿主缓存目录的上一级，名字是 <code>blackbox</code>。外置根是 <code>getExternalFilesDir("blackbox")</code>。</p>
+<pre><code>blackbox/
+  system/                  user.conf、uid.conf、accounts.conf、fake-location.conf、包配置
+  cache/                   empty.apk 等运行时用的空包
+  proc/&lt;bpid&gt;/cmdline      给访客看的进程名
+  profiles/cur、profiles/ref
+  data/app/&lt;包名&gt;/         base.apk 和 lib
+  data/user/&lt;userId&gt;/&lt;包名&gt;/
+  data/user_de/&lt;userId&gt;/&lt;包名&gt;/
+外部存储/blackbox/storage/emulated/&lt;userId&gt;/
+  Android/data/&lt;包名&gt;/
+  Android/obb/&lt;包名&gt;/</code></pre>
+<p>清数据走安装器的 <code>RemoveUserExecutor</code> 再 <code>CreateUserExecutor</code>，只动这个用户号下的数据。强停调用 <code>killPackageAsUser</code>，按 <code>userId + appId</code> 找到进程并 <code>killProcess</code>。卸载在需要时再删掉应用本体。</p>
+
+</main>
+<footer>
+  依据 <code>BlackBoxCore</code>、<code>BActivityThread</code>、<code>BProcessManagerService</code>、<code>ActivityStack</code>、<code>HCallbackProxy</code>、<code>IOCore</code> 和 <code>box_core.cpp</code>。
+</footer>
+</body>
+</html>

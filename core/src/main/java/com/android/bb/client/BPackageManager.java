@@ -299,19 +299,33 @@ public class BPackageManager extends BlackManager<IBPackageManagerService> {
 
     public PackageInfo getPackageInfo(String packageName, int flags, int userId) {
         try {
-            IBPackageManagerService service = getServiceWithFallback();
-            if (service == null) {
-                Log.w(TAG, "PackageManager service is null for getPackageInfo, using fallback");
+            return getPackageInfoOnce(packageName, flags, userId);
+        } catch (RemoteException first) {
+            Log.w(TAG, "getPackageInfo " + packageName + " hit a frozen server, retrying");
+            try {
+                Thread.sleep(150);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+            }
+            try {
+                return getPackageInfoOnce(packageName, flags, userId);
+            } catch (RemoteException e) {
+                Log.e(TAG, "RemoteException in getPackageInfo for " + packageName, e);
                 return createFallbackPackageInfo(packageName, flags, userId);
             }
-            return service.getPackageInfo(packageName, flags, userId);
-        } catch (RemoteException e) {
-            Log.e(TAG, "RemoteException in getPackageInfo for " + packageName, e);
-            return createFallbackPackageInfo(packageName, flags, userId);
         } catch (Exception e) {
             Log.e(TAG, "Exception in getPackageInfo for " + packageName, e);
             return createFallbackPackageInfo(packageName, flags, userId);
         }
+    }
+
+    private PackageInfo getPackageInfoOnce(String packageName, int flags, int userId) throws RemoteException {
+        IBPackageManagerService service = getServiceWithFallback();
+        if (service == null) {
+            Log.w(TAG, "PackageManager service is null for getPackageInfo, using fallback");
+            return createFallbackPackageInfo(packageName, flags, userId);
+        }
+        return service.getPackageInfo(packageName, flags, userId);
     }
 
     public ServiceInfo getServiceInfo(ComponentName component, int flags, int userId) {

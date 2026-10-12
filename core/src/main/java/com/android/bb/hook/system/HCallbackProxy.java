@@ -169,8 +169,17 @@ public class HCallbackProxy implements IInjectHook, Handler.Callback {
                 return true;
             }
 
-            int taskId = BRIActivityManager.get(BRActivityManagerNative.get().getDefault()).getTaskForActivity(token, false);
-            BlackBoxCore.getBActivityManager().onActivityCreated(taskId, token, stubRecord.mActivityRecord);
+            final IBinder activityToken = token;
+            final IBinder activityRecord = stubRecord.mActivityRecord;
+            new Thread(() -> {
+                try {
+                    int taskId = BRIActivityManager.get(BRActivityManagerNative.get().getDefault())
+                            .getTaskForActivity(activityToken, false);
+                    BlackBoxCore.getBActivityManager().onActivityCreated(taskId, activityToken, activityRecord);
+                } catch (Throwable t) {
+                    Slog.e(TAG, "onActivityCreated", t);
+                }
+            }, "bb-activity-created").start();
 
             if(BuildCompat.isTiramisu()){
                 LaunchActivityItemContext launchActivityItemContext = BRLaunchActivityItem.get(r);

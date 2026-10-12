@@ -14,6 +14,7 @@ import com.android.bb.core.system.notification.BNotificationManagerService;
 import com.android.bb.core.system.os.BStorageManagerService;
 import com.android.bb.core.system.pm.BPackageManagerService;
 
+import com.android.bb.core.system.spindle.BSpindleService;
 import com.android.bb.core.system.user.BUserManagerService;
 
 
@@ -28,6 +29,7 @@ public class ServiceManager {
     public static final String ACCOUNT_MANAGER = "account_manager";
     public static final String LOCATION_MANAGER = "location_manager";
     public static final String NOTIFICATION_MANAGER = "notification_manager";
+    public static final String SPINDLE = "spindle";
 
     private final Map<String, IBinder> mCaches = new HashMap<>();
 
@@ -56,6 +58,7 @@ public class ServiceManager {
         mCaches.put(ACCOUNT_MANAGER, BAccountManagerService.get());
         mCaches.put(LOCATION_MANAGER, BLocationManagerService.get());
         mCaches.put(NOTIFICATION_MANAGER, BNotificationManagerService.get());
+        mCaches.put(SPINDLE, BSpindleService.get());
     }
 
     public IBinder getServiceInternal(String name) {
@@ -72,5 +75,8 @@ public class ServiceManager {
         BlackBoxCore.get().getService(ACCOUNT_MANAGER);
         BlackBoxCore.get().getService(LOCATION_MANAGER);
         BlackBoxCore.get().getService(NOTIFICATION_MANAGER);
+        if (BSpindleService.ENABLED) {
+            BlackBoxCore.get().getService(SPINDLE);
+        }
     }
 }

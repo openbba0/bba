@@ -1,1 +1,345 @@
-spindle
+#!/usr/bin/env python3
+"""Host client for spindle_server.
+
+  spindle -U -f com.example -l script.js
+  spindle -D SERIAL -n com.example -l script.js
+  spindle-ps -U
+"""
+
+import argparse
+import json
+import shutil
+import socket
+import struct
+import subprocess
+import sys
+from pathlib import Path
+
+RPC_PREFIX = b"RPC\x00"
+
+
+def enable_keepalive(sock: socket.socket) -> None:
+    """Linux uses TCP_KEEPIDLE. macOS uses TCP_KEEPALIVE for the same idle time."""
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+    idle = getattr(socket, "TCP_KEEPIDLE", None)
+    if idle is None:
+        idle = getattr(socket, "TCP_KEEPALIVE", None)
+    if idle is not None:
+        sock.setsockopt(socket.IPPROTO_TCP, idle, 3)
+    interval = getattr(socket, "TCP_KEEPINTVL", None)
+    if interval is not None:
+        sock.setsockopt(socket.IPPROTO_TCP, interval, 1)
+    count = getattr(socket, "TCP_KEEPCNT", None)
+    if count is not None:
+        sock.setsockopt(socket.IPPROTO_TCP, count, 3)
+
+
+def send_msg(sock: socket.socket, data: bytes) -> None:
+    sock.sendall(struct.pack("<I", len(data)) + data)
+
+
+def recv_exact(sock: socket.socket, n: int) -> bytes:
+    buf = bytearray()
+    while len(buf) < n:
+        chunk = sock.recv(n - len(buf))
+        if not chunk:
+            raise ConnectionError("connection closed")
+        buf += chunk
+    return bytes(buf)
+
+
+def recv_msg(sock: socket.socket) -> bytes:
+    n = struct.unpack("<I", recv_exact(sock, 4))[0]
+    if n > 1024 * 1024:
+        raise ValueError(f"rpc reply too large: {n}")
+    return recv_exact(sock, n)
+
+
+class Spindle:
+    """One connection. eval() loads a script; call() invokes rpc.exports."""
+
+    def __init__(self, host: str, port: int = 2407, timeout: float = 15, target: str = "",
+                 spawn: bool = False):
+        self.sock = socket.create_connection((host, port), timeout=timeout)
+        enable_keepalive(self.sock)
+        if target:
+            hello = {"target": target}
+            if spawn:
+                hello["spawn"] = True
+            send_msg(self.sock, b"HOST\x00" + json.dumps(hello).encode("utf-8"))
+            ack = json.loads(recv_msg(self.sock).decode("utf-8"))
+            if not ack.get("ok"):
+                raise RuntimeError(ack.get("e") or "attach failed")
+
+    def close(self) -> None:
+        self.sock.close()
+
+    def eval(self, source: str) -> None:
+        send_msg(self.sock, source.encode("utf-8"))
+
+    def unlock(self) -> None:
+        send_msg(self.sock, b"UNLOCK")
+
+    def call(self, method: str, *args):
+        payload = RPC_PREFIX + json.dumps(
+            {"m": method, "a": list(args)}, ensure_ascii=False
+        ).encode("utf-8")
+        send_msg(self.sock, payload)
+        reply = json.loads(self.recv_reply().decode("utf-8"))
+        if not reply.get("ok"):
+            raise RuntimeError(reply.get("e") or "rpc failed")
+        return reply.get("v")
+
+    def recv_reply(self) -> bytes:
+        """Next non-log frame. Log frames are printed as they arrive."""
+        while True:
+            payload = recv_msg(self.sock)
+            if payload.startswith(b"LOG\x00"):
+                text = payload[4:].decode("utf-8", "replace")
+                print(text, flush=True)
+                continue
+            return payload
+
+    def follow(self) -> None:
+        """Block and print console.log lines until the watched process exits or the server drops."""
+        self.sock.settimeout(None)
+        try:
+            while True:
+                payload = self.recv_reply()
+                if payload == b"EXIT":
+                    return
+        except (ConnectionError, OSError):
+            print("spindle_server closed", file=sys.stderr)
+            raise SystemExit(1)
+
+
+def list_reply(host: str, port: int) -> dict:
+    sock = socket.create_connection((host, port), timeout=15)
+    try:
+        send_msg(sock, b'HOST\x00{"list":true}')
+        reply = json.loads(recv_msg(sock).decode("utf-8"))
+    finally:
+        sock.close()
+    if not reply.get("ok"):
+        raise SystemExit(reply.get("e") or "list failed")
+    return reply
+
+
+def list_agents(host: str, port: int) -> None:
+    print(json.dumps(list_reply(host, port), ensure_ascii=False))
+
+
+def print_processes(agents: list) -> None:
+    rows = []
+    for agent in agents:
+        rows.append((int(agent.get("pid") or 0), int(agent.get("uid") or 0), str(agent.get("name") or "")))
+    rows.sort()
+    pid_w = max([3] + [len(str(pid)) for pid, _uid, _name in rows])
+    uid_w = max([3] + [len(str(uid)) for _pid, uid, _name in rows])
+    print(f"{'PID':>{pid_w}}  {'UID':>{uid_w}}  Name")
+    for pid, uid, name in rows:
+        print(f"{pid:>{pid_w}}  {uid:>{uid_w}}  {name}")
+
+
+def add_connection_args(parser: argparse.ArgumentParser) -> None:
+    where = parser.add_mutually_exclusive_group(required=True)
+    where.add_argument("-H", "--host", help="spindle_server host or host:port")
+    where.add_argument("-U", "--usb", action="store_true", help="USB device via adb forward")
+    where.add_argument("-D", "--device", metavar="SERIAL", help="adb device serial when several are attached")
+
+
+def connect_endpoint(args) -> tuple:
+    if args.usb or args.device:
+        return usb_endpoint(args.device or "")
+    return split_host(args.host, 2407)
+
+
+def split_host(value: str, default_port: int) -> tuple:
+    if ":" not in value:
+        return value, default_port
+    host, port_s = value.rsplit(":", 1)
+    return host, int(port_s)
+
+
+def adb_bin() -> str:
+    found = shutil.which("adb")
+    if found:
+        return found
+    raise SystemExit("adb not found on PATH")
+
+
+def adb_devices() -> list:
+    out = subprocess.check_output([adb_bin(), "devices", "-l"], text=True)
+    devices = []
+    for line in out.splitlines()[1:]:
+        parts = line.split()
+        if len(parts) < 2 or parts[1] != "device":
+            continue
+        model = ""
+        for field in parts[2:]:
+            if field.startswith("model:"):
+                model = field.split(":", 1)[1]
+                break
+        devices.append((parts[0], model))
+    return devices
+
+
+def choose_serial(requested: str) -> str:
+    devices = adb_devices()
+    if not devices:
+        raise SystemExit("no adb device")
+    if requested:
+        for serial, _model in devices:
+            if serial == requested:
+                return serial
+        raise SystemExit("adb device not found: " + requested)
+    if len(devices) == 1:
+        return devices[0][0]
+    lines = []
+    for index, (serial, model) in enumerate(devices, 1):
+        label = f"{serial}  {model}" if model else serial
+        lines.append(f"  {index}  {label}")
+    listing = "\n".join(lines)
+    if not sys.stdin.isatty():
+        raise SystemExit("more than one adb device:\n" + listing + "\npass -D SERIAL")
+    print("USB devices:\n" + listing, file=sys.stderr)
+    while True:
+        print("choose: ", end="", file=sys.stderr, flush=True)
+        raw = sys.stdin.readline()
+        if raw == "":
+            raise SystemExit("no device selected")
+        raw = raw.strip()
+        if raw.isdigit() and 1 <= int(raw) <= len(devices):
+            return devices[int(raw) - 1][0]
+        for serial, _model in devices:
+            if serial == raw:
+                return serial
+        print(f"enter 1-{len(devices)} or a serial", file=sys.stderr)
+
+
+def forward_local_port(serial: str, device_port: int) -> int:
+    adb = adb_bin()
+    listed = subprocess.check_output([adb, "-s", serial, "forward", "--list"], text=True)
+    remote = f"tcp:{device_port}"
+    for line in listed.splitlines():
+        parts = line.split()
+        if len(parts) == 3 and parts[0] == serial and parts[2] == remote and parts[1].startswith("tcp:"):
+            return int(parts[1].split(":", 1)[1])
+    fwd = subprocess.run(
+        [adb, "-s", serial, "forward", "tcp:0", remote],
+        capture_output=True,
+        text=True,
+    )
+    if fwd.returncode != 0:
+        err = (fwd.stderr or fwd.stdout).strip()
+        raise SystemExit(err or "adb forward failed")
+    local = fwd.stdout.strip()
+    if not local.isdigit():
+        raise SystemExit(f"adb forward returned no port: {local}")
+    return int(local)
+
+
+def usb_endpoint(serial: str) -> tuple:
+    """Forward persist.spindle.port (default 2407) and connect to localhost."""
+    serial = choose_serial(serial)
+    adb = adb_bin()
+    prop = subprocess.check_output(
+        [adb, "-s", serial, "shell", "getprop", "persist.spindle.port"], text=True
+    )
+    port_s = prop.strip() or "2407"
+    if not port_s.isdigit():
+        raise SystemExit(f"persist.spindle.port is not a port: {port_s}")
+    local = forward_local_port(serial, int(port_s))
+    print(f"usb {serial} -> 127.0.0.1:{local}", file=sys.stderr)
+    return "127.0.0.1", local
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        prog="spindle",
+        description="spindle client with Frida-style flags",
+    )
+    add_connection_args(parser)
+    parser.add_argument("-f", "--file", default="", metavar="PKG", help="spawn PKG, inject, then resume")
+    parser.add_argument("-n", "--attach-name", default="", metavar="NAME", help="attach to a running process")
+    parser.add_argument("-p", "--attach-pid", type=int, default=0, metavar="PID", help="attach to a running pid")
+    parser.add_argument("-l", "--load", action="append", default=[], metavar="SCRIPT", help="script to load")
+    parser.add_argument("-e", "--eval", action="append", default=[], metavar="CODE", help="code to evaluate")
+    parser.add_argument("--call", action="append", default=[], metavar="METHOD", help="rpc.exports method")
+    parser.add_argument("--args", action="append", default=[], metavar="JSON", help="JSON array for the matching --call")
+    parser.add_argument("--list", action="store_true", help="list registered processes")
+    parser.add_argument("target", nargs="?", default="", help="attach by process name when -f/-n/-p are omitted")
+    args = parser.parse_args()
+
+    host, port = connect_endpoint(args)
+    if args.list:
+        list_agents(host, port)
+        return 0
+
+    chosen = [bool(args.file), bool(args.attach_name), bool(args.attach_pid)]
+    if sum(chosen) > 1:
+        raise SystemExit("use only one of -f, -n, -p")
+    if args.file:
+        spawn, target = True, args.file
+    elif args.attach_pid:
+        spawn, target = False, f"pid:{args.attach_pid}"
+    elif args.attach_name or args.target:
+        spawn, target = False, args.attach_name or args.target
+    else:
+        raise SystemExit("-f, -n, -p, or a process name is required")
+
+    parts = [Path(path).read_text(encoding="utf-8") for path in args.load]
+    parts.extend(args.eval)
+    js = "\n".join(parts)
+
+    arglists = list(args.args)
+    while len(arglists) < len(args.call):
+        arglists.append("[]")
+
+    print(f"connect {host}:{port} {'spawn' if spawn else 'attach'} {target}", file=sys.stderr)
+    client = Spindle(host, port, timeout=45 if spawn else 15, target=target, spawn=spawn)
+    try:
+        if js:
+            client.eval(js)
+            print(f"sent js {len(js.encode('utf-8'))} bytes", file=sys.stderr)
+        for method, raw_args in zip(args.call, arglists):
+            call_args = json.loads(raw_args)
+            if not isinstance(call_args, list):
+                raise SystemExit("--args must be a JSON array")
+            value = client.call(method, *call_args)
+            if isinstance(value, (dict, list)):
+                print(json.dumps(value, ensure_ascii=False))
+            else:
+                print(value)
+        if spawn:
+            client.unlock()
+            print("sent UNLOCK", file=sys.stderr)
+        print("waiting for logs", file=sys.stderr)
+        try:
+            client.follow()
+        except KeyboardInterrupt:
+            return 0
+    finally:
+        client.close()
+    return 0
+
+
+def ps_main() -> int:
+    parser = argparse.ArgumentParser(
+        prog="spindle-ps",
+        description="list processes registered with spindle_server",
+    )
+    add_connection_args(parser)
+    args = parser.parse_args()
+    host, port = connect_endpoint(args)
+    agents = list_reply(host, port).get("agents") or []
+    if not isinstance(agents, list):
+        raise SystemExit("list reply has no agents")
+    print_processes(agents)
+    return 0
+
+
+if __name__ == "__main__":
+    if Path(sys.argv[0]).name.startswith("spindle-ps"):
+        sys.exit(ps_main())
+    sys.exit(main())

@@ -2,10 +2,12 @@ package com.android.bb.core;
 
 
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.Process;
 import android.util.Log;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -17,6 +19,10 @@ import java.util.List;
 import dalvik.system.DexFile;
 import com.android.bb.BlackBoxCore;
 import com.android.bb.app.BActivityThread;
+import com.android.bb.core.system.ServiceManager;
+import com.android.bb.core.system.spindle.BSpindleService;
+import com.android.bb.core.system.spindle.ISpindleClient;
+import com.android.bb.core.system.spindle.ISpindleService;
 import com.android.bb.utils.compat.DexFileCompat;
 
 import com.android.bb.core.env.BEnvironment;
@@ -61,8 +67,107 @@ public class NativeCore {
 
     public static native int gumStalkerEventCount();
 
-    /** Register this guest process so spindle_server can deliver scripts to it. */
-    public static native void spindleAgent(String name);
+    /** Start the TCP listener. Only the :black process actually binds the port. */
+    public static native void spindleListen();
+
+    public static native int spindleAdd(String name, int pid, int uid);
+
+    public static native void spindleDrop(int id);
+
+    /**
+     * Register this process with the spindle service in :black.
+     * The service records pid and uid from the Binder caller.
+     * The Binder call runs on a background thread. bindApplication invokes this
+     * on the main thread while ActivityThread is still handling the launch
+     * transaction, and a synchronous register there never returns.
+     */
+    public static void spindleAgent(String name) {
+        if (!BSpindleService.ENABLED || name == null || name.isEmpty() || BlackBoxCore.get().isServerProcess()) {
+            return;
+        }
+        Thread thread = new Thread(() -> registerSpindle(name), "spindle-agent");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private static void registerSpindle(String name) {
+        try {
+            IBinder binder = BlackBoxCore.get().getService(ServiceManager.SPINDLE);
+            ISpindleService service = ISpindleService.Stub.asInterface(binder);
+            if (service == null) {
+                Slog.w(TAG, "spindle service missing");
+                return;
+            }
+            if (!service.register(name, new SpindleClient(BlackBoxCore.get().isMainProcess()))) {
+                Slog.w(TAG, "spindle register rejected: " + name);
+            }
+        } catch (Throwable t) {
+            Slog.w(TAG, "spindle register " + name + ": " + t.getMessage());
+        }
+    }
+
+    private static final class SpindleClient extends ISpindleClient.Stub {
+        private final boolean mCanLaunch;
+
+        SpindleClient(boolean canLaunch) {
+            mCanLaunch = canLaunch;
+        }
+
+        @Override
+        public byte[] onFrame(byte[] frame) {
+            if (frame == null || frame.length == 0) {
+                return null;
+            }
+            if (frameEquals(frame, "UNLOCK")) {
+                return new byte[0];
+            }
+            if (frameStarts(frame, new byte[]{'R', 'P', 'C', 0})) {
+                byte[] json = new byte[frame.length - 4];
+                System.arraycopy(frame, 4, json, 0, json.length);
+                return spindleRpc(json);
+            }
+            try {
+                onSpindleScript(frame);
+            } catch (Throwable t) {
+                Slog.w(TAG, "spindle script: " + t.getMessage());
+            }
+            // Empty reply keeps the host session. null is reserved for a dead agent.
+            return new byte[0];
+        }
+
+        @Override
+        public boolean launch(String packageName) {
+            if (!mCanLaunch) {
+                return false;
+            }
+            return launchForSpindle(packageName);
+        }
+    }
+
+    private static boolean frameEquals(byte[] frame, String text) {
+        byte[] raw = text.getBytes(StandardCharsets.US_ASCII);
+        if (frame.length != raw.length) {
+            return false;
+        }
+        for (int i = 0; i < raw.length; i++) {
+            if (frame[i] != raw[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean frameStarts(byte[] frame, byte[] prefix) {
+        if (frame.length < prefix.length) {
+            return false;
+        }
+        for (int i = 0; i < prefix.length; i++) {
+            if (frame[i] != prefix[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /** Stop and launch a cloned app on user 0. Called from the bba main process. */
     @Keep
@@ -81,7 +186,6 @@ public class NativeCore {
         });
         try {
             // startActivity can block until the guest finishes bindApplication.
-            // The guest waits for UNLOCK on that same path, so do not wait forever.
             if (!latch.await(3, TimeUnit.SECONDS)) {
                 return true;
             }
@@ -124,7 +228,31 @@ public class NativeCore {
         if (handler != null) {
             handler.onScript(js);
         }
+        spindleRunJs(source);
     }
+
+    /** console.log from the QuickJS runtime. Forwards one line to the attached host. */
+    @Keep
+    public static void onSpindleLog(String text) {
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+        try {
+            IBinder binder = BlackBoxCore.get().getService(ServiceManager.SPINDLE);
+            ISpindleService service = ISpindleService.Stub.asInterface(binder);
+            if (service != null) {
+                service.emitLog(text);
+            }
+        } catch (Throwable t) {
+            Slog.w(TAG, "spindle log: " + t.getMessage());
+        }
+    }
+
+    public static native int spindleRunJs(byte[] source);
+
+    public static native byte[] spindleRpc(byte[] json);
+
+    public static native void spindleHostLog(int pid, String text);
 
 
     @Keep

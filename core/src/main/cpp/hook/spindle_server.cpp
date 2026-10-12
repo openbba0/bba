@@ -11,11 +11,8 @@
 #include <pthread.h>
 #include <sys/socket.h>
 #include <sys/system_properties.h>
-#include <sys/un.h>
 #include <unistd.h>
 
-#include <chrono>
-#include <condition_variable>
 #include <cstdint>
 #include <cstring>
 #include <memory>
@@ -28,26 +25,19 @@
 
 namespace {
 
-const char kSockName[] = "spindle_bba";
-
 struct HostLink {
     int fd = -1;
     std::mutex mu;
 };
 
 struct Agent {
+    int id = 0;
     std::string name;
     int pid = 0;
     int uid = 0;
-    int fd = -1;
-    bool local = false;
     bool attached = false;
     bool ready = false;
     std::shared_ptr<HostLink> host;
-    std::mutex rpc_mu;
-    std::condition_variable rpc_cv;
-    std::string rpc_reply;
-    bool rpc_ready = false;
 };
 
 struct SpawnReq {
@@ -59,13 +49,8 @@ struct SpawnReq {
 std::mutex g_mu;
 std::vector<std::shared_ptr<Agent>> g_agents;
 std::vector<SpawnReq> g_spawning;
+int g_next_id = 1;
 bool g_started = false;
-
-std::mutex g_gate_mu;
-std::condition_variable g_gate_cv;
-bool g_gate_open = false;
-bool g_need_unlock = false;
-bool g_got_unlock = false;
 
 bool recv_all(int fd, void *buf, size_t len) {
     auto *p = static_cast<uint8_t *>(buf);
@@ -148,19 +133,6 @@ std::string json_string(const std::string &json, const char *key) {
     return out;
 }
 
-int json_int(const std::string &json, const char *key) {
-    std::string pat = std::string("\"") + key + "\":";
-    size_t i = json.find(pat);
-    if (i == std::string::npos) {
-        return 0;
-    }
-    i += pat.size();
-    while (i < json.size() && json[i] == ' ') {
-        i++;
-    }
-    return atoi(json.c_str() + i);
-}
-
 std::string process_name() {
     char buf[256];
     memset(buf, 0, sizeof(buf));
@@ -177,9 +149,10 @@ std::string process_name() {
     return std::string(buf);
 }
 
-bool main_process(const std::string &name) {
-    // Guest processes are renamed to the cloned package, which also has no ':'.
-    return name == "com.android.bba";
+bool black_process(const std::string &name) {
+    static const char suffix[] = ":black";
+    size_t n = sizeof(suffix) - 1;
+    return name.size() >= n && name.compare(name.size() - n, n, suffix) == 0;
 }
 
 int listen_port() {
@@ -209,13 +182,6 @@ void send_host_frame(const std::shared_ptr<HostLink> &link, const void *payload,
     if (link->fd >= 0) {
         send_frame(link->fd, payload, n);
     }
-}
-
-void note_host(const std::shared_ptr<HostLink> &link, const std::string &text) {
-    std::string frame("LOG", 3);
-    frame.push_back('\0');
-    frame += text;
-    send_host_frame(link, frame.data(), static_cast<uint32_t>(frame.size()));
 }
 
 std::string list_json() {
@@ -321,7 +287,7 @@ bool wait_for_agent(const std::string &target, const std::vector<int> &skip, int
         {
             std::lock_guard<std::mutex> lock(g_mu);
             for (const std::shared_ptr<Agent> &agent : g_agents) {
-                if (agent->local || !agent->ready) {
+                if (!agent->ready) {
                     continue;
                 }
                 if (!is_main_name(agent->name, target)) {
@@ -379,171 +345,8 @@ void release_agent(const std::shared_ptr<Agent> &agent) {
     agent->host.reset();
 }
 
-bool deliver_to_agent(const std::shared_ptr<Agent> &agent, const std::string &frame) {
-    if (agent->local) {
-        if (frame == "UNLOCK") {
-            return true;
-        }
-        if (is_rpc_frame(frame)) {
-            const char *reply = "{\"ok\":false,\"e\":\"js runtime is not in bba\"}";
-            send_host_frame(agent->host, reply, static_cast<uint32_t>(strlen(reply)));
-            return true;
-        }
-        BoxCore::onSpindleScript(frame.data(), static_cast<int>(frame.size()));
-        note_host(agent->host, "script " + std::to_string(frame.size()) + " bytes");
-        return true;
-    }
-    return send_frame(agent->fd, frame.data(), static_cast<uint32_t>(frame.size()));
-}
-
-bool rpc_to_agent(const std::shared_ptr<Agent> &agent, const std::string &frame, std::string *reply) {
-    if (agent->local) {
-        return deliver_to_agent(agent, frame);
-    }
-    {
-        std::lock_guard<std::mutex> lock(agent->rpc_mu);
-        agent->rpc_ready = false;
-        agent->rpc_reply.clear();
-    }
-    if (!send_frame(agent->fd, frame.data(), static_cast<uint32_t>(frame.size()))) {
-        return false;
-    }
-    std::unique_lock<std::mutex> lock(agent->rpc_mu);
-    agent->rpc_cv.wait_for(lock, std::chrono::seconds(15), [&] { return agent->rpc_ready; });
-    if (!agent->rpc_ready) {
-        return false;
-    }
-    *reply = agent->rpc_reply;
-    return true;
-}
-
-void drop_agent(const std::shared_ptr<Agent> &agent) {
-    std::shared_ptr<HostLink> link;
-    {
-        std::lock_guard<std::mutex> lock(g_mu);
-        for (auto it = g_agents.begin(); it != g_agents.end(); ++it) {
-            if (*it == agent) {
-                link = agent->host;
-                g_agents.erase(it);
-                break;
-            }
-        }
-    }
-    if (agent->fd >= 0) {
-        close(agent->fd);
-        agent->fd = -1;
-    }
-    if (link != nullptr) {
-        static const char bye[] = "EXIT";
-        send_host_frame(link, bye, sizeof(bye) - 1);
-        std::lock_guard<std::mutex> lock(link->mu);
-        if (link->fd >= 0) {
-            shutdown(link->fd, SHUT_RDWR);
-        }
-    }
-    __android_log_print(ANDROID_LOG_INFO, SPDL_TAG, "agent gone %s pid=%d", agent->name.c_str(), agent->pid);
-}
-
-void *agent_reader(void *arg) {
-    auto *raw = static_cast<std::shared_ptr<Agent> *>(arg);
-    std::shared_ptr<Agent> agent = *raw;
-    delete raw;
-    for (;;) {
-        std::string frame;
-        if (!recv_frame(agent->fd, &frame)) {
-            break;
-        }
-        if (is_log_frame(frame)) {
-            std::shared_ptr<HostLink> link;
-            {
-                std::lock_guard<std::mutex> lock(g_mu);
-                link = agent->host;
-            }
-            send_host_frame(link, frame.data(), static_cast<uint32_t>(frame.size()));
-            continue;
-        }
-        {
-            std::lock_guard<std::mutex> lock(agent->rpc_mu);
-            agent->rpc_reply = frame;
-            agent->rpc_ready = true;
-        }
-        agent->rpc_cv.notify_one();
-    }
-    drop_agent(agent);
-    return nullptr;
-}
-
-void accept_agent(int fd) {
-    std::string frame;
-    if (!recv_frame(fd, &frame) || frame.size() < 4 || frame.compare(0, 3, "REG") != 0 || frame[3] != '\0') {
-        close(fd);
-        return;
-    }
-    std::string json = frame.substr(4);
-    std::string name = json_string(json, "name");
-    if (name.empty() || name.find('"') != std::string::npos) {
-        close(fd);
-        return;
-    }
-    auto agent = std::make_shared<Agent>();
-    agent->name = name;
-    agent->pid = json_int(json, "pid");
-    agent->uid = json_int(json, "uid");
-    agent->fd = fd;
-    {
-        std::lock_guard<std::mutex> lock(g_mu);
-        g_agents.push_back(agent);
-    }
-    auto *held = new std::shared_ptr<Agent>(agent);
-    pthread_t thread;
-    if (pthread_create(&thread, nullptr, agent_reader, held) != 0) {
-        delete held;
-        drop_agent(agent);
-        return;
-    }
-    pthread_detach(thread);
-    bool pause = should_pause(name, agent->pid);
-    send_json(fd, pause ? "{\"ok\":true,\"pause\":true}" : "{\"ok\":true}");
-    {
-        std::lock_guard<std::mutex> lock(g_mu);
-        agent->ready = true;
-    }
-    __android_log_print(ANDROID_LOG_INFO, SPDL_TAG, "registered %s pid=%d pause=%d", name.c_str(),
-                        agent->pid, pause ? 1 : 0);
-}
-
-void *agent_accept_loop(void *arg) {
-    int fd = static_cast<int>(reinterpret_cast<intptr_t>(arg));
-    for (;;) {
-        int client = accept(fd, nullptr, nullptr);
-        if (client < 0) {
-            if (errno == EINTR) {
-                continue;
-            }
-            break;
-        }
-        accept_agent(client);
-    }
-    close(fd);
-    return nullptr;
-}
-
-int open_agent_socket() {
-    int fd = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-    if (fd < 0) {
-        return -1;
-    }
-    sockaddr_un addr{};
-    addr.sun_family = AF_UNIX;
-    addr.sun_path[0] = '\0';
-    memcpy(addr.sun_path + 1, kSockName, sizeof(kSockName) - 1);
-    socklen_t len = static_cast<socklen_t>(offsetof(sockaddr_un, sun_path) + 1 + sizeof(kSockName) - 1);
-    if (bind(fd, reinterpret_cast<sockaddr *>(&addr), len) != 0 || listen(fd, 8) != 0) {
-        __android_log_print(ANDROID_LOG_INFO, SPDL_TAG, "agent socket failed errno=%d", errno);
-        close(fd);
-        return -1;
-    }
-    return fd;
+bool deliver_to_agent(const std::shared_ptr<Agent> &agent, const std::string &frame, std::string *reply) {
+    return BoxCore::deliverSpindle(agent->id, frame.data(), static_cast<int>(frame.size()), reply);
 }
 
 void serve_host(int fd, const std::string &hello) {
@@ -568,17 +371,21 @@ void serve_host(int fd, const std::string &hello) {
         }
         begin_spawn(target, &skip);
         __android_log_print(ANDROID_LOG_INFO, SPDL_TAG, "spawn %s", target.c_str());
-        if (!BoxCore::launchForSpindle(package_of(target).c_str())) {
+        std::string pkg = package_of(target);
+        if (!BoxCore::launchForSpindle(pkg.c_str())) {
             clear_spawn(target);
             send_json(fd, "{\"ok\":false,\"e\":\"spawn start failed\"}");
             close(fd);
             return;
         }
-        if (!wait_for_agent(target, skip, 20)) {
-            clear_spawn(target);
-            send_json(fd, "{\"ok\":false,\"e\":\"spawn timed out\"}");
-            close(fd);
-            return;
+        if (!wait_for_agent(target, skip, 15)) {
+            __android_log_print(ANDROID_LOG_INFO, SPDL_TAG, "spawn %s waiting, asking main", target.c_str());
+            if (!BoxCore::launchForSpindleOnMain(pkg.c_str()) || !wait_for_agent(target, skip, 15)) {
+                clear_spawn(target);
+                send_json(fd, "{\"ok\":false,\"e\":\"spawn timed out\"}");
+                close(fd);
+                return;
+            }
         }
     }
     std::string err;
@@ -608,32 +415,29 @@ void serve_host(int fd, const std::string &hello) {
         if (!recv_frame(fd, &frame) || frame.empty()) {
             break;
         }
+        std::string reply;
         if (frame == "UNLOCK") {
-            if (!deliver_to_agent(agent, frame)) {
+            if (!deliver_to_agent(agent, frame, &reply)) {
                 break;
             }
             continue;
         }
         if (is_rpc_frame(frame)) {
-            std::string reply;
-            if (agent->local) {
-                if (!deliver_to_agent(agent, frame)) {
-                    break;
-                }
-                continue;
-            }
-            if (!rpc_to_agent(agent, frame, &reply) ||
-                !send_json(fd, reply)) {
+            if (!deliver_to_agent(agent, frame, &reply) || reply.empty() || !send_json(fd, reply)) {
                 break;
             }
             continue;
         }
-        if (!deliver_to_agent(agent, frame)) {
+        if (!deliver_to_agent(agent, frame, &reply)) {
             break;
+        }
+        if (is_log_frame(reply)) {
+            send_host_frame(link, reply.data(), static_cast<uint32_t>(reply.size()));
         }
     }
     if (spawn) {
-        deliver_to_agent(agent, "UNLOCK");
+        std::string reply;
+        deliver_to_agent(agent, "UNLOCK", &reply);
     }
     release_agent(agent);
     close(fd);
@@ -678,108 +482,6 @@ void *accept_loop(void *arg) {
     return nullptr;
 }
 
-void deliver_guest(const std::string &frame) {
-    if (frame == "UNLOCK" || is_rpc_frame(frame)) {
-        return;
-    }
-    BoxCore::onSpindleScript(frame.data(), static_cast<int>(frame.size()));
-}
-
-void gate_open(bool pause) {
-    std::lock_guard<std::mutex> lock(g_gate_mu);
-    g_gate_open = true;
-    g_need_unlock = pause;
-    g_gate_cv.notify_all();
-}
-
-void gate_unlock() {
-    std::lock_guard<std::mutex> lock(g_gate_mu);
-    g_got_unlock = true;
-    g_gate_cv.notify_all();
-}
-
-void gate_fail() {
-    std::lock_guard<std::mutex> lock(g_gate_mu);
-    g_gate_open = true;
-    g_got_unlock = true;
-    g_gate_cv.notify_all();
-}
-
-void *guest_loop(void *arg) {
-    auto *name_ptr = static_cast<std::string *>(arg);
-    std::string name = *name_ptr;
-    delete name_ptr;
-    int fd = -1;
-    for (int i = 0; i < 50 && fd < 0; i++) {
-        fd = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-        if (fd < 0) {
-            gate_fail();
-            return nullptr;
-        }
-        sockaddr_un addr{};
-        addr.sun_family = AF_UNIX;
-        addr.sun_path[0] = '\0';
-        memcpy(addr.sun_path + 1, kSockName, sizeof(kSockName) - 1);
-        socklen_t len = static_cast<socklen_t>(offsetof(sockaddr_un, sun_path) + 1 + sizeof(kSockName) - 1);
-        if (connect(fd, reinterpret_cast<sockaddr *>(&addr), len) != 0) {
-            close(fd);
-            fd = -1;
-            usleep(100 * 1000);
-        }
-    }
-    if (fd < 0) {
-        __android_log_print(ANDROID_LOG_INFO, SPDL_TAG, "register %s failed", name.c_str());
-        gate_fail();
-        return nullptr;
-    }
-    std::string hello("REG", 3);
-    hello.push_back('\0');
-    hello += "{\"name\":\"" + name + "\",\"pid\":" + std::to_string(getpid()) +
-             ",\"uid\":" + std::to_string(getuid()) + "}";
-    if (!send_frame(fd, hello.data(), static_cast<uint32_t>(hello.size()))) {
-        close(fd);
-        gate_fail();
-        return nullptr;
-    }
-    std::string ack;
-    if (!recv_frame(fd, &ack)) {
-        close(fd);
-        gate_fail();
-        return nullptr;
-    }
-    bool pause = json_true(ack, "pause");
-    gate_open(pause);
-    __android_log_print(ANDROID_LOG_INFO, SPDL_TAG, "joined %s pid=%d pause=%d", name.c_str(), getpid(),
-                        pause ? 1 : 0);
-    for (;;) {
-        std::string frame;
-        if (!recv_frame(fd, &frame)) {
-            break;
-        }
-        if (frame == "UNLOCK") {
-            gate_unlock();
-            continue;
-        }
-        if (is_rpc_frame(frame)) {
-            const char *reply = "{\"ok\":false,\"e\":\"js runtime is not in bba\"}";
-            if (!send_json(fd, reply)) {
-                break;
-            }
-            continue;
-        }
-        deliver_guest(frame);
-        std::string log("LOG", 3);
-        log.push_back('\0');
-        log += "script " + std::to_string(frame.size()) + " bytes";
-        if (!send_frame(fd, log.data(), static_cast<uint32_t>(log.size()))) {
-            break;
-        }
-    }
-    close(fd);
-    gate_fail();
-    return nullptr;
-}
-
 }  // namespace
 
 void SpindleServer::start() {
@@ -788,7 +490,7 @@ void SpindleServer::start() {
         return;
     }
     std::string name = process_name();
-    if (!main_process(name)) {
+    if (!black_process(name)) {
         return;
     }
     int port = listen_port();
@@ -808,47 +510,79 @@ void SpindleServer::start() {
         close(fd);
         return;
     }
-    int agent_fd = open_agent_socket();
-    if (agent_fd >= 0) {
-        pthread_t agent_thread;
-        pthread_create(&agent_thread, nullptr, agent_accept_loop,
-                       reinterpret_cast<void *>(static_cast<intptr_t>(agent_fd)));
-        pthread_detach(agent_thread);
-    }
-    auto self = std::make_shared<Agent>();
-    self->name = name;
-    self->pid = getpid();
-    self->uid = getuid();
-    self->local = true;
-    g_agents.push_back(self);
     g_started = true;
     pthread_t thread;
     pthread_create(&thread, nullptr, accept_loop, reinterpret_cast<void *>(static_cast<intptr_t>(fd)));
     pthread_detach(thread);
-    __android_log_print(ANDROID_LOG_INFO, SPDL_TAG, "spindle_server port=%d", port);
+    __android_log_print(ANDROID_LOG_INFO, SPDL_TAG, "spindle_server :black port=%d", port);
 }
 
-void SpindleServer::join(const char *name) {
-    if (name == nullptr || name[0] == '\0' || strchr(name, '"') != nullptr) {
-        return;
+int SpindleServer::addAgent(const char *name, int pid, int uid) {
+    if (name == nullptr || name[0] == '\0' || strchr(name, '"') != nullptr || strchr(name, '\\') != nullptr) {
+        return 0;
     }
+    auto agent = std::make_shared<Agent>();
+    agent->name = name;
+    agent->pid = pid;
+    agent->uid = uid;
+    should_pause(agent->name, pid);
     {
         std::lock_guard<std::mutex> lock(g_mu);
-        if (g_started) {
-            return;
+        agent->id = g_next_id++;
+        if (g_next_id <= 0) {
+            g_next_id = 1;
         }
+        agent->ready = true;
+        g_agents.push_back(agent);
     }
-    {
-        std::lock_guard<std::mutex> lock(g_gate_mu);
-        g_gate_open = false;
-        g_need_unlock = false;
-        g_got_unlock = false;
-    }
-    auto *held = new std::string(name);
-    pthread_t thread;
-    if (pthread_create(&thread, nullptr, guest_loop, held) != 0) {
-        delete held;
+    __android_log_print(ANDROID_LOG_INFO, SPDL_TAG, "registered %s pid=%d id=%d", name, pid, agent->id);
+    return agent->id;
+}
+
+void SpindleServer::hostLog(int pid, const char *text) {
+    if (text == nullptr) {
         return;
     }
-    pthread_detach(thread);
+    std::shared_ptr<HostLink> link;
+    {
+        std::lock_guard<std::mutex> lock(g_mu);
+        for (const std::shared_ptr<Agent> &agent : g_agents) {
+            if (agent->pid == pid) {
+                link = agent->host;
+                break;
+            }
+        }
+    }
+    std::string frame("LOG", 3);
+    frame.push_back('\0');
+    frame.append(text);
+    send_host_frame(link, frame.data(), static_cast<uint32_t>(frame.size()));
+}
+
+void SpindleServer::dropAgent(int id) {
+    std::shared_ptr<Agent> agent;
+    std::shared_ptr<HostLink> link;
+    {
+        std::lock_guard<std::mutex> lock(g_mu);
+        for (auto it = g_agents.begin(); it != g_agents.end(); ++it) {
+            if ((*it)->id == id) {
+                agent = *it;
+                link = agent->host;
+                g_agents.erase(it);
+                break;
+            }
+        }
+    }
+    if (agent == nullptr) {
+        return;
+    }
+    if (link != nullptr) {
+        static const char bye[] = "EXIT";
+        send_host_frame(link, bye, sizeof(bye) - 1);
+        std::lock_guard<std::mutex> lock(link->mu);
+        if (link->fd >= 0) {
+            shutdown(link->fd, SHUT_RDWR);
+        }
+    }
+    __android_log_print(ANDROID_LOG_INFO, SPDL_TAG, "agent gone %s pid=%d", agent->name.c_str(), agent->pid);
 }

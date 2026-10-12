@@ -104,6 +104,33 @@ LOCAL_CFLAGS := -O2 -w -fvisibility=hidden -D_GNU_SOURCE \
 LOCAL_STATIC_LIBRARIES := capstone
 include $(BUILD_STATIC_LIBRARY)
 
+include $(CLEAR_VARS)
+LOCAL_MODULE := qjs
+LOCAL_SRC_FILES := \
+    qjs/cutils.c \
+    qjs/dtoa.c \
+    qjs/libregexp.c \
+    qjs/libunicode.c \
+    qjs/quickjs.c \
+    js/qjs_binding.c \
+    js/stalker_js.c \
+    js/art_hook.c
+LOCAL_C_INCLUDES := \
+    $(LOCAL_PATH) \
+    $(LOCAL_PATH)/include \
+    $(LOCAL_PATH)/qjs \
+    $(LOCAL_PATH)/js \
+    $(LOCAL_PATH)/gum \
+    $(LOCAL_PATH)/gum/rt \
+    $(LOCAL_PATH)/gum/arch-arm64 \
+    $(LOCAL_PATH)/gum/backend-arm64 \
+    $(LOCAL_PATH)/gum/backend-elf \
+    $(LOCAL_PATH)/gum/backend-linux/include \
+    $(LOCAL_PATH)/capstone/include
+LOCAL_CFLAGS := -O2 -w -fvisibility=hidden -fwrapv -D_GNU_SOURCE \
+    -DCONFIG_VERSION=\"2026-06-04\" -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
+include $(BUILD_STATIC_LIBRARY)
+
 endif
 
 include $(CLEAR_VARS)
@@ -145,7 +172,9 @@ LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/gum/arch-arm64 \
     $(LOCAL_PATH)/gum/backend-arm64 \
     $(LOCAL_PATH)/gum/backend-elf \
-    $(LOCAL_PATH)/gum/backend-linux/include
+    $(LOCAL_PATH)/gum/backend-linux/include \
+    $(LOCAL_PATH)/js
+LOCAL_SRC_FILES += js/spindle_backtrace.cpp
 endif
 LOCAL_CFLAGS += -Wno-error=format-security -fvisibility=hidden -ffunction-sections -fdata-sections -w -std=c++17
 LOCAL_CPPFLAGS += -Wno-error=format-security -fvisibility=hidden -ffunction-sections -fdata-sections -w -Werror -fms-extensions
@@ -155,7 +184,7 @@ LOCAL_ARM_MODE := arm
 LOCAL_CPP_FEATURES := exceptions
 LOCAL_STATIC_LIBRARIES := libdobby xdl
 ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
-LOCAL_STATIC_LIBRARIES += gum capstone
+LOCAL_STATIC_LIBRARIES += qjs gum capstone
 endif
-LOCAL_LDLIBS := -llog -landroid -lz
+LOCAL_LDLIBS := -llog -landroid -lz -lm
 include $(BUILD_SHARED_LIBRARY)

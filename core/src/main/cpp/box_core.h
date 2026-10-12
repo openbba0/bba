@@ -6,6 +6,7 @@
 #define VIRTUALM_VMCORE_H
 
 #include <jni.h>
+#include <string>
 
 #define VMCORE_CLASS "com/android/bb/core/NativeCore"
 
@@ -17,8 +18,11 @@ public:
     static jstring redirectPathString(JNIEnv *env, jstring path);
     static jobject redirectPathFile(JNIEnv *env, jobject path);
     static jlongArray loadEmptyDex(JNIEnv *env);
+    static void bindSpindle(JNIEnv *env);
     static void onSpindleScript(const void *data, int len);
+    static bool deliverSpindle(int id, const void *data, int len, std::string *reply);
     static bool launchForSpindle(const char *packageName);
+    static bool launchForSpindleOnMain(const char *packageName);
 };
 
 

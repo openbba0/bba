@@ -73,6 +73,7 @@ import com.android.bb.hook.content.ContentProviderDelegate;
 import com.android.bb.hook.guest.HookEntry;
 import com.android.bb.hook.resources.WorkManagerInitGuard;
 import com.android.bb.hook.HookManager;
+import com.android.bb.hook.MiuiRenderNodeGuard;
 import com.android.bb.hook.system.HCallbackProxy;
 import com.android.bb.utils.Reflector;
 import com.android.bb.utils.Slog;
@@ -396,6 +397,7 @@ public class BActivityThread extends IBActivityThread.Stub {
         }
 
         NativeCore.init(Build.VERSION.SDK_INT);
+        MiuiRenderNodeGuard.install();
         assert packageContext != null;
         IOCore.get().enableRedirect(packageContext);
 

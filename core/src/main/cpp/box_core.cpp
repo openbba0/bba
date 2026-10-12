@@ -20,6 +20,12 @@
 #include "utils/hex_dump.h"
 #include "hidden_api.h"
 
+#include <pthread.h>
+#include <cstdlib>
+#include <cstring>
+
+JNIEnv *ensureEnvCreated();
+
 struct {
     JavaVM *vm;
     jclass NativeCoreClass;
@@ -30,6 +36,72 @@ struct {
     jmethodID loadEmptyDexL;
     int api_level;
 } VMEnv;
+
+#if defined(__aarch64__)
+extern "C" {
+int spindle_run_js(const char *source, int source_len);
+int spindle_rpc_call(const char *json, int json_len, char **out);
+}
+#endif
+
+static pthread_mutex_t g_unlock_mu = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t g_unlock_cv = PTHREAD_COND_INITIALIZER;
+static int g_unlock_flag = 0;
+
+extern "C" void spindle_set_unlock(void) {
+    pthread_mutex_lock(&g_unlock_mu);
+    g_unlock_flag = 1;
+    pthread_cond_broadcast(&g_unlock_cv);
+    pthread_mutex_unlock(&g_unlock_mu);
+}
+
+extern "C" void spindle_reset_unlock(void) {
+    pthread_mutex_lock(&g_unlock_mu);
+    g_unlock_flag = 0;
+    pthread_mutex_unlock(&g_unlock_mu);
+}
+
+extern "C" void spindle_wait_unlock(void) {
+    pthread_mutex_lock(&g_unlock_mu);
+    while (!g_unlock_flag) {
+        pthread_cond_wait(&g_unlock_cv, &g_unlock_mu);
+    }
+    pthread_mutex_unlock(&g_unlock_mu);
+}
+
+extern "C" void spindle_log(const char *text) {
+    if (text == nullptr) {
+        return;
+    }
+    __android_log_print(ANDROID_LOG_INFO, "SPDL", "%s", text);
+    JNIEnv *env = ensureEnvCreated();
+    if (env == nullptr || VMEnv.NativeCoreClass == nullptr) {
+        return;
+    }
+    static jmethodID mid = nullptr;
+    if (mid == nullptr) {
+        mid = env->GetStaticMethodID(VMEnv.NativeCoreClass, "onSpindleLog",
+                                     "(Ljava/lang/String;)V");
+        if (mid == nullptr) {
+            env->ExceptionClear();
+            return;
+        }
+    }
+    jstring line = env->NewStringUTF(text);
+    if (line == nullptr) {
+        return;
+    }
+    env->CallStaticVoidMethod(VMEnv.NativeCoreClass, mid, line);
+    if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+    }
+    env->DeleteLocalRef(line);
+}
+
+static jclass gSpindleClass = nullptr;
+static jmethodID gSpindleDeliver = nullptr;
+static jmethodID gSpindleLaunch = nullptr;
+static jmethodID gSpindleLaunchMain = nullptr;
 
 
 JNIEnv *getEnv() {
@@ -70,6 +142,67 @@ int BoxCore::getApiLevel() {
     return VMEnv.api_level;
 }
 
+void BoxCore::bindSpindle(JNIEnv *env) {
+    if (gSpindleClass != nullptr || env == nullptr) {
+        return;
+    }
+    jclass local = env->FindClass("com/android/bb/core/system/spindle/BSpindleService");
+    if (local == nullptr) {
+        env->ExceptionClear();
+        return;
+    }
+    gSpindleClass = reinterpret_cast<jclass>(env->NewGlobalRef(local));
+    env->DeleteLocalRef(local);
+    gSpindleDeliver = env->GetStaticMethodID(gSpindleClass, "deliver", "(I[B)[B");
+    if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+    }
+    gSpindleLaunch = env->GetStaticMethodID(gSpindleClass, "launch", "(Ljava/lang/String;)Z");
+    if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+    }
+    gSpindleLaunchMain = env->GetStaticMethodID(gSpindleClass, "launchOnMain", "(Ljava/lang/String;)Z");
+    if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+    }
+}
+
+bool BoxCore::deliverSpindle(int id, const void *data, int len, std::string *reply) {
+    JNIEnv *env = ensureEnvCreated();
+    if (env == nullptr || gSpindleClass == nullptr || gSpindleDeliver == nullptr || data == nullptr || len < 0) {
+        return false;
+    }
+    jbyteArray bytes = env->NewByteArray(len);
+    if (bytes == nullptr) {
+        return false;
+    }
+    if (len > 0) {
+        env->SetByteArrayRegion(bytes, 0, len, reinterpret_cast<const jbyte *>(data));
+    }
+    jobject result = env->CallStaticObjectMethod(gSpindleClass, gSpindleDeliver, id, bytes);
+    env->DeleteLocalRef(bytes);
+    if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+        if (result != nullptr) {
+            env->DeleteLocalRef(result);
+        }
+        return false;
+    }
+    if (result == nullptr) {
+        return false;
+    }
+    auto *array = reinterpret_cast<jbyteArray>(result);
+    jsize n = env->GetArrayLength(array);
+    if (reply != nullptr) {
+        reply->resize(static_cast<size_t>(n));
+        if (n > 0) {
+            env->GetByteArrayRegion(array, 0, n, reinterpret_cast<jbyte *>(&(*reply)[0]));
+        }
+    }
+    env->DeleteLocalRef(result);
+    return true;
+}
+
 void BoxCore::onSpindleScript(const void *data, int len) {
     JNIEnv *env = ensureEnvCreated();
     if (env == nullptr || VMEnv.NativeCoreClass == nullptr || data == nullptr || len < 0) {
@@ -95,22 +228,16 @@ void BoxCore::onSpindleScript(const void *data, int len) {
     env->DeleteLocalRef(bytes);
 }
 
-bool BoxCore::launchForSpindle(const char *packageName) {
+static bool callSpindleLaunch(jmethodID mid, const char *packageName) {
     JNIEnv *env = ensureEnvCreated();
-    if (env == nullptr || VMEnv.NativeCoreClass == nullptr || packageName == nullptr) {
-        return false;
-    }
-    jmethodID mid = env->GetStaticMethodID(VMEnv.NativeCoreClass, "launchForSpindle",
-                                           "(Ljava/lang/String;)Z");
-    if (mid == nullptr) {
-        env->ExceptionClear();
+    if (env == nullptr || gSpindleClass == nullptr || mid == nullptr || packageName == nullptr) {
         return false;
     }
     jstring name = env->NewStringUTF(packageName);
     if (name == nullptr) {
         return false;
     }
-    jboolean ok = env->CallStaticBooleanMethod(VMEnv.NativeCoreClass, mid, name);
+    jboolean ok = env->CallStaticBooleanMethod(gSpindleClass, mid, name);
     if (env->ExceptionCheck()) {
         env->ExceptionClear();
         ok = JNI_FALSE;
@@ -119,7 +246,19 @@ bool BoxCore::launchForSpindle(const char *packageName) {
     return ok == JNI_TRUE;
 }
 
+bool BoxCore::launchForSpindle(const char *packageName) {
+    return callSpindleLaunch(gSpindleLaunch, packageName);
+}
+
+bool BoxCore::launchForSpindleOnMain(const char *packageName) {
+    return callSpindleLaunch(gSpindleLaunchMain, packageName);
+}
+
 JavaVM *BoxCore::getJavaVM() {
+    return VMEnv.vm;
+}
+
+extern "C" JavaVM *spindle_java_vm(void) {
     return VMEnv.vm;
 }
 
@@ -153,8 +292,6 @@ void init(JNIEnv *env, jobject clazz, jint api_level) {
                                                 "()[J");
 
     JniHook::InitJniHook(env, api_level);
-    GumEngine::selfTest();
-    SpindleServer::start();
 }
 
 void addIORule(JNIEnv *env, jclass clazz, jstring target_path,
@@ -231,16 +368,103 @@ jint gumStalkerEventCount(JNIEnv *env, jclass clazz) {
     return GumEngine::stalkerEventCount();
 }
 
-void spindleAgent(JNIEnv *env, jclass clazz, jstring name) {
+void spindleListen(JNIEnv *env, jclass clazz) {
+    (void) clazz;
+    BoxCore::bindSpindle(env);
+    SpindleServer::start();
+}
+
+jint spindleAdd(JNIEnv *env, jclass clazz, jstring name, jint pid, jint uid) {
     (void) clazz;
     if (name == nullptr) {
-        return;
+        return 0;
     }
     const char *chars = env->GetStringUTFChars(name, nullptr);
-    if (chars != nullptr) {
-        SpindleServer::join(chars);
-        env->ReleaseStringUTFChars(name, chars);
+    if (chars == nullptr) {
+        return 0;
     }
+    int id = SpindleServer::addAgent(chars, pid, uid);
+    env->ReleaseStringUTFChars(name, chars);
+    return id;
+}
+
+void spindleDrop(JNIEnv *env, jclass clazz, jint id) {
+    (void) env;
+    (void) clazz;
+    SpindleServer::dropAgent(id);
+}
+
+jint spindleRunJs(JNIEnv *env, jclass clazz, jbyteArray source) {
+    (void) clazz;
+#if defined(__aarch64__)
+    if (source == nullptr) {
+        return -1;
+    }
+    jsize n = env->GetArrayLength(source);
+    if (n <= 0) {
+        return -1;
+    }
+    jbyte *bytes = env->GetByteArrayElements(source, nullptr);
+    if (bytes == nullptr) {
+        return -1;
+    }
+    int rc = spindle_run_js(reinterpret_cast<const char *>(bytes), n);
+    env->ReleaseByteArrayElements(source, bytes, JNI_ABORT);
+    return rc;
+#else
+    (void) env;
+    (void) source;
+    return -1;
+#endif
+}
+
+jbyteArray spindleRpc(JNIEnv *env, jclass clazz, jbyteArray json) {
+    (void) clazz;
+#if defined(__aarch64__)
+    if (json == nullptr) {
+        return nullptr;
+    }
+    jsize n = env->GetArrayLength(json);
+    jbyte *bytes = env->GetByteArrayElements(json, nullptr);
+    if (bytes == nullptr) {
+        return nullptr;
+    }
+    char *out = nullptr;
+    spindle_rpc_call(reinterpret_cast<const char *>(bytes), n, &out);
+    env->ReleaseByteArrayElements(json, bytes, JNI_ABORT);
+    if (out == nullptr) {
+        return nullptr;
+    }
+    jsize len = static_cast<jsize>(strlen(out));
+    jbyteArray reply = env->NewByteArray(len);
+    if (reply != nullptr && len > 0) {
+        env->SetByteArrayRegion(reply, 0, len, reinterpret_cast<const jbyte *>(out));
+    }
+    free(out);
+    return reply;
+#else
+    (void) json;
+    const char *err = "{\"ok\":false,\"e\":\"js runtime is not in bba\"}";
+    jsize len = static_cast<jsize>(strlen(err));
+    jbyteArray reply = env->NewByteArray(len);
+    if (reply != nullptr) {
+        env->SetByteArrayRegion(reply, 0, len, reinterpret_cast<const jbyte *>(err));
+    }
+    return reply;
+#endif
+}
+
+void spindleHostLog(JNIEnv *env, jclass clazz, jint pid, jstring text) {
+    (void) clazz;
+    if (text == nullptr) {
+        return;
+    }
+    const char *chars = env->GetStringUTFChars(text, nullptr);
+    if (chars == nullptr) {
+        return;
+    }
+    SpindleServer::hostLog(pid, chars);
+    env->ReleaseStringUTFChars(text, chars);
 }
 
 static JNINativeMethod gMethods[] = {
@@ -256,7 +480,12 @@ static JNINativeMethod gMethods[] = {
         {"gumStalkerUnfollow", "(J)V",                            (void *) gumStalkerUnfollow},
         {"gumStalkerExclude", "(JJ)V",                            (void *) gumStalkerExclude},
         {"gumStalkerEventCount", "()I",                           (void *) gumStalkerEventCount},
-        {"spindleAgent", "(Ljava/lang/String;)V",                 (void *) spindleAgent},
+        {"spindleListen", "()V",                                  (void *) spindleListen},
+        {"spindleAdd", "(Ljava/lang/String;II)I",                 (void *) spindleAdd},
+        {"spindleDrop", "(I)V",                                   (void *) spindleDrop},
+        {"spindleRunJs", "([B)I",                                 (void *) spindleRunJs},
+        {"spindleRpc", "([B)[B",                                  (void *) spindleRpc},
+        {"spindleHostLog", "(ILjava/lang/String;)V",              (void *) spindleHostLog},
 };
 
 int registerNativeMethods(JNIEnv *env, const char *className,

@@ -22,6 +22,7 @@ import com.android.bb.core.system.os.BStorageManagerService;
 import com.android.bb.core.system.pm.BPackageInstallerService;
 import com.android.bb.core.system.pm.BPackageManagerService;
 
+import com.android.bb.core.system.spindle.BSpindleService;
 import com.android.bb.core.system.user.BUserHandle;
 import com.android.bb.core.system.user.BUserManagerService;
 import com.android.bb.model.pm.InstallOption;
@@ -62,6 +63,7 @@ public class BlackBoxSystem {
         mServices.add(BAccountManagerService.get());
         mServices.add(BLocationManagerService.get());
         mServices.add(BNotificationManagerService.get());
+        mServices.add(BSpindleService.get());
 
         for (ISystemService service : mServices) {
             service.systemReady();

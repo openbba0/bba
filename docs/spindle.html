@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spindle 在 BBA 里怎么工作</title>
+<style>
+  :root {
+    --ink: #1c1915;
+    --muted: #5c564c;
+    --line: #e4ddd2;
+    --paper: #f7f3ec;
+    --card: #fffdf9;
+    --accent: #9a3b24;
+    --accent-soft: #f3e4dc;
+    --code: #2a241e;
+    --chip: #efe8dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--paper);
+    font: 17px/1.65 "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", serif;
+  }
+  header {
+    padding: 64px 24px 28px;
+    border-bottom: 1px solid var(--line);
+  }
+  header, main { max-width: 1200px; margin: 0 auto; }
+  h1 {
+    margin: 0 0 12px;
+    font-size: 40px;
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .lede { margin: 0; color: var(--muted); font-size: 19px; }
+  nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 18px 24px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font: 13px/1.4 "Avenir Next", "PingFang SC", sans-serif;
+    letter-spacing: 0.01em;
+  }
+  nav a:hover { text-decoration: underline; }
+  main { padding: 8px 24px 80px; }
+  h2 {
+    margin: 42px 0 10px;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  h3 { margin: 26px 0 8px; font-size: 18px; }
+  p { margin: 0 0 14px; }
+  code, pre {
+    font-family: "IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 0.86em;
+  }
+  code {
+    background: var(--chip);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--code);
+    color: #f4efe6;
+    padding: 16px 18px;
+    border-radius: 10px;
+    overflow: auto;
+    line-height: 1.5;
+  }
+  pre code { background: transparent; padding: 0; color: inherit; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 18px;
+    font: 15px/1.45 "Avenir Next", "PingFang SC", sans-serif;
+    background: var(--card);
+  }
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  th { font-weight: 600; color: var(--muted); font-size: 13px; }
+  .flow {
+    display: grid;
+    gap: 0;
+    margin: 18px 0 8px;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 12px;
+  }
+  .step .n {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 14px/1 "Avenir Next", sans-serif;
+    position: relative;
+  }
+  .step:not(:last-child) .n::after {
+    content: "";
+    position: absolute;
+    top: 36px;
+    left: 17px;
+    width: 2px;
+    height: calc(100% + 8px);
+    background: #e7cfc6;
+  }
+  .step .body {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px 10px;
+    margin-bottom: 10px;
+  }
+  .step strong { font-family: "Avenir Next", "PingFang SC", sans-serif; }
+  .who {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 12px 0 18px;
+  }
+  .who article {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .who h3 { margin: 0 0 6px; font-size: 16px; }
+  .who p { margin: 0; font-size: 15px; color: var(--muted); }
+  figure.rel {
+    margin: 6px 0 22px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 8px 8px;
+  }
+  figure.rel svg { display: block; width: 100%; height: auto; }
+  figure.rel figcaption {
+    margin: 2px 10px 8px;
+    color: var(--muted);
+    font: 13px/1.45 "Avenir Next", "PingFang SC", sans-serif;
+  }
+  .note {
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 14px 0;
+  }
+  footer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 48px;
+    color: var(--muted);
+    font: 13px/1.5 "Avenir Next", "PingFang SC", sans-serif;
+  }
+  @media (max-width: 700px) {
+    h1 { font-size: 32px; }
+    .who { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Spindle 在 BBA 里怎么工作</h1>
+  <p class="lede">开发机把一段脚本送进宿主或某个分身进程。通道只负责把字节交到目标进程，不负责解释这些字节。</p>
+</header>
+<nav>
+  <a href="#roles">进程</a>
+  <a href="#sockets">通道</a>
+  <a href="#frames">帧</a>
+  <a href="#spawn">拉起</a>
+  <a href="#attach">挂接</a>
+  <a href="#match">怎么选进程</a>
+  <a href="#script">脚本落到哪</a>
+  <a href="#cli">命令行</a>
+</nav>
+<main>
+
+<h2 id="roles">进程</h2>
+<figure class="rel">
+  <svg viewBox="0 0 880 470" role="img" aria-labelledby="relTitle relDesc">
+    <title id="relTitle">开发机、虚拟系统进程、宿主主进程和分身的关系</title>
+    <desc id="relDesc">开发机的 TCP 由 com.android.bba:black 接受。主进程和分身通过 ContentProvider 拿到 ISpindleService，用 Binder 注册并接收脚本。</desc>
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 1.2 L 9 5 L 0 8.8 Z" fill="#9a3b24"/>
+      </marker>
+      <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 1.2 L 9 5 L 0 8.8 Z" fill="#1c1915"/>
+      </marker>
+      <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 1.2 L 9 5 L 0 8.8 Z" fill="#2f6b4f"/>
+      </marker>
+    </defs>
+    <style>
+      .box { fill: #fffdf9; }
+      .phone { fill: #efe8dc; stroke: #d4cbbd; }
+      text { font-family: "Avenir Next", "PingFang SC", "Songti SC", sans-serif; fill: #1c1915; }
+      .h { font-size: 15px; font-weight: 600; }
+      .s { font-size: 12.5px; fill: #5c564c; }
+      .tag { font-size: 12px; fill: #9a3b24; font-weight: 600; }
+      .sys { font-size: 12px; fill: #2f6b4f; font-weight: 600; }
+    </style>
+
+    <rect class="box" x="16" y="288" width="176" height="148" rx="12" stroke="#1c1915" stroke-width="1.5"/>
+    <text class="h" x="32" y="320">开发机</text>
+    <text class="s" x="32" y="346">tools/spindle</text>
+    <text class="s" x="32" y="370">只连环回端口</text>
+    <text class="s" x="32" y="394">不直接连分身</text>
+    <text class="s" x="32" y="418">收回 LOG / EXIT</text>
+
+    <text class="tag" x="198" y="302">adb forward</text>
+    <text class="s" x="206" y="322">环回 :2407</text>
+    <path d="M192 348 H292" stroke="#9a3b24" stroke-width="1.6" marker-end="url(#ah)"/>
+    <text class="tag" x="206" y="370">脚本 / RPC</text>
+    <path d="M292 388 H192" stroke="#9a3b24" stroke-width="1.6" marker-end="url(#ah)"/>
+    <text class="tag" x="226" y="410">日志</text>
+
+    <rect class="phone" x="268" y="16" width="596" height="438" rx="18"/>
+    <text class="tag" x="288" y="40">手机</text>
+
+    <rect class="box" x="292" y="52" width="172" height="132" rx="12" stroke="#1c1915" stroke-width="1.5"/>
+    <text class="h" x="308" y="82">宿主主进程</text>
+    <text class="s" x="308" y="106">com.android.bba</text>
+    <text class="s" x="308" y="130">也是一个 agent</text>
+    <text class="s" x="308" y="154">后台限制时帮着启动</text>
+
+    <rect class="box" x="480" y="52" width="172" height="132" rx="12" stroke="#1c1915" stroke-width="1.5"/>
+    <text class="h" x="496" y="82">分身进程</text>
+    <text class="s" x="496" y="106">克隆包的进程名</text>
+    <text class="s" x="496" y="130">onCreate 前注册</text>
+    <text class="s" x="496" y="154">脚本进这个进程</text>
+
+    <rect class="box" x="668" y="52" width="172" height="132" rx="12" stroke="#1c1915" stroke-width="1.5"/>
+    <text class="h" x="684" y="82">另一个分身</text>
+    <text class="s" x="684" y="106">各自一块 Binder</text>
+    <text class="s" x="684" y="130">同包可有多个 pid</text>
+    <text class="s" x="684" y="154">一次只挂一个</text>
+
+    <path d="M378 184 V292" stroke="#1c1915" stroke-width="1.6" marker-end="url(#ak)"/>
+    <path d="M566 184 V292" stroke="#1c1915" stroke-width="1.6" marker-end="url(#ak)"/>
+    <path d="M754 184 V292" stroke="#1c1915" stroke-width="1.6" marker-end="url(#ak)"/>
+    <text class="s" x="390" y="236">Binder</text>
+    <text class="s" x="578" y="236">Binder</text>
+    <text class="s" x="766" y="236">Binder</text>
+    <text class="sys" x="400" y="260">call(&quot;VM&quot;) 取 spindle</text>
+
+    <rect class="box" x="292" y="292" width="548" height="140" rx="12" stroke="#2f6b4f" stroke-width="1.75"/>
+    <text class="h" x="308" y="322">虚拟系统进程</text>
+    <text class="s" x="308" y="346">com.android.bba:black · 监听 TCP 127.0.0.1:2407</text>
+    <text class="s" x="308" y="370">按 Binder 记录 pid、uid，并在这里拉起分身</text>
+    <text class="s" x="308" y="394">SystemCallProvider · DaemonService · 包管理 · 活动 · 通知</text>
+  </svg>
+  <figcaption>红线是开发机的 TCP，由 <code>:black</code> 接受。黑线是 Binder：主进程和分身用 <code>call(&quot;VM&quot;)</code> 拿到 <code>ISpindleService</code>，注册之后脚本也从这条 Binder 送回来。</figcaption>
+</figure>
+<div class="who">
+  <article>
+    <h3>开发机</h3>
+    <p><code>tools/spindle</code>。用 TCP 连上手机里的监听，发送脚本、RPC，并打印日志。</p>
+  </article>
+  <article>
+    <h3>虚拟系统进程</h3>
+    <p>进程名 <code>com.android.bba:black</code>，来自 <code>android:process=&quot;@string/black_box_service_name&quot;</code>。TCP 只在这里监听。<code>BSpindleService</code> 和包管理、活动栈、通知一起由 <code>SystemCallProvider</code> 拉起。界面一启动就会来取 <code>spindle</code> 这个服务，所以端口在分身出现之前就已经在听。</p>
+  </article>
+  <article>
+    <h3>宿主主进程</h3>
+    <p>进程名 <code>com.android.bba</code>。它和其他进程一样注册成 agent，脚本通过 Binder 送进来。后台活动限制挡住 <code>:black</code> 的启动时，由它在界面线程上再调一次 <code>launchApk</code>。</p>
+  </article>
+  <article>
+    <h3>分身进程</h3>
+    <p>在 <code>Application.onCreate</code> 之前调用 <code>NativeCore.spindleAgent</code>。宿主 Context 的 <code>call(&quot;VM&quot;)</code> 拿到 <code>ISpindleService</code>，再 <code>register</code>。名字以 <code>/proc/&lt;pid&gt;/cmdline</code> 为准，pid 和 uid 来自 <code>Binder.getCallingPid</code> / <code>getCallingUid</code>，并且必须是宿主应用自己的 uid。</p>
+  </article>
+</div>
+<p>开发机只连 <code>:black</code> 的环回端口。<code>:black</code> 按名字把帧转给已经注册的 Binder。分身和主进程都不会再开一份 TCP 监听。进程退出时 <code>linkToDeath</code> 摘掉 agent，并给还挂着的开发机发 <code>EXIT</code>。</p>
+
+<h2 id="sockets">通道</h2>
+<table>
+  <thead><tr><th>通道</th><th>谁提供</th><th>谁使用</th><th>用途</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>TCP <code>127.0.0.1</code>，端口读 <code>persist.spindle.port</code>，缺省 2407</td>
+      <td><code>:black</code></td>
+      <td>开发机，或 <code>adb forward</code> 之后的本机端口</td>
+      <td>下发脚本、RPC、UNLOCK，回传日志</td>
+    </tr>
+    <tr>
+      <td><code>ISpindleService</code> / <code>ISpindleClient</code>，经 <code>call(&quot;VM&quot;)</code> 取出，服务名 <code>spindle</code></td>
+      <td><code>:black</code></td>
+      <td>主进程和分身</td>
+      <td>注册、投递帧、主进程代为启动界面</td>
+    </tr>
+  </tbody>
+</table>
+<p>TCP 只绑环回地址。USB 调试时，<code>tools/spindle -U</code> 先读设备上的 <code>persist.spindle.port</code>，再 <code>adb forward tcp:0 tcp:&lt;端口&gt;</code>，然后连本机被转发出来的端口。多台设备时用 <code>-D &lt;serial&gt;</code> 指定。单帧最大 1 MB，和一次 Binder 事务的上限对齐。</p>
+
+<h2 id="frames">帧</h2>
+<p>两边用同一种帧：小端 4 字节长度，后面是正文。单帧最大 1 MB。有类型的帧用 3 个 ASCII 字符加一个 <code>\0</code> 当开头，剩下的是 JSON 或文本。脚本正文没有这个开头，整帧就是源码字节。</p>
+<table>
+  <thead><tr><th>帧</th><th>方向</th><th>正文</th></tr></thead>
+  <tbody>
+    <tr><td><code>HOST</code></td><td>开发机 → <code>:black</code></td><td>第一帧。JSON 里可以有 <code>target</code>、<code>spawn</code>、<code>list</code></td></tr>
+    <tr><td>脚本正文</td><td>开发机 → 目标进程</td><td>UTF-8 源码，没有类型前缀</td></tr>
+    <tr><td><code>LOG</code></td><td>目标进程 → 开发机</td><td>一行文本。客户端打印出来，不当成 RPC 回复</td></tr>
+    <tr><td><code>RPC</code></td><td>开发机 → 目标进程</td><td><code>{"m":"方法名","a":[参数]}</code></td></tr>
+    <tr><td><code>UNLOCK</code></td><td>开发机 → 目标进程</td><td>六个字符 <code>UNLOCK</code>，没有 JSON。spawn 结束或连接断开时也会补一帧</td></tr>
+    <tr><td><code>EXIT</code></td><td><code>:black</code> → 开发机</td><td>agent 的 Binder 死亡时发给正在看日志的客户端</td></tr>
+  </tbody>
+</table>
+
+<h2 id="spawn">拉起一个分身再注入</h2>
+<p><code>spindle -U -f com.example.app -l script.js</code> 走这条路。hello 里带 <code>"spawn":true</code>。</p>
+<div class="flow">
+  <div class="step"><div class="n">1</div><div class="body"><strong>记下旧进程。</strong><code>:black</code> 把这个包名已经注册过的 pid 放进 skip 列表，避免挂到上一次还没退出的分身。</div></div>
+  <div class="step"><div class="n">2</div><div class="body"><strong>在本进程里重启 user 0 上的这个包。</strong><code>BPackageManagerService.stopPackage</code> 之后，用启动 Intent 调 <code>BActivityManagerService.startActivity</code>。虚拟活动栈最后仍会向系统发出真正的启动；若系统因后台限制拒绝，下一步改由主进程再发一次。</div></div>
+  <div class="step"><div class="n">3</div><div class="body"><strong>等注册，必要时改由主进程启动。</strong>15 秒内没有新 agent，就调用主进程那块 Binder 的 <code>launch</code>。主进程在自己的主线程上执行原来的 <code>launchApk</code>，最多再等 15 秒。</div></div>
+  <div class="step"><div class="n">4</div><div class="body"><strong>分身来注册。</strong><code>onBeforeApplicationOnCreate</code> 里 <code>spindleAgent(processName)</code>。服务端用调用方 pid 读 <code>/proc/&lt;pid&gt;/cmdline</code>，并 <code>linkToDeath</code>。</div></div>
+  <div class="step"><div class="n">5</div><div class="body"><strong>认领新进程。</strong>名字对得上、pid 不在 skip 里，就占用这个 agent，并回 <code>{"ok":true}</code> 给开发机。</div></div>
+  <div class="step"><div class="n">6</div><div class="body"><strong>脚本字节到达分身。</strong><code>ISpindleClient.onFrame</code> 在分身进程里调用 <code>NativeCore.onSpindleScript</code>，再把 <code>LOG</code> 字节交回 <code>:black</code>，由它写进开发机的 TCP。</div></div>
+  <div class="step"><div class="n">7</div><div class="body"><strong>开发机发送 <code>UNLOCK</code>。</strong>客户端在脚本和 <code>--call</code> 之后发送。连接断开时 <code>:black</code> 也会补一帧。分身收到后不做别的事。</div></div>
+</div>
+<div class="note">
+  注册不会挡住分身的启动线程。<code>Application.onCreate</code> 不会等脚本。脚本是注册完成之后，经 Binder 送到分身的。
+</div>
+
+<h2 id="attach">挂到已经在跑的进程</h2>
+<p><code>-n com.example.app</code> 或位置参数给出进程名，hello 里没有 <code>spawn</code>。<code>:black</code> 不启动应用，只在已经注册的 agent 里挑一个。没有匹配时返回 <code>no such agent</code>。该进程已经有一条开发机连接时返回 <code>agent busy</code>。一个 agent 同时只服务一个 host。</p>
+<p><code>-p 1234</code> 把目标写成 <code>pid:1234</code>，只按 pid 匹配。<code>spawn</code> 不能用 pid，因为新进程的 pid 当时还不知道。</p>
+<p>主进程自己也是一个 agent，名字是 <code>com.android.bba</code>。挂到它和挂到分身一样，帧经 <code>onFrame</code> 送进那个进程。</p>
+<p><code>--list</code> 或 <code>spindle-ps</code> 发送 <code>{"list":true}</code>。回复是 <code>{"ok":true,"agents":[{"name","pid","uid"}, ...]}</code>，发完就关连接。</p>
+
+<h2 id="match">怎么选进程</h2>
+<p>目标先按完整字符串比。比不上时，取冒号前的包名再比，所以 <code>com.example.app</code> 可以命中 <code>com.example.app:push</code>。精确命中优先于包名命中。同一级里，spawn 要 pid 最大的那个（刚拉起来的），attach 要 pid 最小的那个。</p>
+
+<h2 id="script">脚本落到哪</h2>
+<p><code>NativeCore.onSpindleScript</code> 把字节按 UTF-8 转成字符串。如果有人调用过 <code>setScriptHandler</code>，就在当前线程回调 <code>onScript</code>。没有 handler 时，只打一条日志。</p>
+<div class="note">
+  当前仓库没有 JavaScript 解释器。对主进程或分身发 <code>RPC</code>，<code>onFrame</code> 立刻返回 <code>{"ok":false,"e":"js runtime is not in bba"}</code>，由 <code>:black</code> 写回 TCP。<code>tools/test_*.js</code> 写的是打算提供的 API（<code>Memory</code>、<code>Interceptor</code>、<code>Stalker</code>、<code>Java</code>、<code>rpc.exports</code>），这条链路还没执行它们。arm64 上的 Gum Interceptor / Stalker 是另一组 JNI（<code>gumReplace</code>、<code>gumStalkerFollow</code>），不由 Spindle 的脚本帧调用。
+</div>
+
+<h2 id="cli">命令行</h2>
+<pre><code>python3 tools/spindle -U -f com.example.app -l tools/test_js_api.js
+python3 tools/spindle -U -n com.example.app -l tools/test_native_hook.js
+python3 tools/spindle -D &lt;serial&gt; -p 1234 -e 'console.log(1)'
+python3 tools/spindle -H 127.0.0.1:2407 -n com.android.bba --list
+python3 tools/spindle-ps -U</code></pre>
+<p><code>-l</code> 可以重复，文件按顺序拼成一份源码。<code>-e</code> 追加在文件后面。<code>--call 方法名 --args '["a",1]'</code> 在源码发出之后调用，<code>--args</code> 必须是 JSON 数组，和 <code>--call</code> 按顺序配对。客户端开了 TCP keepalive。spawn 的连接超时是 45 秒，attach 是 15 秒。连上之后 <code>follow</code> 会一直打印 <code>LOG</code>，直到对端关掉或收到 <code>EXIT</code>。</p>
+
+</main>
+<footer>
+  依据 <code>core/src/main/cpp/hook/spindle_server.cpp</code>、<code>BSpindleService</code> 和 <code>tools/spindle</code>。
+</footer>
+</body>
+</html>

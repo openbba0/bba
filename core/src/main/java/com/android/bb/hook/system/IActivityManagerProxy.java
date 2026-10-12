@@ -52,6 +52,7 @@ import com.android.bb.utils.MethodParameterUtils;
 import com.android.bb.utils.Reflector;
 import com.android.bb.utils.compat.ActivityManagerCompat;
 import com.android.bb.utils.compat.BuildCompat;
+import com.android.bb.utils.compat.IntentRedirectCompat;
 import com.android.bb.utils.compat.ParceledListSliceCompat;
 import com.android.bb.utils.compat.TaskDescriptionCompat;
 import com.android.bb.utils.Slog;
@@ -387,6 +388,7 @@ public class IActivityManagerProxy extends ClassInvocationStub {
                 args[callingPackageIndex] = BlackBoxCore.getHostPkg();
 
                 if (proxyIntent != null) {
+                    IntentRedirectCompat.prepare(proxyIntent);
                     args[2] = proxyIntent;
                     return method.invoke(who, args);
                 }
@@ -581,6 +583,7 @@ public class IActivityManagerProxy extends ClassInvocationStub {
             if (proxyIntent != null) {
                 proxyIntent.setExtrasClassLoader(BActivityThread.getApplication().getClassLoader());
                 ProxyBroadcastRecord.saveStub(proxyIntent, intent, BActivityThread.getUserId());
+                IntentRedirectCompat.prepare(proxyIntent);
                 args[intentIndex] = proxyIntent;
             }
             

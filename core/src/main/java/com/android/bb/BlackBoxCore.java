@@ -6,8 +6,10 @@ import android.app.Application;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -873,6 +875,7 @@ public class BlackBoxCore extends ClientConfiguration {
             }
 
         }
+        anchorServerProcess();
         if (isServerProcess()) {
             if (clientConfiguration.isEnableDaemonService()) {
                 try {
@@ -1012,6 +1015,9 @@ public class BlackBoxCore extends ClientConfiguration {
             } catch (Exception fallbackEx) {
                 Slog.e(TAG, "Fallback initialization also failed", fallbackEx);
             }
+        }
+        if (isMainProcess()) {
+            NativeCore.spindleAgent(getHostPkg());
         }
     }
 
@@ -1253,6 +1259,36 @@ public class BlackBoxCore extends ClientConfiguration {
 
     public boolean isServerProcess() {
         return mProcessType == ProcessType.Server;
+    }
+
+    private static final ServiceConnection sServerAnchor = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Slog.d(TAG, "server anchor connected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Slog.w(TAG, "server anchor disconnected");
+        }
+    };
+
+    /**
+     * Keep :black at least as important as this process. A cached :black is frozen,
+     * and the next getPackageInfo fails even though the parcel is small.
+     */
+    private void anchorServerProcess() {
+        if (isServerProcess() || getContext() == null) {
+            return;
+        }
+        try {
+            Intent intent = new Intent();
+            intent.setComponent(new ComponentName(getHostPkg(), DaemonService.class.getName()));
+            getContext().bindService(intent, sServerAnchor,
+                    Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT | Context.BIND_ABOVE_CLIENT);
+        } catch (Throwable t) {
+            Slog.w(TAG, "server anchor: " + t.getMessage());
+        }
     }
 
     @Override
