@@ -58,7 +58,7 @@ def recv_msg(sock: socket.socket) -> bytes:
 class Spindle:
     """One connection. eval() loads a script; call() invokes rpc.exports."""
 
-    def __init__(self, host: str, port: int = 2407, timeout: float = 15, target: str = "",
+    def __init__(self, host: str, port: int = 2408, timeout: float = 15, target: str = "",
                  spawn: bool = False):
         self.sock = socket.create_connection((host, port), timeout=timeout)
         enable_keepalive(self.sock)
@@ -151,7 +151,7 @@ def add_connection_args(parser: argparse.ArgumentParser) -> None:
 def connect_endpoint(args) -> tuple:
     if args.usb or args.device:
         return usb_endpoint(args.device or "")
-    return split_host(args.host, 2407)
+    return split_host(args.host, 2408)
 
 
 def split_host(value: str, default_port: int) -> tuple:
@@ -240,16 +240,9 @@ def forward_local_port(serial: str, device_port: int) -> int:
 
 
 def usb_endpoint(serial: str) -> tuple:
-    """Forward persist.spindle.port (default 2407) and connect to localhost."""
+    """Forward TCP 2408 and connect to localhost."""
     serial = choose_serial(serial)
-    adb = adb_bin()
-    prop = subprocess.check_output(
-        [adb, "-s", serial, "shell", "getprop", "persist.spindle.port"], text=True
-    )
-    port_s = prop.strip() or "2407"
-    if not port_s.isdigit():
-        raise SystemExit(f"persist.spindle.port is not a port: {port_s}")
-    local = forward_local_port(serial, int(port_s))
+    local = forward_local_port(serial, 2408)
     print(f"usb {serial} -> 127.0.0.1:{local}", file=sys.stderr)
     return "127.0.0.1", local
 

@@ -83,7 +83,7 @@ Native 侧 `libblackbox.so`（`BoxCore`）在初始化时做这些事：
 
 Spindle 是开发机和进程之间的一条 TCP 通道，协议接近 Frida 命令行的用法。监听跑在虚拟系统进程 `com.android.bba:black` 里（`SpindleServer`）。
 
-- 端口读 `persist.spindle.port`，缺省 **2407**，只绑环回地址。
+- 端口固定 **2408**，只绑环回地址。
 - 主进程和访客通过 `ContentProvider.call("VM")` 拿到 `ISpindleService` 再注册。pid、uid 取自这次 Binder 调用。
 - 开发机用 `tools/spindle` 连接。多台设备时要加 `-D <serial>`。USB 模式会 `adb forward` 到本机再连。
 

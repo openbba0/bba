@@ -228,7 +228,7 @@
     <text class="s" x="32" y="418">收回 LOG / EXIT</text>
 
     <text class="tag" x="198" y="302">adb forward</text>
-    <text class="s" x="206" y="322">环回 :2407</text>
+    <text class="s" x="206" y="322">环回 :2408</text>
     <path d="M192 348 H292" stroke="#9a3b24" stroke-width="1.6" marker-end="url(#ah)"/>
     <text class="tag" x="206" y="370">脚本 / RPC</text>
     <path d="M292 388 H192" stroke="#9a3b24" stroke-width="1.6" marker-end="url(#ah)"/>
@@ -265,7 +265,7 @@
 
     <rect class="box" x="292" y="292" width="548" height="140" rx="12" stroke="#2f6b4f" stroke-width="1.75"/>
     <text class="h" x="308" y="322">虚拟系统进程</text>
-    <text class="s" x="308" y="346">com.android.bba:black · 监听 TCP 127.0.0.1:2407</text>
+    <text class="s" x="308" y="346">com.android.bba:black · 监听 TCP 127.0.0.1:2408</text>
     <text class="s" x="308" y="370">按 Binder 记录 pid、uid，并在这里拉起分身</text>
     <text class="s" x="308" y="394">SystemCallProvider · DaemonService · 包管理 · 活动 · 通知</text>
   </svg>
@@ -296,7 +296,7 @@
   <thead><tr><th>通道</th><th>谁提供</th><th>谁使用</th><th>用途</th></tr></thead>
   <tbody>
     <tr>
-      <td>TCP <code>127.0.0.1</code>，端口读 <code>persist.spindle.port</code>，缺省 2407</td>
+      <td>TCP <code>127.0.0.1:2408</code></td>
       <td><code>:black</code></td>
       <td>开发机，或 <code>adb forward</code> 之后的本机端口</td>
       <td>下发脚本、RPC、UNLOCK，回传日志</td>
@@ -309,7 +309,7 @@
     </tr>
   </tbody>
 </table>
-<p>TCP 只绑环回地址。USB 调试时，<code>tools/spindle -U</code> 先读设备上的 <code>persist.spindle.port</code>，再 <code>adb forward tcp:0 tcp:&lt;端口&gt;</code>，然后连本机被转发出来的端口。多台设备时用 <code>-D &lt;serial&gt;</code> 指定。单帧最大 1 MB，和一次 Binder 事务的上限对齐。</p>
+<p>TCP 只绑环回地址 <code>127.0.0.1:2408</code>。USB 调试时，<code>tools/spindle -U</code> 执行 <code>adb forward tcp:0 tcp:2408</code>，然后连本机被转发出来的端口。多台设备时用 <code>-D &lt;serial&gt;</code> 指定。单帧最大 1 MB，和一次 Binder 事务的上限对齐。</p>
 
 <h2 id="frames">帧</h2>
 <p>两边用同一种帧：小端 4 字节长度，后面是正文。单帧最大 1 MB。有类型的帧用 3 个 ASCII 字符加一个 <code>\0</code> 当开头，剩下的是 JSON 或文本。脚本正文没有这个开头，整帧就是源码字节。</p>
@@ -359,7 +359,7 @@
 <pre><code>python3 tools/spindle -U -f com.example.app -l tools/test_js_api.js
 python3 tools/spindle -U -n com.example.app -l tools/test_native_hook.js
 python3 tools/spindle -D &lt;serial&gt; -p 1234 -e 'console.log(1)'
-python3 tools/spindle -H 127.0.0.1:2407 -n com.android.bba --list
+python3 tools/spindle -H 127.0.0.1:2408 -n com.android.bba --list
 python3 tools/spindle-ps -U</code></pre>
 <p><code>-l</code> 可以重复，文件按顺序拼成一份源码。<code>-e</code> 追加在文件后面。<code>--call 方法名 --args '["a",1]'</code> 在源码发出之后调用，<code>--args</code> 必须是 JSON 数组，和 <code>--call</code> 按顺序配对。客户端开了 TCP keepalive。spawn 的连接超时是 45 秒，attach 是 15 秒。连上之后 <code>follow</code> 会一直打印 <code>LOG</code>，直到对端关掉或收到 <code>EXIT</code>。</p>
 

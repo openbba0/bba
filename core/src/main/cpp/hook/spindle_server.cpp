@@ -10,7 +10,6 @@
 #include <netinet/in.h>
 #include <pthread.h>
 #include <sys/socket.h>
-#include <sys/system_properties.h>
 #include <unistd.h>
 
 #include <cstdint>
@@ -156,14 +155,7 @@ bool black_process(const std::string &name) {
 }
 
 int listen_port() {
-    char value[PROP_VALUE_MAX];
-    value[0] = '\0';
-    __system_property_get("persist.spindle.port", value);
-    int port = atoi(value);
-    if (port <= 0 || port > 65535) {
-        port = 2407;
-    }
-    return port;
+    return 2408;
 }
 
 bool is_log_frame(const std::string &frame) {
