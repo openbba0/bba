@@ -54,6 +54,8 @@
             android:layout_marginBottom="16dp"
             android:contentDescription="@string/choose_app"
             android:src="@drawable/ic_add"
+            app:backgroundTint="@color/gold"
+            app:tint="@color/ink"
             app:layout_constraintBottom_toTopOf="@id/bottom_nav"
             app:layout_constraintRight_toRightOf="parent" />
 

@@ -1,19 +1,23 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     
-    <style name="Theme.BlackBox" parent="Theme.MaterialComponents.Light.NoActionBar">
-        
+    <style name="Theme.BlackBox" parent="Theme.MaterialComponents.NoActionBar">
+
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
-        <item name="colorOnPrimary">@color/white</item>
-        
-        <item name="colorSecondary">@color/primary_light</item>
-        <item name="colorSecondaryVariant">@color/primary</item>
-        <item name="colorOnSecondary">@color/white</item>
-        
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
-        
+        <item name="colorOnPrimary">@color/chrome</item>
+
+        <item name="colorSecondary">@color/gold</item>
+        <item name="colorSecondaryVariant">@color/gold</item>
+        <item name="colorOnSecondary">@color/ink</item>
+
+        <item name="android:statusBarColor" tools:targetApi="l">@color/surface</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
 
         <item name="actionMenuTextColor">@color/primary_text</item>
+        <item name="android:textColorPrimary">@color/primary_text</item>
+        <item name="android:textColorSecondary">@color/secondary_text</item>
 
         <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
@@ -25,8 +29,10 @@
         <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
 
-    <style name="WelcomeTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="WelcomeTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:statusBarColor">@color/surface</item>
+        <item name="android:navigationBarColor">@color/surface</item>
     </style>
 
     <style name="PageTitle">

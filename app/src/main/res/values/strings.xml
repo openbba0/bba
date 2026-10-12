@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">BlackBox</string>
+    <string name="app_name">BBA</string>
     <string name="choose">Choose</string>
     <string name="choose_app">Choose App</string>
     <string name="installed_app">Installed App</string>
@@ -38,7 +38,7 @@
     <string name="app_shortcut">Create Shortcut</string>
     <string name="shortcut_name">Shortcut Name</string>
     <string name="try_add_shortcut">Try Added To Desktop</string>
-    <string name="add_shortcut_fail_msg">If the addition fails, please go to system settings and open the permission of "create desktop shortcut" for BlackBox</string>
+    <string name="add_shortcut_fail_msg">If the addition fails, please go to system settings and open the permission of "create desktop shortcut" for BBA</string>
     <string name="install_success">Installed Successfully</string>
     <string name="install_fail">Installed Failed: %s</string>
     <string name="install_fail_no_msg">Installed Failed</string>
@@ -72,6 +72,7 @@
     <string name="no_gms">Currently, there is no Google service environment on mobile phones.</string>
     <string name="nav_apps">Apps</string>
     <string name="apps_subtitle">Install the same app more than once. The number marks each copy</string>
+    <string name="brand_line">Three chrome lines. One cabin.</string>
     <string name="nav_setting">Settings</string>
     <string name="setting_subtitle">Sandbox runtime and network</string>
     <string name="setting_section">Features</string>

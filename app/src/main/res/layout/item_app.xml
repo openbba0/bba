@@ -39,7 +39,7 @@
                 android:layout_gravity="bottom|end"
                 android:background="@drawable/bg_clone_badge"
                 android:gravity="center"
-                android:textColor="@color/white"
+                android:textColor="@color/ink"
                 android:textSize="11sp"
                 android:textStyle="bold" />
     </FrameLayout>
