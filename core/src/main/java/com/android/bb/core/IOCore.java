@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import com.android.bb.BlackBoxCore;
@@ -70,8 +69,12 @@ public class IOCore {
 
         
         String key = mTrieTree.search(path);
-        if (!TextUtils.isEmpty(key))
-            path = path.replace(key, Objects.requireNonNull(mRedirectMap.get(key)));
+        if (!TextUtils.isEmpty(key)) {
+            String dest = mRedirectMap.get(key);
+            if (dest != null && path.startsWith(key)) {
+                return dest + path.substring(key.length());
+            }
+        }
 
         return path;
     }
@@ -89,8 +92,12 @@ public class IOCore {
 
         
         String key = mTrieTree.search(path);
-        if (!TextUtils.isEmpty(key))
-            path = path.replace(key, Objects.requireNonNull(rule.get(key)));
+        if (!TextUtils.isEmpty(key)) {
+            String dest = rule.get(key);
+            if (dest != null && path.startsWith(key)) {
+                return dest + path.substring(key.length());
+            }
+        }
 
         return path;
     }
