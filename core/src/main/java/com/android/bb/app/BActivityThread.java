@@ -1188,6 +1188,7 @@ public class BActivityThread extends IBActivityThread.Stub {
     private void onBeforeApplicationOnCreate(String packageName, String processName, Application application) {
         WorkManagerInitGuard.install(packageName, processName, application);
         HookEntry.install(packageName, processName, application);
+        NativeCore.spindleAgent(processName);
         for (AppLifecycleCallback appLifecycleCallback : BlackBoxCore.get().getAppLifecycleCallbacks()) {
             appLifecycleCallback.beforeApplicationOnCreate(packageName, processName, application, BActivityThread.getUserId());
         }

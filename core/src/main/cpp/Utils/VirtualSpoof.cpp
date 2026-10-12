@@ -41,18 +41,40 @@ static int (*orig_system_property_get)(const char *name, char *value) = nullptr;
 
 
 int my_system_property_get(const char *name, char *value) {
+    if (name == nullptr || value == nullptr) {
+        return 0;
+    }
+    // __android_log_print reads properties. Logging here re-enters this hook and overflows.
+    static thread_local int depth = 0;
+    if (depth > 0) {
+        if (orig_system_property_get) {
+            return orig_system_property_get(name, value);
+        }
+        value[0] = '\0';
+        return 0;
+    }
+    depth++;
     for (int i = 0; spoofed_props[i].key != nullptr; ++i) {
         if (strcmp(name, spoofed_props[i].key) == 0) {
-            strcpy(value, spoofed_props[i].value);
-             LOGD("[spoof] %s = %s", name, value);
-            return strlen(value);
+            const char *spoof = spoofed_props[i].value;
+            size_t n = strlen(spoof);
+            if (n >= PROP_VALUE_MAX) {
+                n = PROP_VALUE_MAX - 1;
+            }
+            memcpy(value, spoof, n);
+            value[n] = '\0';
+            depth--;
+            return static_cast<int>(n);
         }
     }
+    int rc = 0;
     if (orig_system_property_get) {
-        return orig_system_property_get(name, value);
+        rc = orig_system_property_get(name, value);
+    } else {
+        value[0] = '\0';
     }
-    value[0] = '\0';
-    return 0;
+    depth--;
+    return rc;
 }
 
 void install_property_get_hook() {

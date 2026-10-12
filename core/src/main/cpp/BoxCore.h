@@ -17,6 +17,8 @@ public:
     static jstring redirectPathString(JNIEnv *env, jstring path);
     static jobject redirectPathFile(JNIEnv *env, jobject path);
     static jlongArray loadEmptyDex(JNIEnv *env);
+    static void onSpindleScript(const void *data, int len);
+    static bool launchForSpindle(const char *packageName);
 };
 
 

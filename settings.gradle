@@ -23,7 +23,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "BlackBox"
+rootProject.name = "bba"
 
 include ':app'
 include(":reflection")

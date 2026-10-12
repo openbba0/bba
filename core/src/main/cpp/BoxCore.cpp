@@ -6,6 +6,7 @@
 #include "Log.h"
 #include "IO.h"
 #include <jni.h>
+#include <stdint.h>
 #include <JniHook/JniHook.h>
 #include <Hook/VMClassLoaderHook.h>
 #include <Hook/UnixFileSystemHook.h>
@@ -14,6 +15,8 @@
 #include <Hook/DexFileHook.h>
 #include <Hook/RuntimeHook.h>
 #include <Hook/ZlibHook.h>
+#include <Hook/GumEngine.h>
+#include <Hook/SpindleServer.h>
 #include "Utils/HexDump.h"
 #include "hidden_api.h"
 
@@ -67,11 +70,61 @@ int BoxCore::getApiLevel() {
     return VMEnv.api_level;
 }
 
+void BoxCore::onSpindleScript(const void *data, int len) {
+    JNIEnv *env = ensureEnvCreated();
+    if (env == nullptr || VMEnv.NativeCoreClass == nullptr || data == nullptr || len < 0) {
+        return;
+    }
+    static jmethodID mid = nullptr;
+    if (mid == nullptr) {
+        mid = env->GetStaticMethodID(VMEnv.NativeCoreClass, "onSpindleScript", "([B)V");
+    }
+    if (mid == nullptr) {
+        env->ExceptionClear();
+        return;
+    }
+    jbyteArray bytes = env->NewByteArray(len);
+    if (bytes == nullptr) {
+        return;
+    }
+    env->SetByteArrayRegion(bytes, 0, len, reinterpret_cast<const jbyte *>(data));
+    env->CallStaticVoidMethod(VMEnv.NativeCoreClass, mid, bytes);
+    if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+    }
+    env->DeleteLocalRef(bytes);
+}
+
+bool BoxCore::launchForSpindle(const char *packageName) {
+    JNIEnv *env = ensureEnvCreated();
+    if (env == nullptr || VMEnv.NativeCoreClass == nullptr || packageName == nullptr) {
+        return false;
+    }
+    jmethodID mid = env->GetStaticMethodID(VMEnv.NativeCoreClass, "launchForSpindle",
+                                           "(Ljava/lang/String;)Z");
+    if (mid == nullptr) {
+        env->ExceptionClear();
+        return false;
+    }
+    jstring name = env->NewStringUTF(packageName);
+    if (name == nullptr) {
+        return false;
+    }
+    jboolean ok = env->CallStaticBooleanMethod(VMEnv.NativeCoreClass, mid, name);
+    if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+        ok = JNI_FALSE;
+    }
+    env->DeleteLocalRef(name);
+    return ok == JNI_TRUE;
+}
+
 JavaVM *BoxCore::getJavaVM() {
     return VMEnv.vm;
 }
 
 void nativeHook(JNIEnv *env) {
+    GumEngine::init();
     BaseHook::init(env);
     UnixFileSystemHook::init(env);
     FileSystemHook::init();
@@ -100,6 +153,8 @@ void init(JNIEnv *env, jobject clazz, jint api_level) {
                                                 "()[J");
 
     JniHook::InitJniHook(env, api_level);
+    GumEngine::selfTest();
+    SpindleServer::start();
 }
 
 void addIORule(JNIEnv *env, jclass clazz, jstring target_path,
@@ -133,6 +188,61 @@ bool disableResourceLoading(JNIEnv *env, jclass clazz) {
     return true;
 }
 
+jlong gumReplace(JNIEnv *env, jclass clazz, jlong target, jlong replacement) {
+    (void) env;
+    (void) clazz;
+    void *original = nullptr;
+    int rc = GumEngine::replace(reinterpret_cast<void *>(target),
+                                reinterpret_cast<void *>(replacement), &original);
+    if (rc != 0) {
+        return 0;
+    }
+    return reinterpret_cast<jlong>(original);
+}
+
+void gumRevert(JNIEnv *env, jclass clazz, jlong target) {
+    (void) env;
+    (void) clazz;
+    GumEngine::revert(reinterpret_cast<void *>(target));
+}
+
+jboolean gumStalkerFollow(JNIEnv *env, jclass clazz, jlong threadId, jint eventMask) {
+    (void) env;
+    (void) clazz;
+    return GumEngine::stalkerFollow((uint64_t) threadId, (int) eventMask, nullptr, nullptr)
+           ? JNI_TRUE : JNI_FALSE;
+}
+
+void gumStalkerUnfollow(JNIEnv *env, jclass clazz, jlong threadId) {
+    (void) env;
+    (void) clazz;
+    GumEngine::stalkerUnfollow((uint64_t) threadId);
+}
+
+void gumStalkerExclude(JNIEnv *env, jclass clazz, jlong base, jlong size) {
+    (void) env;
+    (void) clazz;
+    GumEngine::stalkerExclude((uintptr_t) base, (size_t) size);
+}
+
+jint gumStalkerEventCount(JNIEnv *env, jclass clazz) {
+    (void) env;
+    (void) clazz;
+    return GumEngine::stalkerEventCount();
+}
+
+void spindleAgent(JNIEnv *env, jclass clazz, jstring name) {
+    (void) clazz;
+    if (name == nullptr) {
+        return;
+    }
+    const char *chars = env->GetStringUTFChars(name, nullptr);
+    if (chars != nullptr) {
+        SpindleServer::join(chars);
+        env->ReleaseStringUTFChars(name, chars);
+    }
+}
+
 static JNINativeMethod gMethods[] = {
         {"disableHiddenApi", "()Z",                               (void *) disableHiddenApi},
         {"disableResourceLoading", "()Z",                         (void *) disableResourceLoading},
@@ -140,6 +250,13 @@ static JNINativeMethod gMethods[] = {
         {"addIORule",  "(Ljava/lang/String;Ljava/lang/String;)V", (void *) addIORule},
         {"enableIO",   "()V",                                     (void *) enableIO},
         {"init",       "(I)V",                                    (void *) init},
+        {"gumReplace", "(JJ)J",                                   (void *) gumReplace},
+        {"gumRevert", "(J)V",                                     (void *) gumRevert},
+        {"gumStalkerFollow", "(JI)Z",                             (void *) gumStalkerFollow},
+        {"gumStalkerUnfollow", "(J)V",                            (void *) gumStalkerUnfollow},
+        {"gumStalkerExclude", "(JJ)V",                            (void *) gumStalkerExclude},
+        {"gumStalkerEventCount", "()I",                           (void *) gumStalkerEventCount},
+        {"spindleAgent", "(Ljava/lang/String;)V",                 (void *) spindleAgent},
 };
 
 int registerNativeMethods(JNIEnv *env, const char *className,

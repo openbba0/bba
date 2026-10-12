@@ -1,8 +1,13 @@
 package com.android.bb.core;
 
 
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Process;
 import android.util.Log;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.Keep;
 
@@ -38,6 +43,88 @@ public class NativeCore {
     public static native boolean disableHiddenApi();
     
     public static native boolean disableResourceLoading();
+
+    /** Frida inline hook. Returns the original entry, or 0 if the replace failed. */
+    public static native long gumReplace(long target, long replacement);
+
+    public static native void gumRevert(long target);
+
+    /**
+     * Follow a thread with Stalker. {@code threadId} 0 follows the caller.
+     * {@code eventMask} bits: call=1, ret=2, exec=4, block=8, compile=16.
+     */
+    public static native boolean gumStalkerFollow(long threadId, int eventMask);
+
+    public static native void gumStalkerUnfollow(long threadId);
+
+    public static native void gumStalkerExclude(long base, long size);
+
+    public static native int gumStalkerEventCount();
+
+    /** Register this guest process so spindle_server can deliver scripts to it. */
+    public static native void spindleAgent(String name);
+
+    /** Stop and launch a cloned app on user 0. Called from the bba main process. */
+    @Keep
+    public static boolean launchForSpindle(String packageName) {
+        if (packageName == null || packageName.isEmpty()) {
+            return false;
+        }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            return launchForSpindleOnMain(packageName);
+        }
+        final boolean[] ok = {false};
+        CountDownLatch latch = new CountDownLatch(1);
+        new Handler(Looper.getMainLooper()).post(() -> {
+            ok[0] = launchForSpindleOnMain(packageName);
+            latch.countDown();
+        });
+        try {
+            // startActivity can block until the guest finishes bindApplication.
+            // The guest waits for UNLOCK on that same path, so do not wait forever.
+            if (!latch.await(3, TimeUnit.SECONDS)) {
+                return true;
+            }
+        } catch (InterruptedException e) {
+            return false;
+        }
+        return ok[0];
+    }
+
+    private static boolean launchForSpindleOnMain(String packageName) {
+        try {
+            BlackBoxCore core = BlackBoxCore.get();
+            core.stopPackage(packageName, 0);
+            return core.launchApk(packageName, 0);
+        } catch (Throwable t) {
+            Slog.w(TAG, "spindle launch " + packageName + ": " + t.getMessage());
+            return false;
+        }
+    }
+
+    public interface ScriptHandler {
+        void onScript(String source);
+    }
+
+    private static volatile ScriptHandler sScriptHandler;
+
+    public static void setScriptHandler(ScriptHandler handler) {
+        sScriptHandler = handler;
+    }
+
+    /** Script bytes from the dev machine, already inside this client process. */
+    @Keep
+    public static void onSpindleScript(byte[] source) {
+        if (source == null) {
+            return;
+        }
+        String js = new String(source, java.nio.charset.StandardCharsets.UTF_8);
+        Slog.i(TAG, "spindle script " + source.length + " bytes");
+        ScriptHandler handler = sScriptHandler;
+        if (handler != null) {
+            handler.onScript(js);
+        }
+    }
 
 
     @Keep
