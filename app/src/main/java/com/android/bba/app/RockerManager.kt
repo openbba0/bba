@@ -1,4 +1,4 @@
-package com.android.bba.app.rocker
+package com.android.bba.app
 
 import android.app.Activity
 import android.app.Application
@@ -13,7 +13,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 import com.android.bb.model.location.BLocation
 import com.android.bb.client.BLocationManager
-import com.android.bba.app.App
 import com.android.bba.widget.EnFloatView
 
 

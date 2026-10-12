@@ -9,8 +9,8 @@ import com.android.bb.app.BActivityThread
 import com.android.bb.app.configuration.AppLifecycleCallback
 import com.android.bb.app.configuration.ClientConfiguration
 import com.android.bba.app.App
-import com.android.bba.app.rocker.RockerManager
-import com.android.bba.biz.cache.AppSharedPreferenceDelegate
+import com.android.bba.app.RockerManager
+import com.android.bba.app.AppSharedPreferenceDelegate
 
 
 class BlackBoxLoader {

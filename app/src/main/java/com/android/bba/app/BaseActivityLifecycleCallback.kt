@@ -1,4 +1,4 @@
-package com.android.bba.app.rocker
+package com.android.bba.app
 
 import android.app.Activity
 import android.app.Application
