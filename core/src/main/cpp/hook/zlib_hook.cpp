@@ -1,7 +1,7 @@
 #include "zlib_hook.h"
 #include "log.h"
 #include "xdl.h"
-#include "dobby/dobby.h"
+#include "hook/gum_engine.h"
 
 #include <zlib.h>
 #include <cstring>
@@ -137,7 +137,7 @@ void ZlibHook::init(JNIEnv *env) {
         xdl_close(handle);
         return;
     }
-    if (DobbyHook(deflate_addr, reinterpret_cast<void *>(new_deflate), reinterpret_cast<void **>(&orig_deflate)) != 0) {
+    if (GumEngine::replace(deflate_addr, reinterpret_cast<void *>(new_deflate), reinterpret_cast<void **>(&orig_deflate)) != 0) {
         ALOGE("ZlibHook: Failed to hook deflate");
         xdl_close(handle);
         return;

@@ -6,7 +6,6 @@
 #include <string.h>
 #include <errno.h>
 #include <dirent.h>
-#include "dobby/dobby.h"
 #include "xdl.h"
 
 #define LOG_TAG "AntiDetection"

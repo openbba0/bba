@@ -62,7 +62,7 @@ Java 侧 `HookManager` 替换一批系统 Binder：活动、包、通知、定�
 
 Native 侧 `libbba.so`（`BoxCore`）在初始化时做这些事：
 
-- 用 Dobby 做 inline hook，用 xdl 解析符号。
+- 用 Gum Interceptor 做 inline hook，用 xdl 解析符号。属性伪装和 zlib 转储都走这条，只在 arm64 生效。
 - `IO` 按规则把访客看到的路径重定向到沙箱目录（`NativeCore.addIORule` / `enableIO`）。
 - Hook 文件系统、`UnixFileSystem`、`DexFile`、`VMClassLoader`、Binder、zlib。
 - 绕过 hidden API 限制。
@@ -112,11 +112,10 @@ core/                虚拟化引擎
   src/main/java/com/android/bb/   BlackBoxCore、系统服务、Java hook、客户端
   src/main/java/black/            隐藏 API 的反射声明
   src/main/cpp/                   libbba.so
-    hook/            Dobby hook、GumEngine、SpindleServer
+    hook/            GumEngine、SpindleServer
     utils/           路径、属性伪装、反检测
     gum/             arm64 Gum 子集
     capstone/        arm64 反汇编
-    dobby/           预编译静态库
     xdl/             linker / 符号
 beer/                SandHook 与 Xposed 兼容层
 reflection/          BlackReflection 运行时
