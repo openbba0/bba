@@ -17,7 +17,7 @@
 #include <capstone/capstone.h>
 
 #include "utils.h"
-#include "MCRegisterInfo.h"
+#include "mc_register_info.h"
 
 #if defined(_KERNEL_MODE)
 #include "windows\winkernel_mm.h"
@@ -53,7 +53,7 @@
 #endif
 
 #ifdef CAPSTONE_HAS_ARM64
-#include "arch/AArch64/AArch64Module.h"
+#include "arch/aarch64/aarch64_module.h"
 #endif
 #ifdef CAPSTONE_HAS_ARM
 #include "arch/ARM/ARMModule.h"

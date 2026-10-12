@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libdobby
-LOCAL_SRC_FILES := Dobby/$(TARGET_ARCH_ABI)/libdobby.a
+LOCAL_SRC_FILES := dobby/$(TARGET_ARCH_ABI)/libdobby.a
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -23,16 +23,16 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := capstone
 LOCAL_SRC_FILES := capstone/cs.c \
     capstone/utils.c \
-    capstone/SStream.c \
-    capstone/MCInst.c \
-    capstone/MCInstrDesc.c \
-    capstone/MCRegisterInfo.c \
-    capstone/Mapping.c \
-    capstone/arch/AArch64/AArch64BaseInfo.c \
-    capstone/arch/AArch64/AArch64Disassembler.c \
-    capstone/arch/AArch64/AArch64InstPrinter.c \
-    capstone/arch/AArch64/AArch64Mapping.c \
-    capstone/arch/AArch64/AArch64Module.c
+    capstone/s_stream.c \
+    capstone/mc_inst.c \
+    capstone/mc_instr_desc.c \
+    capstone/mc_register_info.c \
+    capstone/mapping.c \
+    capstone/arch/aarch64/aarch64_base_info.c \
+    capstone/arch/aarch64/aarch64_disassembler.c \
+    capstone/arch/aarch64/aarch64_inst_printer.c \
+    capstone/arch/aarch64/aarch64_mapping.c \
+    capstone/arch/aarch64/aarch64_module.c
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/capstone $(LOCAL_PATH)/capstone/include
 LOCAL_CFLAGS := -O2 -w -fvisibility=hidden -D_GNU_SOURCE -DCAPSTONE_HAS_ARM64 -DCAPSTONE_USE_SYS_DYN_MEM
 include $(BUILD_STATIC_LIBRARY)
@@ -109,31 +109,31 @@ endif
 include $(CLEAR_VARS)
 # Collect all source files in the current directory
 SRC1 := $(wildcard $(LOCAL_PATH)/*.cpp) $(wildcard $(LOCAL_PATH)/*.c)
-# Collect all source files in Utils/
-SRC2 := $(wildcard $(LOCAL_PATH)/Utils/*.cpp) $(wildcard $(LOCAL_PATH)/Utils/*.c)
-# Collect all source files in Hook/
-SRC3 := $(wildcard $(LOCAL_PATH)/Hook/*.cpp) $(wildcard $(LOCAL_PATH)/Hook/*.c)
-# Collect all source files in JniHook/
-SRC4 := $(wildcard $(LOCAL_PATH)/JniHook/*.cpp) $(wildcard $(LOCAL_PATH)/JniHook/*.c)
+# Collect all source files in utils/
+SRC2 := $(wildcard $(LOCAL_PATH)/utils/*.cpp) $(wildcard $(LOCAL_PATH)/utils/*.c)
+# Collect all source files in hook/
+SRC3 := $(wildcard $(LOCAL_PATH)/hook/*.cpp) $(wildcard $(LOCAL_PATH)/hook/*.c)
+# Collect all source files in jnihook/
+SRC4 := $(wildcard $(LOCAL_PATH)/jnihook/*.cpp) $(wildcard $(LOCAL_PATH)/jnihook/*.c)
 
 LOCAL_MODULE := blackbox
-LOCAL_SRC_FILES := BoxCore.cpp \
+LOCAL_SRC_FILES := box_core.cpp \
 hidden_api.cpp \
-IO.cpp \
-Utils/elf_util.cpp \
-Hook/DexFileHook.cpp \
-Hook/FileSystemHook.cpp \
-Utils/VirtualSpoof.cpp \
-Utils/HexDump.cpp \
-Utils/AntiDetection.cpp \
-Hook/VMClassLoaderHook.cpp \
-Hook/UnixFileSystemHook.cpp \
-Hook/BinderHook.cpp \
-Hook/ZlibHook.cpp \
-Hook/BaseHook.cpp \
-Hook/GumEngine.cpp \
-Hook/SpindleServer.cpp \
-JniHook/JniHook.cpp
+io.cpp \
+utils/elf_util.cpp \
+hook/dex_file_hook.cpp \
+hook/file_system_hook.cpp \
+utils/virtual_spoof.cpp \
+utils/hex_dump.cpp \
+utils/anti_detection.cpp \
+hook/vm_class_loader_hook.cpp \
+hook/unix_file_system_hook.cpp \
+hook/binder_hook.cpp \
+hook/zlib_hook.cpp \
+hook/base_hook.cpp \
+hook/gum_engine.cpp \
+hook/spindle_server.cpp \
+jnihook/jni_hook.cpp
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 ifeq ($(TARGET_ARCH_ABI),arm64-v8a)

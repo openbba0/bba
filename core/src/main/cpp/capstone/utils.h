@@ -11,7 +11,7 @@
 #include "include/capstone/capstone.h"
 #endif
 #include "cs_priv.h"
-#include "Mapping.h"
+#include "mapping.h"
 
 // threshold number, so above this number will be printed in hexa mode
 #define HEX_THRESHOLD 9

@@ -9,8 +9,8 @@
 #endif
 #include <capstone/capstone.h>
 
-#include "MCInst.h"
-#include "SStream.h"
+#include "mc_inst.h"
+#include "s_stream.h"
 
 typedef void (*Printer_t)(MCInst *MI, SStream *OS, void *info);
 

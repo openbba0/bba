@@ -112,11 +112,11 @@ core/                虚拟化引擎
   src/main/java/com/android/bb/   BlackBoxCore、系统服务、Java hook、客户端
   src/main/java/black/            隐藏 API 的反射声明
   src/main/cpp/                   libblackbox.so
-    Hook/            Dobby hook、GumEngine、SpindleServer
-    Utils/           路径、属性伪装、反检测
+    hook/            Dobby hook、GumEngine、SpindleServer
+    utils/           路径、属性伪装、反检测
     gum/             arm64 Gum 子集
     capstone/        arm64 反汇编
-    Dobby/           预编译静态库
+    dobby/           预编译静态库
     xdl/             linker / 符号
 beer/                SandHook 与 Xposed 兼容层
 reflection/          BlackReflection 运行时

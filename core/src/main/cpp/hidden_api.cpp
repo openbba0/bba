@@ -3,8 +3,8 @@
 #include <sys/system_properties.h>
 #include "xdl.h"
 #include "hidden_api.h"
-#include "Utils/elf_util.h"
-#include "Log.h"
+#include "utils/elf_util.h"
+#include "log.h"
 
 bool disable_hidden_api(JNIEnv *env) {
     char version_str[PROP_VALUE_MAX];
