@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+  schedule:
+    # 03:00 Asia/Shanghai (UTC+8)
+    - cron: "0 19 * * *"
 
 permissions:
   contents: write
