@@ -1,7 +1,3 @@
-
-
-
-
 #include <jni.h>
 #include "jni_hook.h"
 #include "log.h"
