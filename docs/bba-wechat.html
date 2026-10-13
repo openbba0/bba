@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BBA：一套类 Frida，放进 BlackBox</title>
+<style>
+  body {
+    margin: 0;
+    background: #f4f5f7;
+    color: #333;
+    font: 16px/1.75 "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+  }
+  .hint {
+    max-width: 677px;
+    margin: 16px auto 0;
+    padding: 12px 16px;
+    background: #fff8e8;
+    color: #6b4e16;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  article {
+    max-width: 677px;
+    margin: 12px auto 40px;
+    padding: 28px 22px 48px;
+    background: #fff;
+  }
+  h1 {
+    margin: 0 0 18px;
+    font-size: 22px;
+    line-height: 1.45;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  h2 {
+    margin: 32px 0 12px;
+    padding-left: 10px;
+    border-left: 4px solid #C6A36A;
+    font-size: 18px;
+    line-height: 1.4;
+    color: #1a1a1a;
+  }
+  p { margin: 0 0 14px; }
+  a { color: #576b95; text-decoration: none; }
+  code {
+    padding: 1px 4px;
+    background: #f6f1e8;
+    color: #6b4e16;
+    border-radius: 3px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.92em;
+  }
+  pre {
+    margin: 0 0 14px;
+    padding: 14px 16px;
+    background: #17191F;
+    color: #F3F0E8;
+    border-radius: 6px;
+    overflow: auto;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+  }
+  table {
+    width: 100%;
+    margin: 0 0 14px;
+    border-collapse: collapse;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  th, td {
+    border: 1px solid #e6e6e6;
+    padding: 8px 10px;
+    vertical-align: top;
+    text-align: left;
+  }
+  th { background: #faf7f2; }
+  blockquote {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    background: #faf7f2;
+    border-left: 4px solid #C6A36A;
+  }
+  blockquote p { margin: 0; }
+  ol { margin: 0 0 14px; padding-left: 1.4em; }
+  li { margin: 0 0 8px; }
+  img { display: block; width: 100%; height: auto; margin: 0 0 14px; }
+</style>
+</head>
+<body>
+<p class="hint">复制时从下面的标题开始选，不要选中这段黄底说明。贴进公众号后，如果结构图没带上，用同目录的 bba-spindle.png 再上传一次。</p>
+<article id="article">
+<h1>BBA：一套类 Frida，放进 BlackBox</h1>
+<h2>BBA是啥</h2>
+<p>开源地址：<a href="https://github.com/openbba0/bba">https://github.com/openbba0/bba</a></p>
+<p>Spindle 是我自己做的一套类 Frida 工具。常见的 Frida 容易被检测，所以这套按常用的 Frida JS API 重新实现，基本功能已经齐全。</p>
+<p>它原来集成在我自己的 ROM 里，用着挺好，国内大部分应用都试过，能正常使用。集成在 ROM 上优势很多，整套系统太重，也没办法开源。</p>
+<p>于是把 Spindle 放进 BlackBox。BlackBox 是开源的应用分身沙箱，集成之后就是现在的 BBA。</p>
+<p>这个项目有三点优势：</p>
+<ol>
+<li><strong>没有 Frida 的常见特征。</strong></li>
+<li><strong>开箱即用。</strong>不用像传统逆向那样先解锁、root、再安装 Frida。</li>
+<li><strong>能看无法解锁的设备。</strong>OPPO、vivo 这类机器上，也能分析应用的行为。</li>
+</ol>
+<h2>工作原理</h2>
+<p><img src="bba-spindle.png" alt="开发机、虚拟系统进程、宿主主进程和分身的关系"></p>
+<p>金色线是开发机的 TCP，由 <code>:black</code> 接受。浅色线是 Binder：主进程和分身用 <code>call("VM")</code> 拿到 <code>ISpindleService</code>，注册之后脚本也从这条 Binder 送回来。</p>
+<p>主进程和分身都不监听 TCP。它们用 <code>call("VM")</code> 取到名为 <code>spindle</code> 的 <code>ISpindleService</code>，再经 Binder 注册、收脚本。</p>
+<table>
+<tbody>
+<tr><th>角色</th><th>做什么</th></tr>
+<tr><td><strong>开发机</strong></td><td><code>tools/spindle</code>。用 TCP 连上手机里的监听，发送脚本、RPC，并打印日志。</td></tr>
+<tr><td><strong>虚拟系统进程</strong></td><td>进程名 <code>com.android.bba:black</code>，来自 <code>android:process="@string/black_box_service_name"</code>。TCP 只在这里监听。<code>BSpindleService</code> 和包管理、活动栈、通知一起由 <code>SystemCallProvider</code> 拉起。界面一启动就会来取 <code>spindle</code> 这个服务，所以端口在分身出现之前就已经在听。</td></tr>
+<tr><td><strong>宿主主进程</strong></td><td>进程名 <code>com.android.bba</code>。它和其他进程一样注册成 agent，脚本通过 Binder 送进来。后台活动限制挡住 <code>:black</code> 的启动时，由它在界面线程上再调一次 <code>launchApk</code>。</td></tr>
+<tr><td><strong>分身进程</strong></td><td>在 <code>Application.onCreate</code> 之前调用 <code>NativeCore.spindleAgent</code>。宿主 Context 的 <code>call("VM")</code> 拿到 <code>ISpindleService</code>，再 <code>register</code>。名字以 <code>/proc/&lt;pid&gt;/cmdline</code> 为准，pid 和 uid 来自 <code>Binder.getCallingPid</code> / <code>getCallingUid</code>，并且必须是宿主应用自己的 uid。</td></tr>
+</tbody>
+</table>
+<p>开发机只连 <code>:black</code> 的环回端口。<code>:black</code> 按名字把帧转给已经注册的 Binder。分身和主进程都不会再开一份 TCP 监听。进程退出时 <code>linkToDeath</code> 摘掉 agent，并给还挂着的开发机发 <code>EXIT</code>。</p>
+<h2>通道</h2>
+<table>
+<tbody>
+<tr><th>通道</th><th>谁提供</th><th>谁使用</th><th>用途</th></tr>
+<tr><td>TCP <code>127.0.0.1:2408</code></td><td><code>:black</code></td><td>开发机，或 <code>adb forward</code> 之后的本机端口</td><td>下发脚本、RPC、UNLOCK，回传日志</td></tr>
+<tr><td><code>ISpindleService</code> / <code>ISpindleClient</code>，经 <code>call("VM")</code> 取出，服务名 <code>spindle</code></td><td><code>:black</code></td><td>主进程和分身</td><td>注册、投递帧、主进程代为启动界面</td></tr>
+</tbody>
+</table>
+<p>TCP 只绑环回地址 <code>127.0.0.1:2408</code>。USB 调试时，<code>tools/spindle -U</code> 执行 <code>adb forward tcp:0 tcp:2408</code>，然后连本机被转发出来的端口。多台设备时用 <code>-D &lt;serial&gt;</code> 指定。单帧最大 1 MB，和一次 Binder 事务的上限对齐。</p>
+<h2>帧</h2>
+<p>两边用同一种帧：小端 4 字节长度，后面是正文。单帧最大 1 MB。有类型的帧用 3 个 ASCII 字符加一个 <code>\0</code> 当开头，剩下的是 JSON 或文本。脚本正文没有这个开头，整帧就是源码字节。</p>
+<table>
+<tbody>
+<tr><th>帧</th><th>方向</th><th>正文</th></tr>
+<tr><td><code>HOST</code></td><td>开发机 → <code>:black</code></td><td>第一帧。JSON 里可以有 <code>target</code>、<code>spawn</code>、<code>list</code></td></tr>
+<tr><td>脚本正文</td><td>开发机 → 目标进程</td><td>UTF-8 源码，没有类型前缀</td></tr>
+<tr><td><code>LOG</code></td><td>目标进程 → 开发机</td><td>一行文本。客户端打印出来，不当成 RPC 回复</td></tr>
+<tr><td><code>RPC</code></td><td>开发机 → 目标进程</td><td><code>{"m":"方法名","a":[参数]}</code></td></tr>
+<tr><td><code>UNLOCK</code></td><td>开发机 → 目标进程</td><td>六个字符 <code>UNLOCK</code>，没有 JSON。spawn 结束或连接断开时也会补一帧</td></tr>
+<tr><td><code>EXIT</code></td><td><code>:black</code> → 开发机</td><td>agent 的 Binder 死亡时发给正在看日志的客户端</td></tr>
+</tbody>
+</table>
+<h2>拉起一个分身再注入</h2>
+<p><code>spindle -U -f com.example.app -l script.js</code> 走这条路。hello 里带 <code>"spawn":true</code>。</p>
+<ol>
+<li><strong>记下旧进程。</strong><code>:black</code> 把这个包名已经注册过的 pid 放进 skip 列表，避免挂到上一次还没退出的分身。</li>
+<li><strong>在本进程里重启 user 0 上的这个包。</strong><code>BPackageManagerService.stopPackage</code> 之后，用启动 Intent 调 <code>BActivityManagerService.startActivity</code>。虚拟活动栈最后仍会向系统发出真正的启动；若系统因后台限制拒绝，下一步改由主进程再发一次。</li>
+<li><strong>等注册，必要时改由主进程启动。</strong>15 秒内没有新 agent，就调用主进程那块 Binder 的 <code>launch</code>。主进程在自己的主线程上执行原来的 <code>launchApk</code>，最多再等 15 秒。</li>
+<li><strong>分身来注册。</strong><code>onBeforeApplicationOnCreate</code> 里 <code>spindleAgent(processName)</code>。服务端用调用方 pid 读 <code>/proc/&lt;pid&gt;/cmdline</code>，并 <code>linkToDeath</code>。</li>
+<li><strong>认领新进程。</strong>名字对得上、pid 不在 skip 里，就占用这个 agent，并回 <code>{"ok":true}</code> 给开发机。</li>
+<li><strong>脚本字节到达分身。</strong><code>ISpindleClient.onFrame</code> 在分身进程里调用 <code>NativeCore.onSpindleScript</code>，再把 <code>LOG</code> 字节交回 <code>:black</code>，由它写进开发机的 TCP。</li>
+<li><strong>开发机发送 <code>UNLOCK</code>。</strong>客户端在脚本和 <code>--call</code> 之后发送。连接断开时 <code>:black</code> 也会补一帧。分身收到后不做别的事。</li>
+</ol>
+<blockquote><p>注册不会挡住分身的启动线程。<code>Application.onCreate</code> 不会等脚本。脚本是注册完成之后，经 Binder 送到分身的。</p></blockquote>
+<h2>挂到已经在跑的进程</h2>
+<p><code>-n com.example.app</code> 或位置参数给出进程名，hello 里没有 <code>spawn</code>。<code>:black</code> 不启动应用，只在已经注册的 agent 里挑一个。没有匹配时返回 <code>no such agent</code>。该进程已经有一条开发机连接时返回 <code>agent busy</code>。一个 agent 同时只服务一个 host。</p>
+<p><code>-p 1234</code> 把目标写成 <code>pid:1234</code>，只按 pid 匹配。<code>spawn</code> 不能用 pid，因为新进程的 pid 当时还不知道。</p>
+<p>主进程自己也是一个 agent，名字是 <code>com.android.bba</code>。挂到它和挂到分身一样，帧经 <code>onFrame</code> 送进那个进程。</p>
+<p><code>--list</code> 或 <code>spindle-ps</code> 发送 <code>{"list":true}</code>。回复是 <code>{"ok":true,"agents":[{"name","pid","uid"}, ...]}</code>，发完就关连接。</p>
+<h2>怎么选进程</h2>
+<p>目标先按完整字符串比。比不上时，取冒号前的包名再比，所以 <code>com.example.app</code> 可以命中 <code>com.example.app:push</code>。精确命中优先于包名命中。同一级里，spawn 要 pid 最大的那个（刚拉起来的），attach 要 pid 最小的那个。</p>
+<h2>脚本落到哪</h2>
+<p><code>NativeCore.onSpindleScript</code> 把字节按 UTF-8 转成字符串。如果有人调用过 <code>setScriptHandler</code>，就在当前线程回调 <code>onScript</code>。没有 handler 时，只打一条日志。</p>
+<blockquote><p>脚本到达进程后，<code>NativeCore.onSpindleScript</code> 先交给已注册的 <code>ScriptHandler</code>，再调用 <code>spindleRunJs</code>。arm64 上由 QuickJS 执行，提供 <code>Interceptor</code>、<code>Stalker</code>、<code>Java</code>、<code>Memory</code>、<code>Process</code> 和 <code>console</code>。<code>console.log</code> 经 <code>onSpindleLog</code> 回到 <code>:black</code>，再写进开发机的 TCP。RPC 调用 <code>rpc.exports</code>。工程只编译 arm64，所以发布的 APK 带这个运行时；非 arm64 的构建会回 <code>{"ok":false,"e":"js runtime is not in bba"}</code>。</p></blockquote>
+<h2>命令行</h2>
+<pre>python3 tools/spindle -U -f com.example.app -l tools/test_js_api.js
+python3 tools/spindle -U -n com.example.app -l tools/test_native_hook.js
+python3 tools/spindle -D &lt;serial&gt; -p 1234 -e 'console.log(1)'
+python3 tools/spindle -H 127.0.0.1:2408 -n com.android.bba --list
+python3 tools/spindle-ps -U</pre>
+<p><code>-l</code> 可以重复，文件按顺序拼成一份源码。<code>-e</code> 追加在文件后面。<code>--call 方法名 --args '["a",1]'</code> 在源码发出之后调用，<code>--args</code> 必须是 JSON 数组，和 <code>--call</code> 按顺序配对。客户端开了 TCP keepalive。spawn 的连接超时是 45 秒，attach 是 15 秒。连上之后 <code>follow</code> 会一直打印 <code>LOG</code>，直到对端关掉或收到 <code>EXIT</code>。</p>
+<p>依据 <code>core/src/main/cpp/hook/spindle_server.cpp</code>、<code>BSpindleService</code> 和 <code>tools/spindle</code>。</p>
+</article>
+</body>
+</html>
