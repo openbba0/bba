@@ -1,139 +1,85 @@
 package com.android.bba.view.fake
 
-
 import android.app.Activity
 import android.os.Bundle
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.preference.PreferenceManager
-import org.osmdroid.config.Configuration
-import org.osmdroid.events.MapEventsReceiver
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.overlay.MapEventsOverlay
-import org.osmdroid.views.overlay.Marker
 import com.android.bb.model.location.BLocation
 import com.android.bba.databinding.ActivityOsmdroidBinding
 import com.android.bba.util.inflate
-import com.android.bba.util.toast
-
-
+import org.osmdroid.config.Configuration
+import org.osmdroid.events.MapListener
+import org.osmdroid.events.ScrollEvent
+import org.osmdroid.events.ZoomEvent
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.CustomZoomButtonsController
+import java.util.Locale
 
 class FollowMyLocationOverlay : AppCompatActivity() {
-    val TAG: String = "FollowMyLocationOverlay"
-
-    private val REQUEST_PERMISSIONS_REQUEST_CODE = 1
 
     private val binding: ActivityOsmdroidBinding by inflate()
 
-    lateinit var startPoint: GeoPoint
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        
-
-        
-        
-        Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this))
-        
-        
-        
-        
-        
-        
-
-        
+        val config = Configuration.getInstance()
+        config.load(this, PreferenceManager.getDefaultSharedPreferences(this))
+        config.userAgentValue = packageName
         setContentView(binding.root)
 
-        val location: BLocation? = intent.getParcelableExtra("location")
+        val saved: BLocation? = intent.getParcelableExtra("location")
+        val wgsLat = saved?.latitude ?: 30.2736
+        val wgsLon = saved?.longitude ?: 120.1563
+        val (gcjLat, gcjLon) = Gcj02.wgsToGcj(wgsLat, wgsLon)
 
-        startPoint = if (location == null) {
-            GeoPoint(30.2736, 120.1563)
-        } else {
-            GeoPoint(location.latitude, location.longitude)
-        }
-
-
-        val startMarker = Marker(binding.map)
-        startMarker.position = startPoint
-        startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-
-        binding.map.overlays.add(startMarker)
-        val mReceive: MapEventsReceiver = object : MapEventsReceiver {
-            override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
-                startPoint = p
-                startMarker.position = p
-                startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                binding.map.overlays.add(startMarker)
-                toast(p.latitude.toString() + " - " + p.longitude)
-                return false
+        val map = binding.map
+        map.setTileSource(AmapTileSource())
+        map.setMultiTouchControls(true)
+        map.isTilesScaledToDpi = true
+        map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.SHOW_AND_FADEOUT)
+        map.controller.setZoom(16.0)
+        map.controller.setCenter(GeoPoint(gcjLat, gcjLon))
+        map.addMapListener(object : MapListener {
+            override fun onScroll(event: ScrollEvent): Boolean {
+                showCenter()
+                return true
             }
 
-            override fun longPressHelper(p: GeoPoint): Boolean {
-                return false
+            override fun onZoom(event: ZoomEvent): Boolean {
+                showCenter()
+                return true
             }
+        })
+        showCenter()
+        binding.confirm.setOnClickListener {
+            val center = map.mapCenter
+            val (lat, lon) = Gcj02.gcjToWgs(center.latitude, center.longitude)
+            finishWithResult(lat, lon)
         }
-        binding.map.overlays.add(MapEventsOverlay(mReceive))
-        val mapController = binding.map.controller
-        mapController.setZoom(12.5)
-
-        mapController.setCenter(startPoint)
-        binding.map.setTileSource(TileSourceFactory.MAPNIK)
-    }
-
-    override fun onBackPressed() {
-        finishWithResult(startPoint)
     }
 
     override fun onResume() {
         super.onResume()
-        
-        
-        
-        
-        binding.map.onResume() 
+        binding.map.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-        
-        
-        
-        
-        binding.map.onPause()  
+        binding.map.onPause()
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        val permissionsToRequest = ArrayList<String>()
-        var i = 0
-        while (i < grantResults.size) {
-            permissionsToRequest.add(permissions[i])
-            i++
-        }
-        if (permissionsToRequest.size > 0) {
-            ActivityCompat.requestPermissions(
-                this,
-                permissionsToRequest.toTypedArray(),
-                REQUEST_PERMISSIONS_REQUEST_CODE
-            )
-        }
+    private fun showCenter() {
+        val center = binding.map.mapCenter
+        val (lat, lon) = Gcj02.gcjToWgs(center.latitude, center.longitude)
+        binding.coord.text = String.format(Locale.US, "%.6f, %.6f", lat, lon)
     }
 
-    private fun finishWithResult(geoPoint: GeoPoint) {
-        intent.putExtra("latitude", geoPoint.latitude)
-        intent.putExtra("longitude", geoPoint.longitude)
+    private fun finishWithResult(latitude: Double, longitude: Double) {
+        intent.putExtra("latitude", latitude)
+        intent.putExtra("longitude", longitude)
         setResult(Activity.RESULT_OK, intent)
-        val imm: InputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        window.peekDecorView()?.run {
-            imm.hideSoftInputFromWindow(windowToken, 0)
-        }
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        window.peekDecorView()?.let { imm.hideSoftInputFromWindow(it.windowToken, 0) }
         finish()
     }
-
 }

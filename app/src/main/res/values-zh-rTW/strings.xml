@@ -9,7 +9,8 @@
     <string name="filter">篩檢</string>
     <string name="open_source_path">開源地址</string>
     <string name="xp_setting">Xposed設定</string>
-    <string name="fake_location">虛擬定位（預覽）</string>
+    <string name="fake_location">虛擬定位</string>
+    <string name="use_this_location">使用這個位置</string>
     <string name="real_location">真實位置</string>
     <string name="set_location">成功設定虛擬定位：%s-%s</string>
     <string name="close_fake_location">禁用虛擬位置</string>

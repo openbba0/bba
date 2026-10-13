@@ -12,7 +12,8 @@
     <string name="xp_setting">XP管理</string>
     <string name="setting">软件设置</string>
     <string name="permission_setting">权限设置</string>
-    <string name="fake_location">虚拟定位(预览版)</string>
+    <string name="fake_location">虚拟定位</string>
+    <string name="use_this_location">使用这个位置</string>
     <string name="real_location">真实位置</string>
     <string name="set_location">虚拟定位设置成功:%s-%s</string>
     <string name="close_fake_location">关闭虚拟定位</string>
