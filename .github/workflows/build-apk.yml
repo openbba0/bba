@@ -39,6 +39,18 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Tag this commit
+        run: |
+          number=$(git rev-list --count HEAD)
+          tag="V${number}"
+          echo "tag=${tag}" >> "$GITHUB_ENV"
+          if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null; then
+            git fetch origin "refs/tags/${tag}:refs/tags/${tag}"
+          else
+            git tag "$tag"
+            git push origin "refs/tags/${tag}"
+          fi
+
       - name: Build release APK
         run: chmod +x ./gradlew && ./gradlew :app:assembleRelease --stacktrace
 
@@ -54,8 +66,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           apk=$(ls app/build/outputs/apk/release/*.apk)
-          number=$(git rev-list --count HEAD)
-          tag="V${number}"
           title="$tag"
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$tag" "$apk" --repo "$GITHUB_REPOSITORY" --clobber
