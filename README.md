@@ -77,3 +77,9 @@ python3 tools/spindle -U -n com.example.app -l tools/test_rpc.js --call ping --a
 ```
 
 That prints `pong hi`, then keeps waiting for logs.
+
+## WeChat
+
+Group chat: **openbba**. The code expires on 20 October 2026.
+
+<img src="docs/wechat_openbba.png" alt="WeChat group openbba" width="280">

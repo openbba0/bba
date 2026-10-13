@@ -77,3 +77,9 @@ python3 tools/spindle -U -n com.example.app -l tools/test_rpc.js --call ping --a
 ```
 
 这行会打出 `pong hi`，然后继续等日志。
+
+## 微信群
+
+群聊 **openbba**。二维码在 2026 年 10 月 20 日前有效。
+
+<img src="docs/wechat_openbba.png" alt="微信群 openbba" width="280">
