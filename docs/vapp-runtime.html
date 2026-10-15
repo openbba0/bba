@@ -398,7 +398,7 @@
 <p>虚拟根在宿主缓存目录的上一级，名字是 <code>blackbox</code>。外置根是 <code>getExternalFilesDir("blackbox")</code>。</p>
 <pre><code>blackbox/
   system/                  user.conf、uid.conf、accounts.conf、fake-location.conf、包配置
-  cache/                   empty.apk 等运行时用的空包
+  cache/                   运行时缓存（如 junit.apk）
   proc/&lt;bpid&gt;/cmdline      给访客看的进程名
   profiles/cur、profiles/ref
   data/app/&lt;包名&gt;/         base.apk 和 lib

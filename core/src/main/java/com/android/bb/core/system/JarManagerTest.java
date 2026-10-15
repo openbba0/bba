@@ -37,10 +37,8 @@ public class JarManagerTest {
             
             
             Log.d(TAG, "Testing individual JAR info");
-            String emptyJarInfo = jarManager.getJarInfo("empty.jar");
             String junitJarInfo = jarManager.getJarInfo("junit.jar");
             
-            Log.i(TAG, "Empty JAR info: " + emptyJarInfo);
             Log.i(TAG, "JUnit JAR info: " + junitJarInfo);
             
             Log.i(TAG, "JAR Manager test completed successfully");
@@ -52,14 +50,6 @@ public class JarManagerTest {
     
     
     private static void testJarFileRetrieval(JarManager jarManager) {
-        
-        if (jarManager.getEmptyJar() != null) {
-            Log.d(TAG, "Empty JAR retrieved successfully");
-        } else {
-            Log.w(TAG, "Empty JAR retrieval failed");
-        }
-        
-        
         if (jarManager.getJunitJar() != null) {
             Log.d(TAG, "JUnit JAR retrieved successfully");
         } else {
@@ -67,10 +57,10 @@ public class JarManagerTest {
         }
         
         
-        if (jarManager.getJarFile("empty.jar") != null) {
-            Log.d(TAG, "Generic JAR retrieval for empty.jar successful");
+        if (jarManager.getJarFile("junit.jar") != null) {
+            Log.d(TAG, "Generic JAR retrieval for junit.jar successful");
         } else {
-            Log.w(TAG, "Generic JAR retrieval for empty.jar failed");
+            Log.w(TAG, "Generic JAR retrieval for junit.jar failed");
         }
     }
     

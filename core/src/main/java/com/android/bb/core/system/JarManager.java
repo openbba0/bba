@@ -102,11 +102,6 @@ public class JarManager {
     }
     
     
-    public File getEmptyJar() {
-        return getJarFile("empty.jar");
-    }
-    
-    
     public File getJunitJar() {
         return getJarFile("junit.jar");
     }

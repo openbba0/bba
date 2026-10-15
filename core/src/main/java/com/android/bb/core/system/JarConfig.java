@@ -29,14 +29,6 @@ public class JarConfig {
     }
     
     
-    public static final JarDefinition EMPTY_JAR = new JarDefinition(
-        "empty.jar", 
-        "empty.apk", 
-        100L, 
-        "Empty JAR for fallback DEX loading", 
-        true
-    );
-    
     public static final JarDefinition JUNIT_JAR = new JarDefinition(
         "junit.jar", 
         "junit.apk", 
@@ -66,7 +58,7 @@ public class JarConfig {
     
     
     public static JarDefinition[] getRequiredJars() {
-        return new JarDefinition[]{EMPTY_JAR, JUNIT_JAR};
+        return new JarDefinition[]{JUNIT_JAR};
     }
     
     

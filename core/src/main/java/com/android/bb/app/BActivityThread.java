@@ -81,9 +81,6 @@ import com.android.bb.utils.compat.ActivityManagerCompat;
 import com.android.bb.utils.compat.BuildCompat;
 import com.android.bb.utils.compat.ContextCompat;
 import com.android.bb.utils.compat.StrictModeCompat;
-import com.android.bb.core.system.JarManager;
-
-
 public class BActivityThread extends IBActivityThread.Stub {
     public static final String TAG = "BActivityThread";
 
@@ -480,38 +477,6 @@ public class BActivityThread extends IBActivityThread.Stub {
         } catch (Exception e) {
             Slog.e(TAG, "Critical error in handleBindApplication", e);
             throw new RuntimeException("Unable to makeApplication", e);
-        }
-    }
-    
-    
-    private void initializeJarEnvironment() {
-        try {
-            Slog.d(TAG, "Initializing JAR environment for DEX loading");
-            
-            
-            JarManager jarManager = JarManager.getInstance();
-            if (!jarManager.isReady()) {
-                Slog.d(TAG, "JarManager not ready, initializing synchronously");
-                jarManager.initializeSync();
-            }
-            
-            
-            File emptyJar = jarManager.getEmptyJar();
-            if (emptyJar == null || !emptyJar.exists()) {
-                Slog.w(TAG, "Empty JAR not available, attempting to recreate");
-                jarManager.clearCache();
-                jarManager.initializeSync();
-                emptyJar = jarManager.getEmptyJar();
-            }
-            
-            if (emptyJar != null && emptyJar.exists()) {
-                Slog.d(TAG, "Empty JAR verified: " + emptyJar.getAbsolutePath());
-            } else {
-                Slog.w(TAG, "Empty JAR still not available after retry");
-            }
-            
-        } catch (Exception e) {
-            Slog.e(TAG, "Error initializing JAR environment", e);
         }
     }
     
