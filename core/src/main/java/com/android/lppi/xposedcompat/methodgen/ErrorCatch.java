@@ -1,9 +1,9 @@
-package com.swift.sandhook.xposedcompat.methodgen;
+package com.android.lppi.xposedcompat.methodgen;
 
 import android.util.Log;
 
-import com.swift.sandhook.SandHook;
-import com.swift.sandhook.xposedcompat.XposedCompat;
+import com.android.lppi.SandHook;
+import com.android.lppi.xposedcompat.XposedCompat;
 
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;

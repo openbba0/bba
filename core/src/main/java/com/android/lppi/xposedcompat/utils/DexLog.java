@@ -1,8 +1,8 @@
-package com.swift.sandhook.xposedcompat.utils;
+package com.android.lppi.xposedcompat.utils;
 
 import android.util.Log;
 
-import com.swift.sandhook.HookLog;
+import com.android.lppi.HookLog;
 
 import java.lang.reflect.Member;
 

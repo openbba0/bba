@@ -1,6 +1,6 @@
-package com.swift.sandhook.xposedcompat.methodgen;
+package com.android.lppi.xposedcompat.methodgen;
 
-import com.scorpion.IHook.XposedBridge;
+import com.android.lppi.XposedBridge;
 
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;

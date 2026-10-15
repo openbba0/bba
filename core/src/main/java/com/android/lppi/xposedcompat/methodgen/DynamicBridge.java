@@ -1,17 +1,17 @@
-package com.swift.sandhook.xposedcompat.methodgen;
+package com.android.lppi.xposedcompat.methodgen;
 
 import android.os.Trace;
 
-import com.scorpion.IHook.XposedBridge;
-import com.swift.sandhook.SandHook;
-import com.swift.sandhook.blacklist.HookBlackList;
-import com.swift.sandhook.wrapper.HookWrapper;
-import com.swift.sandhook.xposedcompat.XposedCompat;
-import com.swift.sandhook.xposedcompat.classloaders.ProxyClassLoader;
-import com.swift.sandhook.xposedcompat.hookstub.HookMethodEntity;
-import com.swift.sandhook.xposedcompat.hookstub.HookStubManager;
-import com.swift.sandhook.xposedcompat.utils.DexLog;
-import com.swift.sandhook.xposedcompat.utils.FileUtils;
+import com.android.lppi.XposedBridge;
+import com.android.lppi.SandHook;
+import com.android.lppi.blacklist.HookBlackList;
+import com.android.lppi.wrapper.HookWrapper;
+import com.android.lppi.xposedcompat.XposedCompat;
+import com.android.lppi.xposedcompat.classloaders.ProxyClassLoader;
+import com.android.lppi.xposedcompat.hookstub.HookMethodEntity;
+import com.android.lppi.xposedcompat.hookstub.HookStubManager;
+import com.android.lppi.xposedcompat.utils.DexLog;
+import com.android.lppi.xposedcompat.utils.FileUtils;
 
 import java.io.File;
 import java.lang.reflect.Constructor;

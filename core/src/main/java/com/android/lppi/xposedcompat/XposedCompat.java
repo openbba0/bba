@@ -1,22 +1,22 @@
-package com.swift.sandhook.xposedcompat;
+package com.android.lppi.xposedcompat;
 
 import android.app.Application;
 import android.content.Context;
 
-import com.scorpion.IHook.IXposedHookLoadPackage;
-import com.scorpion.IHook.XposedBridge;
-import com.scorpion.IHook.XposedInit;
-import com.scorpion.IHook.callbacks.XC_LoadPackage;
-import com.swift.sandhook.xposedcompat.classloaders.ProxyClassLoader;
-import com.swift.sandhook.xposedcompat.methodgen.DynamicBridge;
-import com.swift.sandhook.xposedcompat.utils.ApplicationUtils;
-import com.swift.sandhook.xposedcompat.utils.FileUtils;
-import com.swift.sandhook.xposedcompat.utils.ProcessUtils;
+import com.android.lppi.IXposedHookLoadPackage;
+import com.android.lppi.XposedBridge;
+import com.android.lppi.XposedInit;
+import com.android.lppi.callbacks.XC_LoadPackage;
+import com.android.lppi.xposedcompat.classloaders.ProxyClassLoader;
+import com.android.lppi.xposedcompat.methodgen.DynamicBridge;
+import com.android.lppi.xposedcompat.utils.ApplicationUtils;
+import com.android.lppi.xposedcompat.utils.FileUtils;
+import com.android.lppi.xposedcompat.utils.ProcessUtils;
 
 import java.io.File;
 
 
-import static com.swift.sandhook.xposedcompat.utils.DexMakerUtils.MD5;
+import static com.android.lppi.xposedcompat.utils.DexMakerUtils.MD5;
 
 public class XposedCompat {
 

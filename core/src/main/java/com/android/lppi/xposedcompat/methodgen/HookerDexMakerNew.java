@@ -1,4 +1,4 @@
-package com.swift.sandhook.xposedcompat.methodgen;
+package com.android.lppi.xposedcompat.methodgen;
 
 import android.os.Build;
 import android.text.TextUtils;
@@ -9,12 +9,12 @@ import com.android.dx.FieldId;
 import com.android.dx.Local;
 import com.android.dx.MethodId;
 import com.android.dx.TypeId;
-import com.scorpion.IHook.XposedBridge;
-import com.scorpion.IHook.XposedHelpers;
-import com.swift.sandhook.SandHook;
-import com.swift.sandhook.SandHookConfig;
-import com.swift.sandhook.wrapper.HookWrapper;
-import com.swift.sandhook.xposedcompat.hookstub.HookStubManager;
+import com.android.lppi.XposedBridge;
+import com.android.lppi.XposedHelpers;
+import com.android.lppi.SandHook;
+import com.android.lppi.SandHookConfig;
+import com.android.lppi.wrapper.HookWrapper;
+import com.android.lppi.xposedcompat.hookstub.HookStubManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,11 +27,11 @@ import java.util.Map;
 
 import dalvik.system.InMemoryDexClassLoader;
 
-import static com.swift.sandhook.xposedcompat.utils.DexMakerUtils.MD5;
-import static com.swift.sandhook.xposedcompat.utils.DexMakerUtils.autoBoxIfNecessary;
-import static com.swift.sandhook.xposedcompat.utils.DexMakerUtils.autoUnboxIfNecessary;
-import static com.swift.sandhook.xposedcompat.utils.DexMakerUtils.createResultLocals;
-import static com.swift.sandhook.xposedcompat.utils.DexMakerUtils.getObjTypeIdIfPrimitive;
+import static com.android.lppi.xposedcompat.utils.DexMakerUtils.MD5;
+import static com.android.lppi.xposedcompat.utils.DexMakerUtils.autoBoxIfNecessary;
+import static com.android.lppi.xposedcompat.utils.DexMakerUtils.autoUnboxIfNecessary;
+import static com.android.lppi.xposedcompat.utils.DexMakerUtils.createResultLocals;
+import static com.android.lppi.xposedcompat.utils.DexMakerUtils.getObjTypeIdIfPrimitive;
 
 public  class HookerDexMakerNew implements HookMaker {
 

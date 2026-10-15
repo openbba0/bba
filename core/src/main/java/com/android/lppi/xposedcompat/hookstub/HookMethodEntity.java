@@ -1,7 +1,7 @@
-package com.swift.sandhook.xposedcompat.hookstub;
+package com.android.lppi.xposedcompat.hookstub;
 
-import com.swift.sandhook.SandHook;
-import com.swift.sandhook.utils.ParamWrapper;
+import com.android.lppi.SandHook;
+import com.android.lppi.utils.ParamWrapper;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;

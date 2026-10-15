@@ -1,16 +1,16 @@
-package com.swift.sandhook.xposedcompat.hookstub;
+package com.android.lppi.xposedcompat.hookstub;
 
 import android.util.Log;
 
-import com.scorpion.IHook.XC_MethodHook;
-import com.scorpion.IHook.XposedBridge;
-import com.scorpion.IHook.XposedHelpers;
-import com.swift.sandhook.SandHook;
-import com.swift.sandhook.SandHookMethodResolver;
-import com.swift.sandhook.utils.ParamWrapper;
-import com.swift.sandhook.wrapper.StubMethodsFactory;
-import com.swift.sandhook.xposedcompat.XposedCompat;
-import com.swift.sandhook.xposedcompat.utils.DexLog;
+import com.android.lppi.XC_MethodHook;
+import com.android.lppi.XposedBridge;
+import com.android.lppi.XposedHelpers;
+import com.android.lppi.SandHook;
+import com.android.lppi.SandHookMethodResolver;
+import com.android.lppi.utils.ParamWrapper;
+import com.android.lppi.wrapper.StubMethodsFactory;
+import com.android.lppi.xposedcompat.XposedCompat;
+import com.android.lppi.xposedcompat.utils.DexLog;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;

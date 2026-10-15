@@ -1,9 +1,9 @@
-package com.swift.sandhook.xposedcompat.hookstub;
+package com.android.lppi.xposedcompat.hookstub;
 
-import static com.swift.sandhook.xposedcompat.hookstub.HookStubManager.hookBridge;
-import static com.swift.sandhook.xposedcompat.hookstub.HookStubManager.getMethodId;
-import static com.swift.sandhook.xposedcompat.hookstub.HookStubManager.originMethods;
-import static com.swift.sandhook.xposedcompat.utils.DexLog.printCallOriginError;
+import static com.android.lppi.xposedcompat.hookstub.HookStubManager.hookBridge;
+import static com.android.lppi.xposedcompat.hookstub.HookStubManager.getMethodId;
+import static com.android.lppi.xposedcompat.hookstub.HookStubManager.originMethods;
+import static com.android.lppi.xposedcompat.utils.DexLog.printCallOriginError;
 
 /**
 *   this file is auto gen by genhookstubs.py

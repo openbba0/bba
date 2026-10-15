@@ -1,4 +1,4 @@
-package com.swift.sandhook.xposedcompat.classloaders;
+package com.android.lppi.xposedcompat.classloaders;
 
 public class ProxyClassLoader extends ClassLoader {
 
