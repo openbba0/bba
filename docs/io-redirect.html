@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BBA IO 重定向</title>
+<style>
+  :root {
+    --surface: #0C0D11;
+    --card: #17191F;
+    --gold: #C6A36A;
+    --chrome: #F3F0E8;
+    --muted: #9A948A;
+    --line: #2C2E34;
+    --ink: #14120E;
+    --page: 820px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--chrome);
+    background: var(--surface);
+    font: 16px/1.7 "PingFang SC", "Noto Sans SC", "Avenir Next", sans-serif;
+  }
+  header, nav, main, footer { max-width: var(--page); margin: 0 auto; }
+  header { padding: 48px 24px 8px; }
+  .mark {
+    margin: 0;
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 0.34em;
+  }
+  h1 {
+    margin: 14px 0 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1.25;
+  }
+  h1::after {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 2px;
+    margin-top: 12px;
+    background: var(--gold);
+  }
+  .lede { margin: 14px 0 0; color: var(--muted); font-size: 15px; }
+  nav {
+    padding: 22px 24px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+  nav a {
+    color: var(--gold);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+  nav a:hover { color: var(--chrome); }
+  main { padding: 8px 24px 72px; }
+  h2 {
+    margin: 40px 0 12px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  h3 { margin: 22px 0 8px; font-size: 16px; color: var(--chrome); }
+  p { margin: 0 0 14px; }
+  a { color: var(--gold); }
+  ul, ol { margin: 0 0 14px; padding-left: 1.25em; color: var(--chrome); }
+  li { margin: 0 0 6px; }
+  li::marker { color: var(--gold); }
+  code, pre {
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 0.86em;
+  }
+  code {
+    background: #1C1F27;
+    color: var(--gold);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--card);
+    color: var(--chrome);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px 18px;
+    overflow: auto;
+    line-height: 1.5;
+  }
+  pre code { background: transparent; padding: 0; color: inherit; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 18px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  th { font-weight: 600; color: var(--gold); font-size: 12px; letter-spacing: 0.06em; }
+  tr:last-child td { border-bottom: 0; }
+  .flow { display: grid; margin: 18px 0 8px; }
+  .step { display: grid; grid-template-columns: 36px 1fr; gap: 12px; }
+  .step .n {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    position: relative;
+  }
+  .step:not(:last-child) .n::after {
+    content: "";
+    position: absolute;
+    top: 36px;
+    left: 17px;
+    width: 2px;
+    height: calc(100% + 8px);
+    background: var(--line);
+  }
+  .step .body {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 12px 14px 10px;
+    margin-bottom: 10px;
+  }
+  .who {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 12px 0 18px;
+  }
+  .who article {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .who h3 { margin: 0 0 6px; font-size: 15px; letter-spacing: 0.04em; }
+  .who p { margin: 0; font-size: 14px; color: var(--muted); }
+  figure.rel {
+    margin: 6px 0 22px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 12px 8px 8px;
+  }
+  figure.rel svg { display: block; width: 100%; height: auto; }
+  figure.rel figcaption {
+    margin: 8px 10px 4px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .note {
+    background: var(--card);
+    border-left: 2px solid var(--gold);
+    border-radius: 0 16px 16px 0;
+    padding: 12px 14px;
+    margin: 14px 0;
+    color: var(--chrome);
+  }
+  footer {
+    padding: 0 24px 48px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  @media (max-width: 700px) {
+    h1 { font-size: 24px; letter-spacing: 0.03em; }
+    .who { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <p class="mark">BBA</p>
+  <h1>IO 重定向</h1>
+  <p class="lede">Guest 以为自己在写 <code>/data/data/&lt;pkg&gt;</code> 和 <code>/sdcard</code>，真实落盘却在宿主私有目录的 <code>v0</code> 树下。本文说明规则如何注册、路径如何解析，以及两条生效通道。</p>
+</header>
+<nav>
+  <a href="#why">为什么</a>
+  <a href="#arch">架构</a>
+  <a href="#root">物理根</a>
+  <a href="#lifecycle">生命周期</a>
+  <a href="#rules">规则表</a>
+  <a href="#resolve">解析算法</a>
+  <a href="#hooks">生效通道</a>
+  <a href="#examples">示例</a>
+  <a href="#observe">如何观察</a>
+  <a href="#files">源码索引</a>
+  <a href="#limits">边界</a>
+</nav>
+<main>
+
+<section id="why">
+  <h2>为什么需要重定向</h2>
+  <p>多开场景下，多个 Guest 共享宿主 UID，不能直接写系统真实的 <code>/data/data/&lt;guest&gt;</code>。BBA 把路径拆成两层视图：</p>
+  <div class="who">
+    <article>
+      <h3>逻辑路径</h3>
+      <p>Guest 看到的标准 Android 路径，例如 <code>/data/user/0/com.example.app</code>。</p>
+    </article>
+    <article>
+      <h3>物理路径</h3>
+      <p>宿主包下的虚拟根，例如 <code>.../&lt;host&gt;/v0/data/user/0/com.example.app</code>。</p>
+    </article>
+    <article>
+      <h3>改写时机</h3>
+      <p>open / list / create 之前，把逻辑前缀换成物理前缀，Guest 无感。</p>
+    </article>
+  </div>
+  <div class="note">
+    这不是内核 mount：普通 App 没有 <code>CAP_SYS_ADMIN</code>，也过不了 SELinux。BBA 走的是「路径字符串改写」路线。
+  </div>
+</section>
+
+<section id="arch">
+  <h2>架构：双通道、单真相源</h2>
+  <figure class="rel" aria-label="IO redirect architecture">
+    <svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg" role="img">
+      <rect width="760" height="280" fill="#17191F" rx="12"/>
+      <rect x="40" y="24" width="680" height="44" rx="10" fill="#1C1F27" stroke="#2C2E34"/>
+      <text x="380" y="51" fill="#F3F0E8" font-size="14" text-anchor="middle" font-family="PingFang SC, sans-serif">Guest App（逻辑路径）</text>
+
+      <rect x="40" y="100" width="300" height="72" rx="10" fill="#1C1F27" stroke="#C6A36A"/>
+      <text x="190" y="130" fill="#C6A36A" font-size="13" text-anchor="middle" font-family="SF Mono, monospace">OsStub</text>
+      <text x="190" y="152" fill="#9A948A" font-size="12" text-anchor="middle" font-family="PingFang SC, sans-serif">libcore.io.Os 代理</text>
+
+      <rect x="420" y="100" width="300" height="72" rx="10" fill="#1C1F27" stroke="#C6A36A"/>
+      <text x="570" y="130" fill="#C6A36A" font-size="13" text-anchor="middle" font-family="SF Mono, monospace">UnixFileSystemHook</text>
+      <text x="570" y="152" fill="#9A948A" font-size="12" text-anchor="middle" font-family="PingFang SC, sans-serif">JNI → NativeCore</text>
+
+      <path d="M190 172 v18" stroke="#2C2E34" stroke-width="2"/>
+      <path d="M570 172 v18" stroke="#2C2E34" stroke-width="2"/>
+      <path d="M190 190 H570" stroke="#2C2E34" stroke-width="2"/>
+      <path d="M380 190 v18" stroke="#2C2E34" stroke-width="2"/>
+
+      <rect x="200" y="208" width="360" height="48" rx="10" fill="#C6A36A"/>
+      <text x="380" y="238" fill="#14120E" font-size="14" text-anchor="middle" font-family="SF Mono, monospace">IOCore.redirectPath()</text>
+    </svg>
+    <figcaption>权威解析始终在 Java <code>IOCore</code>。JNI 钩子回桥 Java；Native <code>relocate_rule</code> 会同步写入，但当前纯 C 解析路径几乎无调用方。</figcaption>
+  </figure>
+</section>
+
+<section id="root">
+  <h2>物理根：v0</h2>
+  <p><code>BEnvironment</code> 约定磁盘布局。虚拟目录名是 <code>v0</code>（旧名 <code>blackbox</code> 会在启动时迁移）。</p>
+  <table>
+    <thead>
+      <tr><th>根</th><th>典型物理位置</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>内部虚拟根</td>
+        <td><code>{hostDataDir}/v0/</code></td>
+      </tr>
+      <tr>
+        <td>外部虚拟根</td>
+        <td><code>{hostExternalFilesDir}/v0/</code></td>
+      </tr>
+      <tr>
+        <td>Guest data</td>
+        <td><code>.../v0/data/user/&lt;userId&gt;/&lt;pkg&gt;</code></td>
+      </tr>
+      <tr>
+        <td>Guest lib</td>
+        <td><code>.../v0/data/app/&lt;pkg&gt;/lib</code></td>
+      </tr>
+      <tr>
+        <td>外部存储</td>
+        <td><code>.../v0/storage/emulated/&lt;userId&gt;/</code></td>
+      </tr>
+      <tr>
+        <td>伪造 /proc</td>
+        <td><code>.../v0/proc/&lt;appPid&gt;/</code></td>
+      </tr>
+    </tbody>
+  </table>
+  <p>路径已含 <code>/v0/</code> 或 <code>/blackbox/</code> 时，<code>isVirtualPath</code> 判定为已是物理路径，<strong>不再二次映射</strong>，避免循环。</p>
+</section>
+
+<section id="lifecycle">
+  <h2>生命周期</h2>
+  <div class="flow">
+    <div class="step">
+      <div class="n">1</div>
+      <div class="body">
+        <strong>宿主启动</strong><br>
+        <code>BEnvironment.load()</code> 建 <code>v0</code> 树并迁移 legacy；<code>HookManager</code> 注入 <code>OsStub</code>。
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">2</div>
+      <div class="body">
+        <strong>Guest bindApplication</strong><br>
+        <code>NativeCore.init(SDK_INT)</code> → <code>IOCore.enableRedirect(packageContext)</code>。
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">3</div>
+      <div class="body">
+        <strong>填规则</strong><br>
+        组装 data / lib / user_de / profiles / sdcard / proc 映射，<code>addRedirect</code> 写入 Trie 并 <code>mkdirs</code>。
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">4</div>
+      <div class="body">
+        <strong>打开 IO 钩子</strong><br>
+        <code>NativeCore.enableIO()</code> 安装 <code>UnixFileSystemHook</code> 等；之后所有路径访问走重定向。
+      </div>
+    </div>
+  </div>
+  <pre><code>BActivityThread.handleBindApplication
+  ├─ NativeCore.init(api)
+  ├─ IOCore.enableRedirect(ctx)
+  │    ├─ addRedirect / addBlackRedirect
+  │    └─ NativeCore.enableIO()
+  └─ Application 创建 / ContentProvider</code></pre>
+</section>
+
+<section id="rules">
+  <h2>规则表</h2>
+  <p>假设 Guest 包名 <code>com.example.app</code>，虚拟 <code>userId = 0</code>，宿主 <code>systemUserId = 0</code>。</p>
+  <table>
+    <thead>
+      <tr><th>逻辑前缀</th><th>物理目标</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>/data/data/&lt;pkg&gt;/lib</code><br><code>/data/user/&lt;sysUid&gt;/&lt;pkg&gt;/lib</code></td>
+        <td><code>{v0}/data/app/&lt;pkg&gt;/lib</code></td>
+      </tr>
+      <tr>
+        <td><code>/data/data/&lt;pkg&gt;</code><br><code>/data/user/&lt;sysUid&gt;/&lt;pkg&gt;</code></td>
+        <td><code>{v0}/data/user/&lt;userId&gt;/&lt;pkg&gt;</code></td>
+      </tr>
+      <tr>
+        <td><code>/data/user_de/&lt;sysUid&gt;/&lt;pkg&gt;</code></td>
+        <td><code>{v0}/data/user_de/&lt;userId&gt;/&lt;pkg&gt;</code></td>
+      </tr>
+      <tr>
+        <td><code>/data/misc/profiles</code>（及 cur/ref）</td>
+        <td><code>{v0}/profiles/...</code></td>
+      </tr>
+      <tr>
+        <td><code>/sdcard</code><br><code>/storage/emulated/&lt;sysUid&gt;</code></td>
+        <td><code>{ext}/v0/storage/emulated/&lt;userId&gt;/</code></td>
+      </tr>
+      <tr>
+        <td>（可选）<code>/system/bin/su</code> 等</td>
+        <td><code>*-fake</code></td>
+      </tr>
+      <tr>
+        <td><code>/proc/self/{cmdline,maps,status}</code></td>
+        <td><code>{v0}/proc/&lt;appPid&gt;/...</code></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>/proc 特殊处理</h3>
+  <ul>
+    <li><code>maps</code>：过滤含 <code>sandhook</code> / <code>blackbox</code> 的行后再映射。</li>
+    <li><code>status</code>：把 PPid 伪造成 zygote，避免 VA 扫描顺着父进程找到宿主包名。</li>
+  </ul>
+  <h3>黑名单</h3>
+  <p><code>/sdcard/Pictures</code> 等走 <code>addBlackRedirect</code>，命中后短路，避免被整盘 sdcard 规则拖走。</p>
+  <div class="note">
+    同一 orig 前缀只加一次（已存在则跳过），进程内不可热更新同前缀。
+  </div>
+</section>
+
+<section id="resolve">
+  <h2>解析算法</h2>
+  <p><code>IOCore.redirectPath(String)</code> 顺序：</p>
+  <ol>
+    <li>空路径 → 原样返回</li>
+    <li><code>BEnvironment.isVirtualPath</code>（含 <code>/v0/</code> 或 <code>/blackbox/</code>）→ 不再映射</li>
+    <li>黑名单 Trie 命中 → 短路返回</li>
+    <li>重定向 Trie 找最长合法前缀（按 <code>/</code> 边界，避免 <code>/data/data/foo</code> 误伤 <code>foobar</code>）</li>
+    <li><code>物理前缀 + 原路径后缀</code></li>
+    <li>否则原路径</li>
+  </ol>
+  <pre><code>输入: /data/data/com.example.app/files/a.db
+键:   /data/data/com.example.app
+输出: /data/user/0/&lt;host&gt;/v0/data/user/0/com.example.app/files/a.db
+
+输入: /sdcard/Download/x.png
+键:   /sdcard
+输出: .../Android/data/&lt;host&gt;/files/v0/storage/emulated/0/Download/x.png</code></pre>
+</section>
+
+<section id="hooks">
+  <h2>两条生效通道</h2>
+  <h3>1. Java：OsStub</h3>
+  <p>代理 <code>libcore.io.Os</code>。在 <code>invoke</code> 里把所有以 <code>/</code> 开头的 <code>String</code> 参数改成 <code>IOCore.redirectPath(...)</code>。<code>open</code> / <code>stat</code> / <code>access</code> / <code>chmod</code> 等凡走 Os 的路径都会被改写；顺带伪造 <code>getuid</code>、<code>stat.st_uid</code>。</p>
+  <h3>2. Native：UnixFileSystemHook</h3>
+  <p>Hook <code>java.io.UnixFileSystem</code> 的 <code>canonicalize0</code>、<code>list0</code>、<code>createDirectory0</code>、<code>createFileExclusively0</code> 等，调用前经 JNI 回桥到 Java <code>IOCore</code>。</p>
+  <table>
+    <thead>
+      <tr><th>组件</th><th>状态</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>OsStub</code></td><td>有效</td></tr>
+      <tr><td><code>UnixFileSystemHook</code></td><td>有效（部分方法需确认是否全部注册）</td></tr>
+      <tr><td><code>FileSystemHook</code>（libc open）</td><td>只查符号，未真正挂接</td></tr>
+      <tr><td><code>IO::redirectPath(const char*)</code></td><td>规则表有写入，当前几乎无调用方</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="examples">
+  <h2>Guest 视角 vs 磁盘视角</h2>
+  <p>对 Guest 而言，重定向是透明的：</p>
+  <ul>
+    <li><code>Context.getFilesDir()</code>、<code>new File("/data/data/...")</code> 仍是标准路径字符串</li>
+    <li>真正 open 时已被改到 <code>v0</code></li>
+    <li><code>getVisibleDataDir</code> / <code>getVisibleSourceDir</code> 负责对外暴露「看起来像真机」的路径</li>
+  </ul>
+  <p>对宿主磁盘而言，数据都在：</p>
+  <pre><code>/data/user/0/&lt;hostPkg&gt;/v0/
+├── data/user/&lt;uid&gt;/&lt;guestPkg&gt;/
+├── data/app/&lt;guestPkg&gt;/
+├── profiles/
+└── proc/&lt;pid&gt;/
+
+/storage/emulated/0/Android/data/&lt;hostPkg&gt;/files/v0/
+└── storage/emulated/&lt;uid&gt;/...</code></pre>
+</section>
+
+<section id="observe">
+  <h2>如何观察</h2>
+  <p>工程内没有 UI 规则表，也没有逐条 Java 映射日志。调试时可：</p>
+  <ul>
+    <li>直接看宿主磁盘上的 <code>v0</code> 树</li>
+    <li>logcat 过滤 <code>NativeCore</code>（<code>addIORule</code> / <code>enableIO</code>）</li>
+    <li>临时在 <code>IOCore.redirectPath</code> 打采样日志</li>
+  </ul>
+</section>
+
+<section id="files">
+  <h2>源码索引</h2>
+  <table>
+    <thead>
+      <tr><th>文件</th><th>职责</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>core/.../IOCore.java</code></td>
+        <td>规则注册与 <code>redirectPath</code></td>
+      </tr>
+      <tr>
+        <td><code>core/.../env/BEnvironment.java</code></td>
+        <td><code>v0</code> 布局与可见路径</td>
+      </tr>
+      <tr>
+        <td><code>core/.../app/BActivityThread.java</code></td>
+        <td><code>enableRedirect</code> 触发点</td>
+      </tr>
+      <tr>
+        <td><code>core/.../hook/system/OsStub.java</code></td>
+        <td>Java 层路径改写</td>
+      </tr>
+      <tr>
+        <td><code>core/.../NativeCore.java</code></td>
+        <td>JNI 桥：<code>addIORule</code> / <code>enableIO</code></td>
+      </tr>
+      <tr>
+        <td><code>core/.../cpp/io.cpp</code></td>
+        <td>Native 规则表与 JNI 回桥</td>
+      </tr>
+      <tr>
+        <td><code>core/.../cpp/hook/unix_file_system_hook.cpp</code></td>
+        <td><code>UnixFileSystem</code> JNI Hook</td>
+      </tr>
+      <tr>
+        <td><code>core/.../utils/TrieTree.java</code></td>
+        <td>按路径段边界的最长前缀匹配</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="limits">
+  <h2>当前边界</h2>
+  <ul>
+    <li>无完整 libc <code>openat</code> / <code>stat</code> 级重定向；纯 native 直调 libc 可能绕过。</li>
+    <li>Java 与 Native 规则双份，真相源在 Java。</li>
+    <li>黑名单命中返回 Trie 匹配前缀，语义偏短路而非「原样放行」。</li>
+    <li>不用 mount：无 root / 系统特权时不可用；有特权时 mount 通常更干净。</li>
+  </ul>
+  <div class="note">
+    相关运行时总览见 <a href="./vapp-runtime.html">VApp 怎么跑起来</a>。
+  </div>
+</section>
+
+</main>
+<footer>
+  BBA · IO Redirect · 路径改写而非 mount
+</footer>
+</body>
+</html>
