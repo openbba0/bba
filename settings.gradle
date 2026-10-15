@@ -28,5 +28,4 @@ rootProject.name = "bba"
 include ':app'
 include(":reflection")
 include(":compiler")
-include ':beer'
 include ':core'

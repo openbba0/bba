@@ -22,6 +22,8 @@
 
 -keep class com.android.bb.** {*; }
 -keep class com.android.jnihook.** {*; }
+-keep class com.swift.sandhook.** { *; }
+-keep class com.scorpion.IHook.** { *; }
 -keep class mirror.** {*; }
 -keep class android.** {*; }
 -keep class com.android.** {*; }

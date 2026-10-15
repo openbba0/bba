@@ -18,20 +18,16 @@ public class SandHookConfig {
 
     public volatile static String libSandHookPath;
 
-    private static final String LIB_NAME = "sandhook";
-    private static final String LIB_NAME_64 = "sandhook_64";
-
+    /**
+     * Native code is statically linked into {@code libbba.so}. Loading that
+     * library registers SandHook JNI natives via {@code JNI_Load_Ex}.
+     */
     public volatile static LibLoader libLoader = new LibLoader() {
         @SuppressLint("UnsafeDynamicallyLoadedCode")
         @Override
         public void loadLib() {
             if (SandHookConfig.libSandHookPath == null) {
-                //System.loadLibrary("sandhook");
-                if (is64bit()) {
-                    System.loadLibrary(LIB_NAME_64);
-                } else {
-                    System.loadLibrary(LIB_NAME);
-                }
+                System.loadLibrary("bba");
             } else {
                 System.load(SandHookConfig.libSandHookPath);
             }

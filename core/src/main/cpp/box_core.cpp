@@ -1,10 +1,7 @@
-
-
-
-
 #include "box_core.h"
 #include "log.h"
 #include "io.h"
+#include "sandhook_jni.h"
 #include <jni.h>
 #include <stdint.h>
 #include <jnihook/jni_hook.h>
@@ -519,5 +516,18 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
         return JNI_EVERSION;
     }
     registerMethod(env);
+    // beer is statically linked; register its JNI natives from this .so.
+    jclass sandHook = env->FindClass("com/swift/sandhook/SandHook");
+    jclass neverCall = env->FindClass("com/swift/sandhook/ClassNeverCall");
+    if (sandHook != nullptr && neverCall != nullptr) {
+        if (!JNI_Load_Ex(env, sandHook, neverCall)) {
+            ALOGE("SandHook JNI_Load_Ex failed");
+        }
+    } else {
+        env->ExceptionClear();
+        ALOGE("SandHook classes not found for JNI registration");
+    }
+    if (sandHook != nullptr) env->DeleteLocalRef(sandHook);
+    if (neverCall != nullptr) env->DeleteLocalRef(neverCall);
     return JNI_VERSION_1_6;
 }
