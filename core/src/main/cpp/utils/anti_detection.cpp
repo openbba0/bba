@@ -19,10 +19,6 @@ struct SpoofedProp {
 
 static int (*orig_system_property_get)(const char *name, char *value) = nullptr;
 
-
-
-
-
 static const char* blocked_files[] = {
     
     "/system/xbin/su",
@@ -54,6 +50,7 @@ static const char* blocked_files[] = {
     "/data/data/com.ludashi.superboost",
     "/data/data/com.android.bba",
     "/blackbox",
+    "/v0/",
     "/virtual",
     
     

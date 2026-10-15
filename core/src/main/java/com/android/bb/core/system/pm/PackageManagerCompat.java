@@ -297,13 +297,15 @@ public class PackageManagerCompat {
         if ((flags & PackageManager.GET_META_DATA) != 0) {
             ai.metaData = p.mAppMetaData;
         }
+        // Keep runtime paths on the real virtual tree. Spoofing dataDir/sourceDir
+        // breaks LoadedApk / Context before IO redirect is installed.
         ai.dataDir = BEnvironment.getDataDir(ai.packageName, userId).getAbsolutePath();
         if (!p.installOption.isFlag(InstallOption.FLAG_SYSTEM)) {
             ai.nativeLibraryDir = BEnvironment.getAppLibDir(ai.packageName).getAbsolutePath();
         }
-        ai.processName = BPackageManagerService.fixProcessName(p.packageName, ai.packageName);
         ai.publicSourceDir = sourceDir;
         ai.sourceDir = sourceDir;
+        ai.processName = BPackageManagerService.fixProcessName(p.packageName, ai.packageName);
         ai.uid = p.mExtras.appId;
 
 

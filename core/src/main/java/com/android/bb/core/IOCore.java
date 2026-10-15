@@ -2,9 +2,6 @@ package com.android.bb.core;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.os.Environment;
 import android.os.Process;
 import android.text.TextUtils;
 
@@ -60,7 +57,7 @@ public class IOCore {
     public String redirectPath(String path) {
         if (TextUtils.isEmpty(path))
             return path;
-        if (path.contains("/blackbox/")) {
+        if (BEnvironment.isVirtualPath(path)) {
             return path;
         }
         String search = sBlackTree.search(path);
@@ -117,13 +114,19 @@ public class IOCore {
         String packageName = context.getPackageName();
 
         try {
-            ApplicationInfo packageInfo = BlackBoxCore.getBPackageManager().getApplicationInfo(packageName, PackageManager.GET_META_DATA, BlackBoxCore.getUserId());
             int systemUserId = BlackBoxCore.getHostUserId();
-            rule.put(String.format("/data/data/%s/lib", packageName), packageInfo.nativeLibraryDir);
-            rule.put(String.format("/data/user/%d/%s/lib", systemUserId, packageName), packageInfo.nativeLibraryDir);
+            int userId = BlackBoxCore.getUserId();
+            String physicalData = BEnvironment.getDataDir(packageName, userId).getAbsolutePath();
+            String physicalLib = BEnvironment.getAppLibDir(packageName).getAbsolutePath();
+            String physicalDe = BEnvironment.getDeDataDir(packageName, userId).getAbsolutePath();
 
-            rule.put(String.format("/data/data/%s", packageName), packageInfo.dataDir);
-            rule.put(String.format("/data/user/%d/%s", systemUserId, packageName), packageInfo.dataDir);
+            rule.put(String.format("/data/data/%s/lib", packageName), physicalLib);
+            rule.put(String.format("/data/user/%d/%s/lib", systemUserId, packageName), physicalLib);
+
+            rule.put(String.format("/data/data/%s", packageName), physicalData);
+            rule.put(String.format("/data/user/%d/%s", systemUserId, packageName), physicalData);
+            FileUtils.mkdirs(physicalDe);
+            rule.put(BEnvironment.getVisibleDeDataDir(packageName, systemUserId), physicalDe);
 
             
             File profilesRoot = new File(BEnvironment.getVirtualRoot(), "profiles");
@@ -131,15 +134,15 @@ public class IOCore {
             
             rule.put("/data/misc/profiles", profilesRoot.getAbsolutePath());
 
-            File profilesCurDir = new File(profilesRoot, String.format("cur/%d/%s", BlackBoxCore.getUserId(), packageName));
-            File profilesRefDir = new File(profilesRoot, String.format("ref/%d/%s", BlackBoxCore.getUserId(), packageName));
+            File profilesCurDir = new File(profilesRoot, String.format("cur/%d/%s", userId, packageName));
+            File profilesRefDir = new File(profilesRoot, String.format("ref/%d/%s", userId, packageName));
             FileUtils.mkdirs(profilesCurDir.getAbsolutePath());
             FileUtils.mkdirs(profilesRefDir.getAbsolutePath());
-            rule.put(String.format("/data/misc/profiles/cur/%d/%s", BlackBoxCore.getUserId(), packageName), profilesCurDir.getAbsolutePath());
-            rule.put(String.format("/data/misc/profiles/ref/%d/%s", BlackBoxCore.getUserId(), packageName), profilesRefDir.getAbsolutePath());
+            rule.put(String.format("/data/misc/profiles/cur/%d/%s", userId, packageName), profilesCurDir.getAbsolutePath());
+            rule.put(String.format("/data/misc/profiles/ref/%d/%s", userId, packageName), profilesRefDir.getAbsolutePath());
 
             if (BlackBoxCore.getContext().getExternalCacheDir() != null && context.getExternalCacheDir() != null) {
-                File external = BEnvironment.getExternalUserDir(BlackBoxCore.getUserId());
+                File external = BEnvironment.getExternalUserDir(userId);
 
                 
                 rule.put("/sdcard", external.getAbsolutePath());
@@ -183,8 +186,130 @@ public class IOCore {
         String selfProc = "/proc/self/";
         String proc = "/proc/" + pid + "/";
 
-        String cmdline = new File(BEnvironment.getProcDir(appPid), "cmdline").getAbsolutePath();
+        File procDir = BEnvironment.getProcDir(appPid);
+        String cmdline = new File(procDir, "cmdline").getAbsolutePath();
         rule.put(proc + "cmdline", cmdline);
         rule.put(selfProc + "cmdline", cmdline);
+
+        File mapsOut = new File(procDir, "maps");
+        if (writeFilteredMaps(mapsOut)) {
+            String maps = mapsOut.getAbsolutePath();
+            rule.put(proc + "maps", maps);
+            rule.put(selfProc + "maps", maps);
+        }
+
+        // Guest processes are children of the host, not zygote. Spoof PPid so VA
+        // scanners that walk parent cmdline see zygote instead of the host package.
+        int zygotePid = findZygotePid();
+        if (zygotePid > 0) {
+            File statusOut = new File(procDir, "status");
+            if (writeSpoofedStatus(statusOut, zygotePid)) {
+                String status = statusOut.getAbsolutePath();
+                rule.put(proc + "status", status);
+                rule.put(selfProc + "status", status);
+            }
+        }
+    }
+
+    private static int findZygotePid() {
+        File[] procs = new File("/proc").listFiles();
+        if (procs == null) {
+            return -1;
+        }
+        int zygote = -1;
+        int zygote64 = -1;
+        for (File f : procs) {
+            String name = f.getName();
+            if (name == null || name.isEmpty() || !Character.isDigit(name.charAt(0))) {
+                continue;
+            }
+            java.io.BufferedReader reader = null;
+            try {
+                reader = new java.io.BufferedReader(new java.io.FileReader(new File(f, "cmdline")));
+                String cmd = reader.readLine();
+                if (cmd == null) {
+                    continue;
+                }
+                int nul = cmd.indexOf('\0');
+                if (nul >= 0) {
+                    cmd = cmd.substring(0, nul);
+                }
+                cmd = cmd.trim();
+                if ("zygote64".equals(cmd)) {
+                    zygote64 = Integer.parseInt(name);
+                } else if ("zygote".equals(cmd)) {
+                    zygote = Integer.parseInt(name);
+                }
+            } catch (Throwable ignored) {
+            } finally {
+                try {
+                    if (reader != null) reader.close();
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+        return zygote64 > 0 ? zygote64 : zygote;
+    }
+
+    private boolean writeSpoofedStatus(File out, int fakePpid) {
+        java.io.BufferedReader reader = null;
+        java.io.BufferedWriter writer = null;
+        try {
+            reader = new java.io.BufferedReader(new java.io.FileReader("/proc/self/status"));
+            writer = new java.io.BufferedWriter(new java.io.FileWriter(out));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("PPid:")) {
+                    writer.write("PPid:\t" + fakePpid);
+                } else {
+                    writer.write(line);
+                }
+                writer.newLine();
+            }
+            writer.flush();
+            return true;
+        } catch (Throwable e) {
+            return false;
+        } finally {
+            try {
+                if (reader != null) reader.close();
+            } catch (Throwable ignored) {
+            }
+            try {
+                if (writer != null) writer.close();
+            } catch (Throwable ignored) {
+            }
+        }
+    }
+
+    private boolean writeFilteredMaps(File out) {
+        java.io.BufferedReader reader = null;
+        java.io.BufferedWriter writer = null;
+        try {
+            reader = new java.io.BufferedReader(new java.io.FileReader("/proc/self/maps"));
+            writer = new java.io.BufferedWriter(new java.io.FileWriter(out));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String lower = line.toLowerCase();
+                if (lower.contains("sandhook") || lower.contains("blackbox")) {
+                    continue;
+                }
+                writer.write(line);
+                writer.newLine();
+            }
+            writer.flush();
+            return true;
+        } catch (Throwable e) {
+            return false;
+        } finally {
+            try {
+                if (reader != null) reader.close();
+            } catch (Throwable ignored) {
+            }
+            try {
+                if (writer != null) writer.close();
+            } catch (Throwable ignored) {
+            }
+        }
     }
 }

@@ -4,23 +4,56 @@ import java.io.File;
 import java.util.Locale;
 
 import com.android.bb.BlackBoxCore;
-import com.android.bb.app.BActivityThread;
 import com.android.bb.utils.FileUtils;
 
 
 public class BEnvironment {
-    private static final File sVirtualRoot = new File(BlackBoxCore.getContext().getCacheDir().getParent(), "blackbox");
-    private static final File sExternalVirtualRoot = BlackBoxCore.getContext().getExternalFilesDir("blackbox");
+    /** On-disk folder under the host data dir. Keep this out of common VA scanners. */
+    public static final String VIRTUAL_DIR = "v0";
+    public static final String VIRTUAL_DIR_MARK = "/" + VIRTUAL_DIR + "/";
+    private static final String LEGACY_VIRTUAL_DIR = "blackbox";
+
+    private static final File sVirtualRoot = new File(BlackBoxCore.getContext().getCacheDir().getParent(), VIRTUAL_DIR);
+    private static final File sExternalVirtualRoot = BlackBoxCore.getContext().getExternalFilesDir(VIRTUAL_DIR);
 
     public static File JUNIT_JAR = new File(getCacheDir(), "junit.apk");
     public static File EMPTY_JAR = new File(getCacheDir(), "empty.apk");
 
     public static void load() {
+        migrateLegacyRoot();
         FileUtils.mkdirs(sVirtualRoot);
         FileUtils.mkdirs(sExternalVirtualRoot);
         FileUtils.mkdirs(getSystemDir());
         FileUtils.mkdirs(getCacheDir());
         FileUtils.mkdirs(getProcDir());
+    }
+
+    private static void migrateLegacyRoot() {
+        File parent = BlackBoxCore.getContext().getCacheDir().getParentFile();
+        if (parent == null) {
+            return;
+        }
+        File legacy = new File(parent, LEGACY_VIRTUAL_DIR);
+        if (legacy.exists() && !sVirtualRoot.exists()) {
+            if (!FileUtils.renameTo(legacy, sVirtualRoot)) {
+                FileUtils.mkdirs(sVirtualRoot);
+            }
+        }
+        File externalParent = BlackBoxCore.getContext().getExternalFilesDir(null);
+        if (externalParent != null) {
+            File legacyExt = new File(externalParent, LEGACY_VIRTUAL_DIR);
+            if (legacyExt.exists() && sExternalVirtualRoot != null && !sExternalVirtualRoot.exists()) {
+                if (!FileUtils.renameTo(legacyExt, sExternalVirtualRoot)) {
+                    FileUtils.mkdirs(sExternalVirtualRoot);
+                }
+            }
+        }
+    }
+
+    /** True when the path is already under the on-disk virtual tree. */
+    public static boolean isVirtualPath(String path) {
+        return path != null && (path.contains(VIRTUAL_DIR_MARK)
+                || path.contains("/" + LEGACY_VIRTUAL_DIR + "/"));
     }
 
     public static File getVirtualRoot() {
@@ -95,6 +128,42 @@ public class BEnvironment {
 
     public static File getDataDir(String packageName, int userId) {
         return new File(sVirtualRoot, String.format(Locale.CHINA, "data/user/%d/%s", userId, packageName));
+    }
+
+    /** Path apps should see for their private data directory. */
+    public static String getVisibleDataDir(String packageName, int userId) {
+        return String.format(Locale.US, "/data/user/%d/%s", userId, packageName);
+    }
+
+    public static String getVisibleDeDataDir(String packageName, int userId) {
+        return String.format(Locale.US, "/data/user_de/%d/%s", userId, packageName);
+    }
+
+    public static String getVisibleSourceDir(String packageName) {
+        return String.format(Locale.US, "/data/app/%s-1/base.apk", packageName);
+    }
+
+    public static String getVisibleNativeLibraryDir(String packageName) {
+        return String.format(Locale.US, "/data/app/%s-1/lib/%s", packageName, abiFolder());
+    }
+
+    private static String abiFolder() {
+        String abi = android.os.Build.SUPPORTED_ABIS.length > 0
+                ? android.os.Build.SUPPORTED_ABIS[0]
+                : android.os.Build.CPU_ABI;
+        if (abi != null && abi.startsWith("arm64")) {
+            return "arm64";
+        }
+        if (abi != null && abi.startsWith("armeabi")) {
+            return "arm";
+        }
+        if (abi != null && abi.startsWith("x86_64")) {
+            return "x86_64";
+        }
+        if (abi != null && abi.startsWith("x86")) {
+            return "x86";
+        }
+        return "arm64";
     }
 
     public static File getProcDir(int pid) {
