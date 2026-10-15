@@ -275,15 +275,53 @@ void init(JNIEnv *env, jobject clazz, jint api_level) {
     JniHook::InitJniHook(env, api_level);
 }
 
-void addIORule(JNIEnv *env, jclass clazz, jstring target_path,
-               jstring relocate_path) {
-    ALOGD("set addIORule");
-    IO::addRule(env->GetStringUTFChars(target_path, JNI_FALSE),
-                env->GetStringUTFChars(relocate_path, JNI_FALSE));
-}
-
-void enableIO(JNIEnv *env, jclass clazz) {
-    ALOGD("set enableIO");
+void setupIO(JNIEnv *env, jclass clazz, jobject rules) {
+    ALOGD("set setupIO");
+    (void) clazz;
+    if (rules != nullptr) {
+        jclass mapClass = env->GetObjectClass(rules);
+        jmethodID entrySet = env->GetMethodID(mapClass, "entrySet", "()Ljava/util/Set;");
+        jobject set = env->CallObjectMethod(rules, entrySet);
+        if (set != nullptr) {
+            jclass setClass = env->GetObjectClass(set);
+            jmethodID iterator = env->GetMethodID(setClass, "iterator", "()Ljava/util/Iterator;");
+            jobject it = env->CallObjectMethod(set, iterator);
+            if (it != nullptr) {
+                jclass itClass = env->GetObjectClass(it);
+                jmethodID hasNext = env->GetMethodID(itClass, "hasNext", "()Z");
+                jmethodID next = env->GetMethodID(itClass, "next", "()Ljava/lang/Object;");
+                jclass entryClass = env->FindClass("java/util/Map$Entry");
+                jmethodID getKey = env->GetMethodID(entryClass, "getKey", "()Ljava/lang/Object;");
+                jmethodID getValue = env->GetMethodID(entryClass, "getValue", "()Ljava/lang/Object;");
+                while (env->CallBooleanMethod(it, hasNext)) {
+                    jobject entry = env->CallObjectMethod(it, next);
+                    if (entry == nullptr) {
+                        continue;
+                    }
+                    auto key = (jstring) env->CallObjectMethod(entry, getKey);
+                    auto value = (jstring) env->CallObjectMethod(entry, getValue);
+                    if (key != nullptr && value != nullptr) {
+                        const char *from = env->GetStringUTFChars(key, nullptr);
+                        const char *to = env->GetStringUTFChars(value, nullptr);
+                        if (from != nullptr && to != nullptr) {
+                            IO::addRule(from, to);
+                        }
+                        if (from != nullptr) env->ReleaseStringUTFChars(key, from);
+                        if (to != nullptr) env->ReleaseStringUTFChars(value, to);
+                    }
+                    if (key != nullptr) env->DeleteLocalRef(key);
+                    if (value != nullptr) env->DeleteLocalRef(value);
+                    env->DeleteLocalRef(entry);
+                }
+                env->DeleteLocalRef(entryClass);
+                env->DeleteLocalRef(itClass);
+                env->DeleteLocalRef(it);
+            }
+            env->DeleteLocalRef(setClass);
+            env->DeleteLocalRef(set);
+        }
+        env->DeleteLocalRef(mapClass);
+    }
     IO::init(env);
     nativeHook(env);
 }
@@ -451,8 +489,7 @@ void spindleHostLog(JNIEnv *env, jclass clazz, jint pid, jstring text) {
 static JNINativeMethod gMethods[] = {
         {"disableHiddenApi", "()Z",                               (void *) disableHiddenApi},
         {"disableResourceLoading", "()Z",                         (void *) disableResourceLoading},
-        {"addIORule",  "(Ljava/lang/String;Ljava/lang/String;)V", (void *) addIORule},
-        {"enableIO",   "()V",                                     (void *) enableIO},
+        {"setupIO",    "(Ljava/util/Map;)V",                      (void *) setupIO},
         {"init",       "(I)V",                                    (void *) init},
         {"gumReplace", "(JJ)J",                                   (void *) gumReplace},
         {"gumRevert", "(J)V",                                     (void *) gumRevert},

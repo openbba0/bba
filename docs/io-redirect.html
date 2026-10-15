@@ -323,7 +323,7 @@
       <div class="n">4</div>
       <div class="body">
         <strong>打开 IO 钩子</strong><br>
-        <code>NativeCore.enableIO()</code> 安装 <code>UnixFileSystemHook</code> 等；之后所有路径访问走重定向。
+        <code>NativeCore.setupIO(rules)</code> 一次下发规则并安装 <code>UnixFileSystemHook</code> 等；之后所有路径访问走重定向。
       </div>
     </div>
   </div>
@@ -331,7 +331,7 @@
   ├─ NativeCore.init(api)
   ├─ IOCore.enableRedirect(ctx)
   │    ├─ addRedirect / addBlackRedirect
-  │    └─ NativeCore.enableIO()
+  │    └─ NativeCore.setupIO(rules)
   └─ Application 创建 / ContentProvider</code></pre>
 </section>
 
@@ -448,7 +448,7 @@
   <p>工程内没有 UI 规则表，也没有逐条 Java 映射日志。调试时可：</p>
   <ul>
     <li>直接看宿主磁盘上的 <code>v0</code> 树</li>
-    <li>logcat 过滤 <code>NativeCore</code>（<code>addIORule</code> / <code>enableIO</code>）</li>
+    <li>logcat 过滤 <code>NativeCore</code>（<code>setupIO</code>）</li>
     <li>临时在 <code>IOCore.redirectPath</code> 打采样日志</li>
   </ul>
 </section>
@@ -478,7 +478,7 @@
       </tr>
       <tr>
         <td><code>core/.../NativeCore.java</code></td>
-        <td>JNI 桥：<code>addIORule</code> / <code>enableIO</code></td>
+        <td>JNI 桥：<code>setupIO(Map)</code></td>
       </tr>
       <tr>
         <td><code>core/.../cpp/io.cpp</code></td>

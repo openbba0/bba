@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import androidx.annotation.Keep;
 
 import java.io.File;
+import java.util.Map;
 
 import com.android.bb.BlackBoxCore;
 import com.android.bb.app.BActivityThread;
@@ -36,9 +37,7 @@ public class NativeCore {
 
     public static native void init(int apiLevel);
 
-    public static native void enableIO();
-
-    public static native void addIORule(String targetPath, String relocatePath);
+    public static native void setupIO(Map<String, String> rules);
 
     public static native boolean disableHiddenApi();
     

@@ -5,6 +5,9 @@
 #include "io.h"
 #include "log.h"
 
+#include <cstring>
+#include <cstdlib>
+
 jmethodID getAbsolutePathMethodId;
 
 list<IO::RelocateInfo> relocate_rule;
@@ -105,8 +108,8 @@ jobject IO::redirectPath(JNIEnv *env, jobject path) {
 
 void IO::addRule(const char *targetPath, const char *relocatePath) {
     IO::RelocateInfo info{};
-    info.targetPath = targetPath;
-    info.relocatePath = relocatePath;
+    info.targetPath = strdup(targetPath);
+    info.relocatePath = strdup(relocatePath);
     relocate_rule.push_back(info);
 }
 

@@ -330,7 +330,7 @@
   <div class="step"><div class="n">1</div><div class="body"><strong>取出访客包信息。</strong>从虚拟包管理器读 <code>PackageInfo</code> 和 Provider 列表。</div></div>
   <div class="step"><div class="n">2</div><div class="body"><strong>换掉 ActivityThread 上的绑定数据。</strong><code>createPackageContext</code> 得到访客的 <code>LoadedApk</code>，写回 <code>mBoundApplication</code> 的 <code>appInfo</code>、<code>info</code>、<code>processName</code>、<code>providers</code>。同时放行 <code>mSecurityViolation</code>，因为这段代码不是由系统安装器加载的。</div></div>
   <div class="step"><div class="n">3</div><div class="body"><strong>改进程名。</strong><code>VirtualRuntime.setupRuntime</code> 调用 <code>Process.setArgV0(processName)</code>，调试器看到的名字也改成访客进程名。目标 SDK 设成访客自己的 <code>targetSdkVersion</code>。</div></div>
-  <div class="step"><div class="n">4</div><div class="body"><strong>打开 Native 和 IO。</strong><code>NativeCore.init</code> 记下 API 级别并准备路径回调。<code>IOCore.enableRedirect</code> 把数据目录、外置存储、<code>/proc/self/cmdline</code> 指到沙箱，然后 <code>enableIO</code> 装上 libc 层的 hook。</div></div>
+  <div class="step"><div class="n">4</div><div class="body"><strong>打开 Native 和 IO。</strong><code>NativeCore.init</code> 记下 API 级别并准备路径回调。<code>IOCore.enableRedirect</code> 把数据目录、外置存储、<code>/proc/self/cmdline</code> 指到沙箱，然后 <code>setupIO</code> 下发规则并装上 libc 层的 hook。</div></div>
   <div class="step"><div class="n">5</div><div class="body"><strong>做出 Application。</strong><code>LoadedApk.makeApplication</code> 走访客的 <code>Application</code> 类。<code>makeApplication</code> 失败时会再试一次强制创建。</div></div>
   <div class="step"><div class="n">6</div><div class="body"><strong>onCreate 之前。</strong>安装访客自己的 ContentProvider，装上按包名登记的 <code>HookEntry</code>，并 <code>NativeCore.spindleAgent(processName)</code> 向 <code>:black</code> 里的 Spindle 注册这条进程。然后才调用 <code>Application.onCreate</code>。</div></div>
 </div>
@@ -373,7 +373,7 @@
 <p><code>HookManager.init</code> 在 VApp 和 Server 进程里替换一批系统 Binder：活动、包、通知、定位、电话、网络、账号、存储、窗口、AppOps、WebView，以及小米相关服务。调用要么落到上面的虚拟服务，要么在参数里把访客包名、uid 改回宿主，让系统的权限检查通过。<code>MethodParameterUtils</code> 负责这种改写：已安装的包名换成宿主包名，虚拟 uid 换成宿主 uid。</p>
 
 <h2 id="io">路径</h2>
-<p>Java 侧 <code>IOCore</code> 用一棵前缀树保存规则，<code>NativeCore.addIORule</code> 把同一条规则交给 native。规则在 <code>enableRedirect</code> 里按当前访客填好，然后 <code>enableIO</code> 才真正挂钩。已经位于 <code>/blackbox/</code> 下的路径不再改写。</p>
+<p>Java 侧 <code>IOCore</code> 用一棵前缀树保存规则；<code>enableRedirect</code> 按当前访客填好映射后，一次调用 <code>NativeCore.setupIO(rules)</code> 下发规则并挂钩。已经位于 <code>/blackbox/</code> 下的路径不再改写。</p>
 <table>
   <thead><tr><th>访客看到的</th><th>实际落到</th></tr></thead>
   <tbody>
@@ -385,10 +385,10 @@
   </tbody>
 </table>
 <p>前缀树取最长的目录前缀，并且只在路径段边界上命中，所以 <code>/data/data/&lt;包名&gt;/lib</code> 会落到 native 库目录，而不是被更短的数据目录盖住。<code>/sdcard/Pictures</code> 在黑名单里，不跟随整盘重定向。隐藏 Root 始终开启：常见 <code>su</code> 路径被指到不存在的 <code>*-fake</code> 文件，虚拟包管理器也不再列出 SuperSU 等旧的超级用户应用。</p>
-<p>同一套规则还要从 libc 生效，否则访客用 native 打开文件会绕过 Java。所以 <code>enableIO</code> 之后会挂钩文件系统、<code>UnixFileSystem</code>、<code>DexFile</code>、<code>VMClassLoader</code>、Binder 和 zlib。</p>
+<p>同一套规则还要从 libc 生效，否则访客用 native 打开文件会绕过 Java。所以 <code>setupIO</code> 之后会挂钩文件系统、<code>UnixFileSystem</code>、<code>DexFile</code>、<code>VMClassLoader</code>、Binder 和 zlib。</p>
 
 <h2 id="native">Native</h2>
-<p><code>libbba.so</code> 在 <code>JNI_OnLoad</code> 里注册 <code>NativeCore</code> 的本地方法。<code>init</code> 只做准备：记下 API 级别、缓存 <code>redirectPath</code> 和 <code>getCallingUid</code> 的方法 ID，初始化 JNI hook，并在 <code>:black</code> 里启动 Spindle。真正的 inline hook 推迟到 <code>enableIO</code>，也就是 VApp 绑定应用的时候。</p>
+<p><code>libbba.so</code> 在 <code>JNI_OnLoad</code> 里注册 <code>NativeCore</code> 的本地方法。<code>init</code> 只做准备：记下 API 级别、缓存 <code>redirectPath</code> 和 <code>getCallingUid</code> 的方法 ID，初始化 JNI hook，并在 <code>:black</code> 里启动 Spindle。真正的 inline hook 推迟到 <code>setupIO</code>，也就是 VApp 绑定应用的时候。</p>
 <p>工程只编译 <code>arm64-v8a</code>。符号用 xdl 解析，inline hook 用 Gum Interceptor。JNI hook 换掉系统 native 方法，并改 ART 访问标志以绕过 hidden API。<code>VirtualSpoof</code> 在 <code>libbba.so</code> 加载时挂钩 <code>__system_property_get</code>，把一部分 <code>ro.*</code> 改成 Pixel 6 / Android 12 的值。这个函数会在 linker 持锁时被调用，和访客自己的 hook 叠在一起时可能卡住后续的 <code>dlopen</code>。</p>
 <p>同一份 so 里静态链进 Capstone（只开 AArch64）和 Frida Gum 的 Interceptor、Stalker，以及 QuickJS。对应 JNI 是 <code>gumReplace</code>、<code>gumRevert</code>、<code>gumStalkerFollow</code>。Stalker 会把 <code>libbba.so</code> 自己的可执行段排除掉。Spindle 送来的脚本由 QuickJS 执行。</p>
 <p>Java hook 是另一条线。<code>HookEntry</code> 在 <code>Application.onCreate</code> 之前按包名查找编译期登记的 <code>AppHook</code>。子类先准备 SandHook / Xposed 兼容层，再执行自己的 <code>onHook</code>。<code>enabled()</code> 为 false 的包不会安装。当前 <code>RednoteHook.enabled()</code> 返回 false。</p>

@@ -45,7 +45,6 @@ public class IOCore {
         if (!redirectFile.exists()) {
             FileUtils.mkdirs(redirectPath);
         }
-        NativeCore.addIORule(origPath, redirectPath);
     }
 
     public void addBlackRedirect(String path) {
@@ -164,7 +163,7 @@ public class IOCore {
         for (String s : blackRule) {
             get().addBlackRedirect(s);
         }
-        NativeCore.enableIO();
+        NativeCore.setupIO(rule);
     }
 
     private void hideRoot(Map<String, String> rule) {
