@@ -5,7 +5,7 @@ import android.app.Application;
 import com.android.bb.app.BActivityThread;
 import com.android.bb.core.env.BEnvironment;
 import com.android.bb.utils.Slog;
-import com.swift.sandhook.xposedcompat.XposedCompat;
+import com.android.lppi.xposedcompat.XposedCompat;
 
 import java.io.File;
 

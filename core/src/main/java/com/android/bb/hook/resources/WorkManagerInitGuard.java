@@ -6,9 +6,9 @@ import android.content.Context;
 import com.android.bb.app.BActivityThread;
 import com.android.bb.core.env.BEnvironment;
 import com.android.bb.utils.Slog;
-import com.scorpion.IHook.XC_MethodHook;
-import com.scorpion.IHook.XposedHelpers;
-import com.swift.sandhook.xposedcompat.XposedCompat;
+import com.android.lppi.XC_MethodHook;
+import com.android.lppi.XposedHelpers;
+import com.android.lppi.xposedcompat.XposedCompat;
 
 import java.io.File;
 

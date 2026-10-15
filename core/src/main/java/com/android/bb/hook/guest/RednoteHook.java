@@ -3,8 +3,8 @@ package com.android.bb.hook.guest;
 import android.app.Application;
 
 import com.android.bb.utils.Slog;
-import com.scorpion.IHook.XC_MethodHook;
-import com.scorpion.IHook.XposedHelpers;
+import com.android.lppi.XC_MethodHook;
+import com.android.lppi.XposedHelpers;
 
 public final class RednoteHook extends AppHook {
 

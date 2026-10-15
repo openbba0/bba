@@ -28,6 +28,7 @@ public class StackTraceFilter {
                lower.contains("blackbox") ||
                lower.contains("sandhook") ||
                lower.contains("com.android.bb.") ||
+               lower.contains("com.android.lppi") ||
                lower.contains("hook");
     }
 }
