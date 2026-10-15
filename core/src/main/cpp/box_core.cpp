@@ -5,7 +5,6 @@
 #include <jni.h>
 #include <stdint.h>
 #include <jnihook/jni_hook.h>
-#include <hook/vm_class_loader_hook.h>
 #include <hook/unix_file_system_hook.h>
 #include <hook/file_system_hook.h>
 #include <hook/binder_hook.h>
@@ -264,16 +263,10 @@ void nativeHook(JNIEnv *env) {
     BaseHook::init(env);
     UnixFileSystemHook::init(env);
     FileSystemHook::init();
-    VMClassLoaderHook::init(env);
 
     BinderHook::init(env);
     DexFileHook::init(env);
     ZlibHook::init(env);
-}
-
-void hideXposed(JNIEnv *env, jclass clazz) {
-    ALOGD("set hideXposed");
-    VMClassLoaderHook::hideXposed();
 }
 
 void init(JNIEnv *env, jobject clazz, jint api_level) {
@@ -467,7 +460,6 @@ void spindleHostLog(JNIEnv *env, jclass clazz, jint pid, jstring text) {
 static JNINativeMethod gMethods[] = {
         {"disableHiddenApi", "()Z",                               (void *) disableHiddenApi},
         {"disableResourceLoading", "()Z",                         (void *) disableResourceLoading},
-        {"hideXposed", "()V",                                     (void *) hideXposed},
         {"addIORule",  "(Ljava/lang/String;Ljava/lang/String;)V", (void *) addIORule},
         {"enableIO",   "()V",                                     (void *) enableIO},
         {"init",       "(I)V",                                    (void *) init},

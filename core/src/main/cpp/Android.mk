@@ -154,7 +154,6 @@ hook/file_system_hook.cpp \
 utils/virtual_spoof.cpp \
 utils/hex_dump.cpp \
 utils/anti_detection.cpp \
-hook/vm_class_loader_hook.cpp \
 hook/unix_file_system_hook.cpp \
 hook/binder_hook.cpp \
 hook/zlib_hook.cpp \
