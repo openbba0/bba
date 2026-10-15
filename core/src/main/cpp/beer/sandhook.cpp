@@ -531,6 +531,7 @@ static bool registerNativeMethods(JNIEnv *env, const char *className, JNINativeM
     return env->RegisterNatives(clazz, jniMethods, methods) >= 0;
 }
 
+#ifndef SANDHOOK_STATIC_LINK
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 
     const char* CLASS_SAND_HOOK = "com/swift/sandhook/SandHook";
@@ -556,6 +557,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 
     return JNI_VERSION_1_6;
 }
+#endif
 
 extern "C"
 JNIEXPORT bool JNI_Load_Ex(JNIEnv* env, jclass classSandHook, jclass classNeverCall) {

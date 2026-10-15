@@ -1,4 +1,10 @@
 LOCAL_PATH := $(call my-dir)
+CORE_PATH := $(LOCAL_PATH)
+BEER_PATH := $(LOCAL_PATH)/beer
+
+include $(BEER_PATH)/Android.mk
+# Included makefile changes LOCAL_PATH; restore core for modules below.
+LOCAL_PATH := $(CORE_PATH)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := xdl
@@ -181,5 +187,8 @@ LOCAL_STATIC_LIBRARIES := xdl
 ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
 LOCAL_STATIC_LIBRARIES += qjs gum capstone
 endif
+# Pull in all beer objects (JNI_Load_Ex etc.) even if not referenced yet.
+LOCAL_WHOLE_STATIC_LIBRARIES := beer
+LOCAL_C_INCLUDES += $(BEER_PATH)/includes
 LOCAL_LDLIBS := -llog -landroid -lz -lm
 include $(BUILD_SHARED_LIBRARY)
