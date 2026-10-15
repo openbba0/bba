@@ -21,10 +21,13 @@ public class StackTraceFilter {
     }
 
     private static boolean isSuspicious(String className) {
-        return className.toLowerCase().contains("xposed") ||
-               className.toLowerCase().contains("epic") ||
-               className.toLowerCase().contains("virtual") ||
-               className.toLowerCase().contains("blackbox") ||
-               className.toLowerCase().contains("hook");
+        String lower = className.toLowerCase();
+        return lower.contains("xposed") ||
+               lower.contains("epic") ||
+               lower.contains("virtual") ||
+               lower.contains("blackbox") ||
+               lower.contains("sandhook") ||
+               lower.contains("com.android.bb.") ||
+               lower.contains("hook");
     }
 }

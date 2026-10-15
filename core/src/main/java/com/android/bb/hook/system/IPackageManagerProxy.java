@@ -136,7 +136,11 @@ public class IPackageManagerProxy extends BinderInvocationStub {
             if ("com.android.vending".equals(packageName)) {
                 return createFakeGooglePlayServicesPackageInfo();
             }
-            
+            // Do not expose the host package to guests.
+            if (packageName != null && packageName.equals(BlackBoxCore.getHostPkg())) {
+                return null;
+            }
+
             PackageInfo packageInfo = BlackBoxCore.getBPackageManager().getPackageInfo(packageName, flags, BlackBoxCore.getUserId());
             if (packageInfo != null) {
                 

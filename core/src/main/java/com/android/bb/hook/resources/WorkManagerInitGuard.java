@@ -3,6 +3,8 @@ package com.android.bb.hook.resources;
 import android.app.Application;
 import android.content.Context;
 
+import com.android.bb.app.BActivityThread;
+import com.android.bb.core.env.BEnvironment;
 import com.android.bb.utils.Slog;
 import com.scorpion.IHook.XC_MethodHook;
 import com.scorpion.IHook.XposedHelpers;
@@ -66,9 +68,9 @@ public final class WorkManagerInitGuard {
         XposedCompat.classLoader = application.getClassLoader();
         XposedCompat.useInternalStub = false;
         XposedCompat.useNewCallBackup = true;
-        File cache = new File(application.getCacheDir(), "sandhook");
+        File cache = new File(BEnvironment.getDataDir(packageName, BActivityThread.getUserId()), "cache/artx");
         if (!cache.exists() && !cache.mkdirs()) {
-            Slog.w(TAG, "sandhook cache mkdir failed: " + cache);
+            Slog.w(TAG, "artx cache mkdir failed: " + cache);
         }
         XposedCompat.cacheDir = cache;
     }

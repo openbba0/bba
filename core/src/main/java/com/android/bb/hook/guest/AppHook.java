@@ -2,6 +2,8 @@ package com.android.bb.hook.guest;
 
 import android.app.Application;
 
+import com.android.bb.app.BActivityThread;
+import com.android.bb.core.env.BEnvironment;
 import com.android.bb.utils.Slog;
 import com.swift.sandhook.xposedcompat.XposedCompat;
 
@@ -43,9 +45,11 @@ public abstract class AppHook {
         XposedCompat.classLoader = application.getClassLoader();
         XposedCompat.useInternalStub = false;
         XposedCompat.useNewCallBackup = true;
-        File cache = new File(application.getCacheDir(), "sandhook");
+        // Use the physical data tree so DexClassLoader can open generated jars
+        // even when ApplicationInfo.dataDir is spoofed for VA scanners.
+        File cache = new File(BEnvironment.getDataDir(packageName, BActivityThread.getUserId()), "cache/artx");
         if (!cache.exists() && !cache.mkdirs()) {
-            Slog.w(tag(), "sandhook cache mkdir failed: " + cache);
+            Slog.w(tag(), "artx cache mkdir failed: " + cache);
         }
         XposedCompat.cacheDir = cache;
     }
