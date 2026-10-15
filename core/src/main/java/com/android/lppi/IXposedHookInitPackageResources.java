@@ -1,9 +1,9 @@
-package com.scorpion.IHook;
+package com.android.lppi;
 
 //import android.content.res.XResources;
 
-import com.scorpion.IHook.callbacks.XC_InitPackageResources;
-import com.scorpion.IHook.callbacks.XC_InitPackageResources.InitPackageResourcesParam;
+import com.android.lppi.callbacks.XC_InitPackageResources;
+import com.android.lppi.callbacks.XC_InitPackageResources.InitPackageResourcesParam;
 
 /**
  * Get notified when the resources for an app are initialized.

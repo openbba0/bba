@@ -1,8 +1,8 @@
-package com.scorpion.IHook;
+package com.android.lppi;
 
 import android.app.Application;
 
-import com.scorpion.IHook.callbacks.XC_LoadPackage;
+import com.android.lppi.callbacks.XC_LoadPackage;
 
 /**
  * Get notified when an app ("Android package") is loaded.

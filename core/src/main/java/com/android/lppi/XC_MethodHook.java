@@ -1,10 +1,10 @@
-package com.scorpion.IHook;
+package com.android.lppi;
 
-import com.scorpion.IHook.callbacks.IXUnhook;
+import com.android.lppi.callbacks.IXUnhook;
 
 import java.lang.reflect.Member;
 
-import com.scorpion.IHook.callbacks.XCallback;
+import com.android.lppi.callbacks.XCallback;
 
 /**
  * Callback class for method hooks.

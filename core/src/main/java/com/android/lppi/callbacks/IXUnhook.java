@@ -1,6 +1,6 @@
-package com.scorpion.IHook.callbacks;
+package com.android.lppi.callbacks;
 
-import com.scorpion.IHook.IXposedHookZygoteInit;
+import com.android.lppi.IXposedHookZygoteInit;
 
 /**
  * Interface for objects that can be used to remove callbacks.

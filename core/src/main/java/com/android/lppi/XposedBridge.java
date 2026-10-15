@@ -1,12 +1,12 @@
-package com.scorpion.IHook;
+package com.android.lppi;
 
 import android.annotation.SuppressLint;
 import android.util.Log;
 
-import com.scorpion.IHook.callbacks.XC_LoadPackage;
-import com.swift.sandhook.SandHook;
-import com.swift.sandhook.xposedcompat.methodgen.DynamicBridge;
-import com.swift.sandhook.xposedcompat.utils.DexLog;
+import com.android.lppi.callbacks.XC_LoadPackage;
+import com.android.lppi.SandHook;
+import com.android.lppi.xposedcompat.methodgen.DynamicBridge;
+import com.android.lppi.xposedcompat.utils.DexLog;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +22,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.scorpion.IHook.callbacks.XC_InitPackageResources;
+import com.android.lppi.callbacks.XC_InitPackageResources;
 
 /**
  * This class contains most of Xposed's central logic, such as initialization and callbacks used by

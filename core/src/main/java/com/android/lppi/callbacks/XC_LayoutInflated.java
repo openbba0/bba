@@ -1,10 +1,10 @@
-package com.scorpion.IHook.callbacks;
+package com.android.lppi.callbacks;
 
 //import android.content.res.XResources;
 //import android.content.res.XResources.ResourceNames;
 import android.view.View;
 
-import com.scorpion.IHook.XposedBridge;
+import com.android.lppi.XposedBridge;
 
 /**
  * Callback for hooking layouts. Such callbacks can be passed to {@link XResources#hookLayout}

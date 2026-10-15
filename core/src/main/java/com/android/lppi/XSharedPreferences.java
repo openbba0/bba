@@ -1,4 +1,4 @@
-package com.scorpion.IHook;
+package com.android.lppi;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.scorpion.IHook.services.FileResult;
+import com.android.lppi.services.FileResult;
 
 /**
  * This class is basically the same as SharedPreferencesImpl from AOSP, but

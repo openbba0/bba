@@ -1,4 +1,4 @@
-package com.scorpion.IHook;
+package com.android.lppi;
 
 /**
  * Hook the initialization of Zygote process(es), from which all the apps are forked.

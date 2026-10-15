@@ -1,9 +1,9 @@
-package com.scorpion.IHook.callbacks;
+package com.android.lppi.callbacks;
 
 //import android.content.res.XResources;
 
-import com.scorpion.IHook.IXposedHookInitPackageResources;
-import com.scorpion.IHook.XposedBridge;
+import com.android.lppi.IXposedHookInitPackageResources;
+import com.android.lppi.XposedBridge;
 
 /**
  * This class is only used for internal purposes, except for the {@link InitPackageResourcesParam}

@@ -1,11 +1,11 @@
-package com.scorpion.IHook.callbacks;
+package com.android.lppi.callbacks;
 
 import android.content.pm.ApplicationInfo;
 
-import com.scorpion.IHook.IXposedHookLoadPackage;
-import com.swift.sandhook.xposedcompat.XposedCompat;
+import com.android.lppi.IXposedHookLoadPackage;
+import com.android.lppi.xposedcompat.XposedCompat;
 
-import com.scorpion.IHook.XposedBridge.CopyOnWriteSortedSet;
+import com.android.lppi.XposedBridge.CopyOnWriteSortedSet;
 
 /**
  * This class is only used for internal purposes, except for the {@link LoadPackageParam}

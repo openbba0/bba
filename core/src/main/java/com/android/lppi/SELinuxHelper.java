@@ -1,7 +1,7 @@
-package com.scorpion.IHook;
+package com.android.lppi;
 
-import com.scorpion.IHook.services.BaseService;
-import com.scorpion.IHook.services.DirectAccessService;
+import com.android.lppi.services.BaseService;
+import com.android.lppi.services.DirectAccessService;
 
 /**
  * A helper to work with (or without) SELinux, abstracting much of its big complexity.

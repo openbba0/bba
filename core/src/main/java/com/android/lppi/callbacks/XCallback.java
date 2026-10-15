@@ -1,8 +1,8 @@
-package com.scorpion.IHook.callbacks;
+package com.android.lppi.callbacks;
 
 import android.os.Bundle;
 
-import com.scorpion.IHook.XposedBridge;
+import com.android.lppi.XposedBridge;
 
 import java.io.Serializable;
 

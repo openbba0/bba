@@ -1,4 +1,4 @@
-package com.scorpion.IHook;
+package com.android.lppi;
 
 import android.text.TextUtils;
 import android.util.Log;
@@ -15,7 +15,7 @@ import java.util.zip.ZipFile;
 import dalvik.system.DexClassLoader;
 import dalvik.system.DexFile;
 
-import static com.scorpion.IHook.XposedHelpers.closeSilently;
+import static com.android.lppi.XposedHelpers.closeSilently;
 
 public final class XposedInit {
     private static final String TAG = XposedBridge.TAG;

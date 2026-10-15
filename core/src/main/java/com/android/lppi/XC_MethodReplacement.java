@@ -1,6 +1,6 @@
-package com.scorpion.IHook;
+package com.android.lppi;
 
-import com.scorpion.IHook.callbacks.XCallback;
+import com.android.lppi.callbacks.XCallback;
 
 /**
  * A special case of {@link XC_MethodHook} which completely replaces the original method.
