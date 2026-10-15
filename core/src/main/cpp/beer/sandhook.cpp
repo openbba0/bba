@@ -154,7 +154,7 @@ bool doHookWithInline(JNIEnv* env,
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_swift_sandhook_SandHook_initNative(JNIEnv *env, jclass type, jint sdk, jboolean debug) {
+Java_com_android_lppi_SandHook_initNative(JNIEnv *env, jclass type, jint sdk, jboolean debug) {
     SDK_INT = sdk;
     DEBUG = debug;
     SandHook::CastCompilerOptions::init(env);
@@ -167,7 +167,7 @@ Java_com_swift_sandhook_SandHook_initNative(JNIEnv *env, jclass type, jint sdk, 
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_swift_sandhook_SandHook_hookMethod(JNIEnv *env, jclass type, jobject originMethod,
+Java_com_android_lppi_SandHook_hookMethod(JNIEnv *env, jclass type, jobject originMethod,
                                             jobject hookMethod, jobject backupMethod, jint hookMode) {
 
     art::mirror::ArtMethod* origin = getArtMethod(env, originMethod);
@@ -227,7 +227,7 @@ label_hook:
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_swift_sandhook_SandHook_ensureMethodCached(JNIEnv *env, jclass type, jobject hook,
+Java_com_android_lppi_SandHook_ensureMethodCached(JNIEnv *env, jclass type, jobject hook,
                                                     jobject backup) {
     art::mirror::ArtMethod* hookeMethod = getArtMethod(env, hook);
     art::mirror::ArtMethod* backupMethod = backup == NULL ? nullptr : getArtMethod(env, backup);
@@ -236,7 +236,7 @@ Java_com_swift_sandhook_SandHook_ensureMethodCached(JNIEnv *env, jclass type, jo
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_swift_sandhook_SandHook_compileMethod(JNIEnv *env, jclass type, jobject member) {
+Java_com_android_lppi_SandHook_compileMethod(JNIEnv *env, jclass type, jobject member) {
 
     if (member == NULL)
         return JNI_FALSE;
@@ -264,7 +264,7 @@ Java_com_swift_sandhook_SandHook_compileMethod(JNIEnv *env, jclass type, jobject
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_swift_sandhook_SandHook_deCompileMethod(JNIEnv *env, jclass type, jobject member, jboolean disableJit) {
+Java_com_android_lppi_SandHook_deCompileMethod(JNIEnv *env, jclass type, jobject member, jboolean disableJit) {
 
     if (member == NULL)
         return JNI_FALSE;
@@ -291,43 +291,43 @@ Java_com_swift_sandhook_SandHook_deCompileMethod(JNIEnv *env, jclass type, jobje
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_com_swift_sandhook_SandHook_getObjectNative(JNIEnv *env, jclass type, jlong thread,
+Java_com_android_lppi_SandHook_getObjectNative(JNIEnv *env, jclass type, jlong thread,
                                                  jlong address) {
     return getJavaObject(env, thread ? reinterpret_cast<void *>(thread) : getCurrentThread(), reinterpret_cast<void *>(address));
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_swift_sandhook_SandHook_canGetObject(JNIEnv *env, jclass type) {
+Java_com_android_lppi_SandHook_canGetObject(JNIEnv *env, jclass type) {
     return static_cast<jboolean>(canGetObject());
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_swift_sandhook_SandHook_setHookMode(JNIEnv *env, jclass type, jint mode) {
+Java_com_android_lppi_SandHook_setHookMode(JNIEnv *env, jclass type, jint mode) {
     gHookMode = static_cast<HookMode>(mode);
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_swift_sandhook_SandHook_setInlineSafeCheck(JNIEnv *env, jclass type, jboolean check) {
+Java_com_android_lppi_SandHook_setInlineSafeCheck(JNIEnv *env, jclass type, jboolean check) {
     trampolineManager.inlineSecurityCheck = check;
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_swift_sandhook_SandHook_skipAllSafeCheck(JNIEnv *env, jclass type, jboolean skip) {
+Java_com_android_lppi_SandHook_skipAllSafeCheck(JNIEnv *env, jclass type, jboolean skip) {
     trampolineManager.skipAllCheck = skip;
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_swift_sandhook_SandHook_is64Bit(JNIEnv *env, jclass type) {
+Java_com_android_lppi_SandHook_is64Bit(JNIEnv *env, jclass type) {
     return static_cast<jboolean>(BYTE_POINT == 8);
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_swift_sandhook_SandHook_disableVMInline(JNIEnv *env, jclass type) {
+Java_com_android_lppi_SandHook_disableVMInline(JNIEnv *env, jclass type) {
     if (SDK_INT < ANDROID_N)
         return JNI_FALSE;
     replaceUpdateCompilerOptionsQ();
@@ -339,13 +339,13 @@ Java_com_swift_sandhook_SandHook_disableVMInline(JNIEnv *env, jclass type) {
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_swift_sandhook_SandHook_disableDex2oatInline(JNIEnv *env, jclass type, jboolean disableDex2oat) {
+Java_com_android_lppi_SandHook_disableDex2oatInline(JNIEnv *env, jclass type, jboolean disableDex2oat) {
     return static_cast<jboolean>(SandHook::NativeHook::hookDex2oat(disableDex2oat));
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_swift_sandhook_SandHook_setNativeEntry(JNIEnv *env, jclass type, jobject origin, jobject hook, jlong jniTrampoline) {
+Java_com_android_lppi_SandHook_setNativeEntry(JNIEnv *env, jclass type, jobject origin, jobject hook, jlong jniTrampoline) {
     if (origin == nullptr || hook == NULL)
         return JNI_FALSE;
     art::mirror::ArtMethod* hookMethod = getArtMethod(env, hook);
@@ -365,9 +365,9 @@ static jmethodID method_class_init = nullptr;
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_swift_sandhook_SandHook_initForPendingHook(JNIEnv *env, jclass type) {
+Java_com_android_lppi_SandHook_initForPendingHook(JNIEnv *env, jclass type) {
     class_pending_hook = static_cast<jclass>(env->NewGlobalRef(
-            env->FindClass("com/swift/sandhook/PendingHookHandler")));
+            env->FindClass("com/android/lppi/PendingHookHandler")));
     method_class_init = env->GetStaticMethodID(class_pending_hook, "onClassInit", "(J)V");
     auto class_init_handler = [](void *clazz_ptr) {
         attachAndGetEvn()->CallStaticVoidMethod(class_pending_hook, method_class_init, (jlong) clazz_ptr);
@@ -378,14 +378,14 @@ Java_com_swift_sandhook_SandHook_initForPendingHook(JNIEnv *env, jclass type) {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_swift_sandhook_ClassNeverCall_neverCallNative(JNIEnv *env, jobject instance) {
+Java_com_android_lppi_ClassNeverCall_neverCallNative(JNIEnv *env, jobject instance) {
     int a = 1 + 1;
     int b = a + 1;
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_swift_sandhook_ClassNeverCall_neverCallNative2(JNIEnv *env, jobject instance) {
+Java_com_android_lppi_ClassNeverCall_neverCallNative2(JNIEnv *env, jobject instance) {
     int a = 4 + 3;
     int b = 9 + 6;
 }
@@ -393,7 +393,7 @@ Java_com_swift_sandhook_ClassNeverCall_neverCallNative2(JNIEnv *env, jobject ins
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_swift_sandhook_test_TestClass_jni_1test(JNIEnv *env, jobject instance) {
+Java_com_android_lppi_test_TestClass_jni_1test(JNIEnv *env, jobject instance) {
     int a = 1 + 1;
     int b = a + 1;
 }
@@ -412,7 +412,7 @@ JNIEXPORT bool nativeHookNoBackup(void* origin, void* hook) {
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_swift_sandhook_SandHook_MakeInitializedClassVisibilyInitialized(JNIEnv *env, jclass clazz,
+Java_com_android_lppi_SandHook_MakeInitializedClassVisibilyInitialized(JNIEnv *env, jclass clazz,
                                                                          jlong self) {
     MakeInitializedClassVisibilyInitialized(reinterpret_cast<void*>(self));
 }
@@ -426,17 +426,17 @@ static JNINativeMethod jniSandHook[] = {
         {
                 "initNative",
                 "(IZ)Z",
-                (void *) Java_com_swift_sandhook_SandHook_initNative
+                (void *) Java_com_android_lppi_SandHook_initNative
         },
         {
                 "hookMethod",
                 "(Ljava/lang/reflect/Member;Ljava/lang/reflect/Method;Ljava/lang/reflect/Method;I)I",
-                (void *) Java_com_swift_sandhook_SandHook_hookMethod
+                (void *) Java_com_android_lppi_SandHook_hookMethod
         },
         {
                 "ensureMethodCached",
                 "(Ljava/lang/reflect/Method;Ljava/lang/reflect/Method;)V",
-                (void *) Java_com_swift_sandhook_SandHook_ensureMethodCached
+                (void *) Java_com_android_lppi_SandHook_ensureMethodCached
         },
         {
                 "ensureDeclareClass",
@@ -446,67 +446,67 @@ static JNINativeMethod jniSandHook[] = {
         {
                 "compileMethod",
                 "(Ljava/lang/reflect/Member;)Z",
-                (void *) Java_com_swift_sandhook_SandHook_compileMethod
+                (void *) Java_com_android_lppi_SandHook_compileMethod
         },
         {
                 "deCompileMethod",
                 "(Ljava/lang/reflect/Member;Z)Z",
-                (void *) Java_com_swift_sandhook_SandHook_deCompileMethod
+                (void *) Java_com_android_lppi_SandHook_deCompileMethod
         },
         {
                 "getObjectNative",
                 "(JJ)Ljava/lang/Object;",
-                (void *) Java_com_swift_sandhook_SandHook_getObjectNative
+                (void *) Java_com_android_lppi_SandHook_getObjectNative
         },
         {
                 "canGetObject",
                 "()Z",
-                (void *) Java_com_swift_sandhook_SandHook_canGetObject
+                (void *) Java_com_android_lppi_SandHook_canGetObject
         },
         {
                 "setHookMode",
                 "(I)V",
-                (void *) Java_com_swift_sandhook_SandHook_setHookMode
+                (void *) Java_com_android_lppi_SandHook_setHookMode
         },
         {
                 "setInlineSafeCheck",
                 "(Z)V",
-                (void *) Java_com_swift_sandhook_SandHook_setInlineSafeCheck
+                (void *) Java_com_android_lppi_SandHook_setInlineSafeCheck
         },
         {
                 "skipAllSafeCheck",
                 "(Z)V",
-                (void *) Java_com_swift_sandhook_SandHook_skipAllSafeCheck
+                (void *) Java_com_android_lppi_SandHook_skipAllSafeCheck
         },
         {
                 "is64Bit",
                 "()Z",
-                (void *) Java_com_swift_sandhook_SandHook_is64Bit
+                (void *) Java_com_android_lppi_SandHook_is64Bit
         },
         {
                 "disableVMInline",
                 "()Z",
-                (void *) Java_com_swift_sandhook_SandHook_disableVMInline
+                (void *) Java_com_android_lppi_SandHook_disableVMInline
         },
         {
                 "disableDex2oatInline",
                 "(Z)Z",
-                (void *) Java_com_swift_sandhook_SandHook_disableDex2oatInline
+                (void *) Java_com_android_lppi_SandHook_disableDex2oatInline
         },
         {
                 "setNativeEntry",
                 "(Ljava/lang/reflect/Member;Ljava/lang/reflect/Member;J)Z",
-                (void *) Java_com_swift_sandhook_SandHook_setNativeEntry
+                (void *) Java_com_android_lppi_SandHook_setNativeEntry
         },
         {
                 "initForPendingHook",
                 "()Z",
-                (void *) Java_com_swift_sandhook_SandHook_initForPendingHook
+                (void *) Java_com_android_lppi_SandHook_initForPendingHook
         },
         {
             "MakeInitializedClassVisibilyInitialized",
                 "(J)V",
-                (void*) Java_com_swift_sandhook_SandHook_MakeInitializedClassVisibilyInitialized
+                (void*) Java_com_android_lppi_SandHook_MakeInitializedClassVisibilyInitialized
         }
 };
 
@@ -514,12 +514,12 @@ static JNINativeMethod jniNeverCall[] = {
         {
                 "neverCallNative",
                 "()V",
-                (void *) Java_com_swift_sandhook_ClassNeverCall_neverCallNative
+                (void *) Java_com_android_lppi_ClassNeverCall_neverCallNative
         },
         {
                 "neverCallNative2",
                 "()V",
-                (void *) Java_com_swift_sandhook_ClassNeverCall_neverCallNative2
+                (void *) Java_com_android_lppi_ClassNeverCall_neverCallNative2
         }
 };
 
@@ -534,8 +534,8 @@ static bool registerNativeMethods(JNIEnv *env, const char *className, JNINativeM
 #ifndef SANDHOOK_STATIC_LINK
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 
-    const char* CLASS_SAND_HOOK = "com/swift/sandhook/SandHook";
-    const char* CLASS_NEVER_CALL = "com/swift/sandhook/ClassNeverCall";
+    const char* CLASS_SAND_HOOK = "com/android/lppi/SandHook";
+    const char* CLASS_NEVER_CALL = "com/android/lppi/ClassNeverCall";
 
     int jniMethodSize = sizeof(JNINativeMethod);
 

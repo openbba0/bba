@@ -7,6 +7,6 @@
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_swift_sandhook_ClassNeverCall_neverCallNative(JNIEnv *env, jobject instance);
+Java_com_android_lppi_ClassNeverCall_neverCallNative(JNIEnv *env, jobject instance);
 
 #endif //SANDHOOK_NEVER_CALL_H

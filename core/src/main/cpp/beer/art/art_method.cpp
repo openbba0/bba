@@ -161,7 +161,7 @@ bool ArtMethod::compile(JNIEnv* env) {
     //some unknown error when trigger jit for jni method manually
     if (isNative())
         return false;
-    Size threadId = getAddressFromJavaByCallMethod(env, "com/swift/sandhook/SandHook", "getThreadId");
+    Size threadId = getAddressFromJavaByCallMethod(env, "com/android/lppi/SandHook", "getThreadId");
     if (threadId == 0)
         return false;
     return compileMethod(this, reinterpret_cast<void *>(threadId)) && isCompiled();

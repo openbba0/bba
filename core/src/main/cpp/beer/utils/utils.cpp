@@ -60,7 +60,7 @@ jobject callStaticMethodObject(JNIEnv *env, const char *className, const char *m
 jobject getMethodObject(JNIEnv *env, const char *clazz, const char *method) {
     auto methodStr = env->NewStringUTF(method);
     auto clazzStr = env->NewStringUTF(clazz);
-    auto res = callStaticMethodObject(env, "com/swift/sandhook/SandHook", "getJavaMethod",
+    auto res = callStaticMethodObject(env, "com/android/lppi/SandHook", "getJavaMethod",
                          "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;", clazzStr, methodStr);
     env->ExceptionClear();
     env->DeleteLocalRef(methodStr);

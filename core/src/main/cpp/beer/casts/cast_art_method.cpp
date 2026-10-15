@@ -15,7 +15,7 @@ namespace SandHook {
             if (SDK_INT >= ANDROID_P)
                 return getParentSize() + 1;
             int offset = 0;
-            Size addr = getAddressFromJava(jniEnv, "com/swift/sandhook/SandHookMethodResolver",
+            Size addr = getAddressFromJava(jniEnv, "com/android/lppi/SandHookMethodResolver",
                                            "resolvedMethodsAddress");
             if (addr != 0) {
                 offset = findOffset(p, getParentSize(), 2, addr);
@@ -51,7 +51,7 @@ namespace SandHook {
             } else if (SDK_INT == ANDROID_M) {
                 return getParentSize() - 3 * BYTE_POINT;
             } else if (SDK_INT <= ANDROID_L) {
-                Size addr = getAddressFromJava(jniEnv, "com/swift/sandhook/SandHookMethodResolver",
+                Size addr = getAddressFromJava(jniEnv, "com/android/lppi/SandHookMethodResolver",
                                                "entryPointFromInterpreter");
                 int offset = 0;
                 if (addr != 0) {
@@ -73,7 +73,7 @@ namespace SandHook {
             if (SDK_INT >= ANDROID_M) {
                 return getParentSize() - BYTE_POINT;
             } else if (SDK_INT <= ANDROID_L) {
-                Size addr = getAddressFromJava(jniEnv, "com/swift/sandhook/SandHookMethodResolver",
+                Size addr = getAddressFromJava(jniEnv, "com/android/lppi/SandHookMethodResolver",
                                                "entryPointFromCompiledCode");
                 int offset = 0;
                 if (addr != 0) {
@@ -92,7 +92,7 @@ namespace SandHook {
     class CastEntryPointFromJni : public IMember<art::mirror::ArtMethod, void *> {
     protected:
         Size calOffset(JNIEnv *jniEnv, art::mirror::ArtMethod *p) override {
-            Size jniAddr = reinterpret_cast<Size>(Java_com_swift_sandhook_ClassNeverCall_neverCallNative);
+            Size jniAddr = reinterpret_cast<Size>(Java_com_android_lppi_ClassNeverCall_neverCallNative);
             int offset = findOffset(p, getParentSize(), 2, jniAddr);
             if (offset >= 0) {
                 return static_cast<Size>(offset);
@@ -109,7 +109,7 @@ namespace SandHook {
     class CastAccessFlag : public IMember<art::mirror::ArtMethod, uint32_t> {
     protected:
         Size calOffset(JNIEnv *jniEnv, art::mirror::ArtMethod *p) override {
-            uint32_t accessFlag = getIntFromJava(jniEnv, "com/swift/sandhook/SandHook",
+            uint32_t accessFlag = getIntFromJava(jniEnv, "com/android/lppi/SandHook",
                                                  "testAccessFlag");
             if (accessFlag == 0) {
                 accessFlag = 524313;
@@ -155,7 +155,7 @@ namespace SandHook {
                 + CastArtMethod::accessFlag->size();
             }
             int offset = 0;
-            jint index = getIntFromJava(jniEnv, "com/swift/sandhook/SandHookMethodResolver",
+            jint index = getIntFromJava(jniEnv, "com/android/lppi/SandHookMethodResolver",
                                         "dexMethodIndex");
             if (index != 0) {
                 offset = findOffset(p, getParentSize(), 2, static_cast<uint32_t>(index));
@@ -181,9 +181,9 @@ namespace SandHook {
 
     void CastArtMethod::init(JNIEnv *env) {
         //init ArtMethodSize
-        jclass sizeTestClass = env->FindClass("com/swift/sandhook/ArtMethodSizeTest");
-        jobject artMethod1 = getMethodObject(env, "com.swift.sandhook.ArtMethodSizeTest", "method1");
-        jobject artMethod2 = getMethodObject(env, "com.swift.sandhook.ArtMethodSizeTest", "method2");
+        jclass sizeTestClass = env->FindClass("com/android/lppi/ArtMethodSizeTest");
+        jobject artMethod1 = getMethodObject(env, "com.android.lppi.ArtMethodSizeTest", "method1");
+        jobject artMethod2 = getMethodObject(env, "com.android.lppi.ArtMethodSizeTest", "method2");
 
         env->CallStaticVoidMethod(sizeTestClass, env->FromReflectedMethod(artMethod1));
 
@@ -218,7 +218,7 @@ namespace SandHook {
         hotnessCount = new CastHotnessCount();
         hotnessCount->init(env, m1, size);
 
-        auto neverCallTestClass = "com.swift.sandhook.ClassNeverCall";
+        auto neverCallTestClass = "com.android.lppi.ClassNeverCall";
 
         art::mirror::ArtMethod *neverCall = getArtMethod(env, getMethodObject(env,
                                                                               neverCallTestClass,

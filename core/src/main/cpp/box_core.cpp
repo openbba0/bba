@@ -517,8 +517,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     }
     registerMethod(env);
     // beer is statically linked; register its JNI natives from this .so.
-    jclass sandHook = env->FindClass("com/swift/sandhook/SandHook");
-    jclass neverCall = env->FindClass("com/swift/sandhook/ClassNeverCall");
+    jclass sandHook = env->FindClass("com/android/lppi/SandHook");
+    jclass neverCall = env->FindClass("com/android/lppi/ClassNeverCall");
     if (sandHook != nullptr && neverCall != nullptr) {
         if (!JNI_Load_Ex(env, sandHook, neverCall)) {
             ALOGE("SandHook JNI_Load_Ex failed");

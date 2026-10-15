@@ -192,7 +192,7 @@ extern "C" {
         }
         JNIEnv *env;
         jvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
-        return getBooleanFromJava(env, "com/swift/sandhook/SandHookConfig",
+        return getBooleanFromJava(env, "com/android/lppi/SandHookConfig",
                                   "compiler");
     }
 
@@ -424,7 +424,7 @@ extern "C" {
         jmethodID methodId = env->FromReflectedMethod(method);
         if (SDK_INT >= ANDROID_R && isIndexId(methodId)) {
             if (origin_DecodeArtMethodId == nullptr || jniIdManager == nullptr) {
-                auto res = callStaticMethodAddr(env, "com/swift/sandhook/SandHook", "getArtMethod",
+                auto res = callStaticMethodAddr(env, "com/android/lppi/SandHook", "getArtMethod",
                                                 "(Ljava/lang/reflect/Member;)J", method);
                 return reinterpret_cast<ArtMethod *>(res);
             } else {
