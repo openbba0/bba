@@ -34,7 +34,7 @@ import java.util.Map;
 
 import black.android.app.BRActivityThread;
 import black.android.os.BRUserHandle;
-import me.weishu.reflection.Reflection;
+import org.lsposed.hiddenapibypass.HiddenApiBypass;
 import com.android.bb.app.BActivityThread;
 import com.android.bb.app.LauncherActivity;
 import com.android.bb.app.configuration.AppLifecycleCallback;
@@ -1683,12 +1683,10 @@ public class BlackBoxCore extends ClientConfiguration {
             throw new IllegalArgumentException("ClientConfiguration is null!");
         }
 
-        if(!NativeCore.disableHiddenApi()){
-            try {
-                Reflection.unseal(context);
-            } catch (Throwable t) {
-                Slog.w(TAG, "Reflection.unseal failed: " + t.getMessage());
-            }
+        try {
+            HiddenApiBypass.setHiddenApiExemptions("");
+        } catch (Throwable t) {
+            Slog.w(TAG, "HiddenApiBypass failed: " + t.getMessage());
         }
 
         try {

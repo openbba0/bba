@@ -38,5 +38,6 @@ ext {
     versionCode = gitVersionCode
     versionName = gitVersionName
     xVersion = '1.1.0'
-    hiddenApiBypass = '4.3'
+    // 6.2 requires compileSdk 37; AGP 8.13.x tops out at 36.
+    hiddenApiBypass = '6.1'
 }

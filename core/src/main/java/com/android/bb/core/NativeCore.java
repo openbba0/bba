@@ -39,8 +39,6 @@ public class NativeCore {
 
     public static native void setupIO(Map<String, String> rules);
 
-    public static native boolean disableHiddenApi();
-    
     public static native boolean disableResourceLoading();
 
     /** Frida inline hook. Returns the original entry, or 0 if the replace failed. */

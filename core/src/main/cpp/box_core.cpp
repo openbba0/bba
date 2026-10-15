@@ -326,15 +326,6 @@ void setupIO(JNIEnv *env, jclass clazz, jobject rules) {
     nativeHook(env);
 }
 
-bool disableHiddenApi(JNIEnv *env, jclass clazz) {
-    ALOGD("set disableHiddenApi");
-    if(!disable_hidden_api(env)){
-        ALOGD("set disableHiddenApi Fail!!!");
-        return false;
-    }
-    return true;
-}
-
 bool disableResourceLoading(JNIEnv *env, jclass clazz) {
     ALOGD("set disableResourceLoading");
     if(!disable_resource_loading()){
@@ -487,7 +478,6 @@ void spindleHostLog(JNIEnv *env, jclass clazz, jint pid, jstring text) {
 }
 
 static JNINativeMethod gMethods[] = {
-        {"disableHiddenApi", "()Z",                               (void *) disableHiddenApi},
         {"disableResourceLoading", "()Z",                         (void *) disableResourceLoading},
         {"setupIO",    "(Ljava/util/Map;)V",                      (void *) setupIO},
         {"init",       "(I)V",                                    (void *) init},
