@@ -65,6 +65,16 @@ class SettingFragment : PreferenceFragmentCompat() {
             dumpPreference
         }
 
+        invalidHideState {
+            val pref: Preference = (findPreference("seccomp_path_redirect")!!)
+            val enabled = AppManager.mBlackBoxLoader.seccompPathRedirect()
+            pref.setDefaultValue(enabled)
+            if (pref is SwitchPreferenceCompat) {
+                pref.isChecked = enabled
+            }
+            pref
+        }
+
         initSendLogs()
     }
 
@@ -96,6 +106,9 @@ class SettingFragment : PreferenceFragmentCompat() {
                 }
                 "xhs_fingerprint_dump" -> {
                     AppManager.mBlackBoxLoader.invalidXhsFingerprintDump(tmpHide)
+                }
+                "seccomp_path_redirect" -> {
+                    AppManager.mBlackBoxLoader.invalidSeccompPathRedirect(tmpHide)
                 }
             }
 

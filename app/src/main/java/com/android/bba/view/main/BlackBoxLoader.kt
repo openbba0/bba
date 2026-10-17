@@ -22,6 +22,8 @@ class BlackBoxLoader {
 
     private var mXhsFingerprintDump by AppSharedPreferenceDelegate(App.getContext(), false)
 
+    private var mSeccompPathRedirect by AppSharedPreferenceDelegate(App.getContext(), false)
+
     fun disableFlagSecure(): Boolean {
         return try {
             mDisableFlagSecure
@@ -87,6 +89,23 @@ class BlackBoxLoader {
             this.mXhsFingerprintDump = enable
         } catch (e: Exception) {
             Log.e(TAG, "Error setting xhsFingerprintDump: ${e.message}")
+        }
+    }
+
+    fun seccompPathRedirect(): Boolean {
+        return try {
+            mSeccompPathRedirect
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting seccompPathRedirect: ${e.message}")
+            false
+        }
+    }
+
+    fun invalidSeccompPathRedirect(enable: Boolean) {
+        try {
+            this.mSeccompPathRedirect = enable
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting seccompPathRedirect: ${e.message}")
         }
     }
 
@@ -238,6 +257,15 @@ class BlackBoxLoader {
                                         mXhsFingerprintDump
                                     } catch (e: Exception) {
                                         Log.e(TAG, "Error checking xhsFingerprintDump: ${e.message}")
+                                        false
+                                    }
+                                }
+
+                                override fun isSeccompPathRedirect(): Boolean {
+                                    return try {
+                                        mSeccompPathRedirect
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Error checking seccompPathRedirect: ${e.message}")
                                         false
                                     }
                                 }

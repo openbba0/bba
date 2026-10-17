@@ -15,6 +15,7 @@
 #include <hook/spindle_server.h>
 #include "utils/hex_dump.h"
 #include "hidden_api.h"
+#include "hook/seccomp_io.h"
 
 #include <pthread.h>
 #include <cstdlib>
@@ -335,6 +336,13 @@ bool disableResourceLoading(JNIEnv *env, jclass clazz) {
     return true;
 }
 
+jboolean enableSeccompIo(JNIEnv *env, jclass clazz) {
+    (void) env;
+    (void) clazz;
+    ALOGD("set enableSeccompIo");
+    return SeccompIo_install() ? JNI_TRUE : JNI_FALSE;
+}
+
 jlong gumReplace(JNIEnv *env, jclass clazz, jlong target, jlong replacement) {
     (void) env;
     (void) clazz;
@@ -479,6 +487,7 @@ void spindleHostLog(JNIEnv *env, jclass clazz, jint pid, jstring text) {
 
 static JNINativeMethod gMethods[] = {
         {"disableResourceLoading", "()Z",                         (void *) disableResourceLoading},
+        {"enableSeccompIo", "()Z",                                (void *) enableSeccompIo},
         {"setupIO",    "(Ljava/util/Map;)V",                      (void *) setupIO},
         {"init",       "(I)V",                                    (void *) init},
         {"gumReplace", "(JJ)J",                                   (void *) gumReplace},

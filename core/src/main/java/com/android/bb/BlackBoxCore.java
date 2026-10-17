@@ -1304,6 +1304,10 @@ public class BlackBoxCore extends ClientConfiguration {
         return mClientConfiguration != null && mClientConfiguration.isXhsFingerprintDump();
     }
 
+    public boolean isSeccompPathRedirect() {
+        return mClientConfiguration != null && mClientConfiguration.isSeccompPathRedirect();
+    }
+
 
 
     @Override

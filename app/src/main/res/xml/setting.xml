@@ -31,6 +31,13 @@
                 app:title="@string/xhs_fingerprint_dump"
                 app:summary="@string/xhs_fingerprint_dump_summary" />
 
+        <SwitchPreferenceCompat
+                app:iconSpaceReserved="false"
+                app:defaultValue="false"
+                app:key="seccomp_path_redirect"
+                app:title="@string/seccomp_path_redirect"
+                app:summary="@string/seccomp_path_redirect_summary" />
+
         <Preference
                 android:key="send_logs"
                 android:title="@string/send_logs"

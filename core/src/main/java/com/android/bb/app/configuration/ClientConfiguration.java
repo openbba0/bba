@@ -29,6 +29,11 @@ public abstract class ClientConfiguration {
         return false;
     }
 
+    /** Trap raw path-bearing SVC (openat etc.) with seccomp + SIGSYS. Off by default. */
+    public boolean isSeccompPathRedirect() {
+        return false;
+    }
+
     
     public boolean requestInstallPackage(File file, int userId) {
         return false;

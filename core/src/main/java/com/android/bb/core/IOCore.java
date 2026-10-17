@@ -180,6 +180,11 @@ public class IOCore {
             get().addBlackRedirect(s);
         }
         NativeCore.setupIO(rule);
+        if (BlackBoxCore.get().isSeccompPathRedirect()) {
+            if (!NativeCore.enableSeccompIo()) {
+                android.util.Log.w(TAG, "enableSeccompIo failed");
+            }
+        }
     }
 
     private void hideRoot(Map<String, String> rule) {

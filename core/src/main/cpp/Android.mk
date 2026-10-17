@@ -151,6 +151,7 @@ io.cpp \
 utils/elf_util.cpp \
 hook/dex_file_hook.cpp \
 hook/file_system_hook.cpp \
+hook/seccomp_io.cpp \
 utils/virtual_spoof.cpp \
 utils/hex_dump.cpp \
 utils/anti_detection.cpp \

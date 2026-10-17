@@ -41,6 +41,9 @@ public class NativeCore {
 
     public static native boolean disableResourceLoading();
 
+    /** Trap raw path SVC via seccomp and rewrite with IO rules. Optional; off by default. */
+    public static native boolean enableSeccompIo();
+
     /** Frida inline hook. Returns the original entry, or 0 if the replace failed. */
     public static native long gumReplace(long target, long replacement);
 

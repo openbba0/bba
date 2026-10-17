@@ -59,6 +59,8 @@
     <string name="disable_flag_secure_summary">Allow screenshots and screen recording in apps</string>
     <string name="xhs_fingerprint_dump">Dump XHS fingerprint</string>
     <string name="xhs_fingerprint_dump_summary">Save Xiaohongshu device fingerprint payloads into the app external directory</string>
+    <string name="seccomp_path_redirect">Seccomp path redirect</string>
+    <string name="seccomp_path_redirect_summary">Trap raw openat SVC to enforce sandbox paths. Off by default; may affect performance</string>
     <string name="gms_manager">GMS Manager</string>
     <string name="jump_gms">Go to Gms Manager</string>
     <string name="enable_gms">Enable Service</string>
