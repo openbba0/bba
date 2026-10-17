@@ -131,13 +131,16 @@ public class IOCore {
 
             rule.put(String.format("/data/data/%s/lib", packageName), physicalLib);
             rule.put(String.format("/data/user/%d/%s/lib", systemUserId, packageName), physicalLib);
+            // Visible nativeLibraryDir (/data/app/<pkg>-1/lib) even when base.apk was not copied.
+            rule.put(BEnvironment.getVisibleNativeLibraryDir(packageName), physicalLib);
 
             rule.put(String.format("/data/data/%s", packageName), physicalData);
             rule.put(String.format("/data/user/%d/%s", systemUserId, packageName), physicalData);
 
             File baseApk = BEnvironment.getBaseApkDir(packageName);
-            if (baseApk.isFile()) {
-                rule.put(BEnvironment.getVisibleApkDir(packageName), baseApk.getParentFile().getAbsolutePath());
+            File appDir = BEnvironment.getAppDir(packageName);
+            if (baseApk.isFile() || appDir.isDirectory()) {
+                rule.put(BEnvironment.getVisibleApkDir(packageName), appDir.getAbsolutePath());
             }
 
             FileUtils.mkdirs(physicalDe);

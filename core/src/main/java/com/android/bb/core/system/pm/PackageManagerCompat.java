@@ -297,11 +297,13 @@ public class PackageManagerCompat {
         if ((flags & PackageManager.GET_META_DATA) != 0) {
             ai.metaData = p.mAppMetaData;
         }
-        // dataDir stays on the real virtual tree. sourceDir is the preset path
-        // once the copied base.apk exists; IO redirect maps it before LoadedApk opens it.
-        ai.dataDir = BEnvironment.getDataDir(ai.packageName, userId).getAbsolutePath();
+        // Expose guest-visible paths; IO redirect (installed before LoadedApk)
+        // maps them onto the physical v0 tree.
+        String visibleData = BEnvironment.getVisibleDataDir(ai.packageName, userId);
+        String visibleDe = BEnvironment.getVisibleDeDataDir(ai.packageName, userId);
+        ai.dataDir = visibleData;
         if (!p.installOption.isFlag(InstallOption.FLAG_SYSTEM)) {
-            ai.nativeLibraryDir = BEnvironment.getAppLibDir(ai.packageName).getAbsolutePath();
+            ai.nativeLibraryDir = BEnvironment.getVisibleNativeLibraryDir(ai.packageName);
         }
         boolean presetApk = p.installOption != null
                 && !p.installOption.isFlag(InstallOption.FLAG_SYSTEM)
@@ -326,19 +328,19 @@ public class PackageManagerCompat {
             }
         }
         if (BuildCompat.isN()) {
-            ai.deviceProtectedDataDir = BEnvironment.getDeDataDir(p.packageName, userId).getAbsolutePath();
+            ai.deviceProtectedDataDir = visibleDe;
 
             if (BRApplicationInfoN.get(ai)._check_deviceEncryptedDataDir() != null) {
-                BRApplicationInfoN.get(ai)._set_deviceEncryptedDataDir(ai.deviceProtectedDataDir);
+                BRApplicationInfoN.get(ai)._set_deviceEncryptedDataDir(visibleDe);
             }
             if (BRApplicationInfoN.get(ai)._check_credentialEncryptedDataDir() != null) {
-                BRApplicationInfoN.get(ai)._set_credentialEncryptedDataDir(ai.dataDir);
+                BRApplicationInfoN.get(ai)._set_credentialEncryptedDataDir(visibleData);
             }
             if (BRApplicationInfoN.get(ai)._check_deviceProtectedDataDir() != null) {
-                BRApplicationInfoN.get(ai)._set_deviceProtectedDataDir(ai.deviceProtectedDataDir);
+                BRApplicationInfoN.get(ai)._set_deviceProtectedDataDir(visibleDe);
             }
             if (BRApplicationInfoN.get(ai)._check_credentialProtectedDataDir() != null) {
-                BRApplicationInfoN.get(ai)._set_credentialProtectedDataDir(ai.dataDir);
+                BRApplicationInfoN.get(ai)._set_credentialProtectedDataDir(visibleData);
             }
         }
         fixJar(ai);

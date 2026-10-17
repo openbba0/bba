@@ -148,26 +148,8 @@ public class BEnvironment {
     }
 
     public static String getVisibleNativeLibraryDir(String packageName) {
-        return String.format(Locale.US, "/data/app/%s-1/lib/%s", packageName, abiFolder());
-    }
-
-    private static String abiFolder() {
-        String abi = android.os.Build.SUPPORTED_ABIS.length > 0
-                ? android.os.Build.SUPPORTED_ABIS[0]
-                : android.os.Build.CPU_ABI;
-        if (abi != null && abi.startsWith("arm64")) {
-            return "arm64";
-        }
-        if (abi != null && abi.startsWith("armeabi")) {
-            return "arm";
-        }
-        if (abi != null && abi.startsWith("x86_64")) {
-            return "x86_64";
-        }
-        if (abi != null && abi.startsWith("x86")) {
-            return "x86";
-        }
-        return "arm64";
+        // Match physical getAppLibDir layout (…/lib), not …/lib/<abi>.
+        return getVisibleApkDir(packageName) + "/lib";
     }
 
     public static File getProcDir(int pid) {
