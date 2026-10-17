@@ -274,16 +274,6 @@ public class NativeCore {
                 
                 
                 try {
-                    int callingBUid = BlackBoxCore.getCallingBUid();
-                    if (callingBUid > 0 && callingBUid < Process.LAST_APPLICATION_UID) {
-                        return callingBUid;
-                    }
-                } catch (Exception e) {
-                    Log.w(TAG, "Error getting calling BUid: " + e.getMessage());
-                }
-                
-                
-                try {
                     StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                     for (StackTraceElement element : stackTrace) {
                         String className = element.getClassName();
@@ -302,8 +292,8 @@ public class NativeCore {
                 } catch (Exception e) {
                     Log.w(TAG, "Error analyzing stack trace for UID resolution: " + e.getMessage());
                 }
-                
-                
+
+                // Do not leak the internal virtual appId (10001…) to guest code.
                 return BlackBoxCore.getHostUid();
             }
             return origCallingUid;

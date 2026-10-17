@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 
 import black.libcore.io.BRLibcore;
 import com.android.bb.BlackBoxCore;
-import com.android.bb.app.BActivityThread;
 import com.android.bb.core.IOCore;
 import com.android.bb.hook.ClassInvocationStub;
 import com.android.bb.hook.MethodHook;
@@ -89,10 +88,9 @@ public class OsStub extends ClassInvocationStub {
         if (callUid > 0 && callUid <= Process.FIRST_APPLICATION_UID)
             return callUid;
 
-        if (BActivityThread.isThreadInit() && BActivityThread.currentActivityThread().isInit()) {
-            return BActivityThread.getBAppId();
-        } else {
-            return BlackBoxCore.getHostUid();
-        }
+        // Guest code runs as the host UID. Returning the internal virtual
+        // appId (FIRST_APPLICATION_UID+N, e.g. 10001) is a VA fingerprint and
+        // disagrees with /proc and the kernel identity of the process.
+        return BlackBoxCore.getHostUid();
     }
 }

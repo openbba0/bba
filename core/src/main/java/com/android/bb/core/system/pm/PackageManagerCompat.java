@@ -314,7 +314,10 @@ public class PackageManagerCompat {
         ai.publicSourceDir = sourceDir;
         ai.sourceDir = sourceDir;
         ai.processName = BPackageManagerService.fixProcessName(p.packageName, ai.packageName);
-        ai.uid = p.mExtras.appId;
+        // Guest processes run under the host UID. Expose that instead of the
+        // internal virtual appId (FIRST_APPLICATION_UID+N → 10001…), which is a
+        // common VA fingerprint and disagrees with Process.myUid().
+        ai.uid = BlackBoxCore.getHostUid();
 
 
         if (BuildCompat.isL()) {
