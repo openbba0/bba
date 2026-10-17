@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BBA 如何劫持路径类 SVC</title>
+<style>
+  :root {
+    --surface: #0C0D11;
+    --card: #17191F;
+    --gold: #C6A36A;
+    --chrome: #F3F0E8;
+    --muted: #9A948A;
+    --line: #2C2E34;
+    --ink: #14120E;
+    --page: 820px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--chrome);
+    background: var(--surface);
+    font: 16px/1.7 "PingFang SC", "Noto Sans SC", "Avenir Next", sans-serif;
+  }
+  header, nav, main, footer { max-width: var(--page); margin: 0 auto; }
+  header { padding: 48px 24px 8px; }
+  .mark {
+    margin: 0;
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 0.34em;
+  }
+  h1 {
+    margin: 14px 0 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1.25;
+  }
+  h1::after {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 2px;
+    margin-top: 12px;
+    background: var(--gold);
+  }
+  .lede { margin: 14px 0 0; color: var(--muted); font-size: 15px; }
+  nav {
+    padding: 22px 24px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+  nav a {
+    color: var(--gold);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+  nav a:hover { color: var(--chrome); }
+  main { padding: 8px 24px 72px; }
+  h2 {
+    margin: 40px 0 12px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  h3 { margin: 22px 0 8px; font-size: 16px; color: var(--chrome); }
+  p { margin: 0 0 14px; }
+  a { color: var(--gold); }
+  ul, ol { margin: 0 0 14px; padding-left: 1.2em; color: var(--chrome); }
+  li { margin: 0 0 6px; }
+  code, pre {
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 0.86em;
+  }
+  code {
+    background: #1C1F27;
+    color: var(--gold);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--card);
+    color: var(--chrome);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px 18px;
+    overflow: auto;
+    line-height: 1.5;
+  }
+  pre code { background: transparent; padding: 0; color: inherit; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 18px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  th { font-weight: 600; color: var(--gold); font-size: 12px; letter-spacing: 0.06em; }
+  tr:last-child td { border-bottom: 0; }
+  .flow { display: grid; margin: 18px 0 8px; }
+  .step { display: grid; grid-template-columns: 36px 1fr; gap: 12px; }
+  .step .n {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    position: relative;
+  }
+  .step:not(:last-child) .n::after {
+    content: "";
+    position: absolute;
+    top: 36px;
+    left: 17px;
+    width: 2px;
+    height: calc(100% + 8px);
+    background: var(--line);
+  }
+  .step .body {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 12px 14px 10px;
+    margin-bottom: 10px;
+  }
+  .who {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 12px 0 18px;
+  }
+  .who article {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .who h3 { margin: 0 0 6px; font-size: 15px; letter-spacing: 0.04em; }
+  .who p { margin: 0; font-size: 14px; color: var(--muted); }
+  figure.rel {
+    margin: 6px 0 22px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 12px 8px 8px;
+  }
+  figure.rel svg { display: block; width: 100%; height: auto; }
+  figure.rel figcaption {
+    margin: 8px 10px 4px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .note {
+    background: var(--card);
+    border-left: 2px solid var(--gold);
+    border-radius: 0 16px 16px 0;
+    padding: 12px 14px;
+    margin: 14px 0;
+    color: var(--chrome);
+  }
+  footer {
+    padding: 0 24px 48px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  @media (max-width: 720px) {
+    .who { grid-template-columns: 1fr; }
+    h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <p class="mark">BBA · NATIVE</p>
+  <h1>如何劫持路径类 SVC</h1>
+  <p class="lede">
+    虚拟应用需要把 guest 眼里的 <code>/data/user/0/&lt;pkg&gt;</code> 落到宿主沙箱。
+    libc 符号 hook 挡不住手写 <code>svc #0</code>；本文说明 BBA 用 seccomp-bpf + SIGSYS 补上这层兜底。
+  </p>
+</header>
+
+<nav>
+  <a href="#why">为什么要劫持</a>
+  <a href="#layers">两层拦截</a>
+  <a href="#seccomp">seccomp 过滤器</a>
+  <a href="#sigsys">SIGSYS 处理</a>
+  <a href="#safe">安全页回放</a>
+  <a href="#sentry">与崩溃 SDK 共存</a>
+  <a href="#ui">配置开关</a>
+  <a href="#log">日志与验证</a>
+</nav>
+
+<main>
+  <h2 id="why">为什么要劫持 SVC</h2>
+  <p>
+    在 AArch64 上，用户态进入内核的入口几乎都是一条 <code>svc #0</code>：
+    系统调用号放在 <code>x8</code>，参数放在 <code>x0…x5</code>。
+    常规路径是 App → libc（<code>openat</code> 等）→ SVC。
+    对抗性 guest 可以直接在自己的 so 里写 SVC，完全不经过 libc 符号表，于是纯 PLT / Interceptor hook 会漏掉。
+  </p>
+  <p>
+    BBA 关心的是<strong>带路径参数</strong>的一组 NR：
+    <code>openat</code>、<code>fstatat</code>、<code>faccessat</code>、<code>renameat</code>、<code>unlinkat</code>、
+    <code>mkdirat</code>、<code>readlinkat</code>、<code>statx</code> 等。
+    目标只有一件事：在进内核前把路径改写成沙箱真实路径（走已有的 <code>IO::redirectPath</code>）。
+  </p>
+
+  <div class="who">
+    <article>
+      <h3>Java 层</h3>
+      <p><code>UnixFileSystem</code> 等 Java NIO 路径，靠 Java hook 覆盖。</p>
+    </article>
+    <article>
+      <h3>libc 层</h3>
+      <p>Frida Gum Interceptor 替换 <code>openat</code> 等符号，覆盖大多数正常调用。</p>
+    </article>
+    <article>
+      <h3>SVC 层</h3>
+      <p>seccomp 对 raw SVC 发 SIGSYS，兜底绕过 libc 的写法。</p>
+    </article>
+  </div>
+
+  <h2 id="layers">两层拦截怎么叠</h2>
+  <div class="flow">
+    <div class="step">
+      <div class="n">1</div>
+      <div class="body">
+        <strong>FileSystemHook（Gum）</strong>
+        <p style="margin:6px 0 0;color:var(--muted);font-size:14px;">
+          <code>file_system_hook.cpp</code> 用 Gum 替换 libc 的 <code>openat</code> / <code>open</code> /
+          <code>fstatat</code> 等；替换后先 <code>IO::redirectPath</code>，再调原 trampoline。
+          这是热路径，开销相对可控。
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">2</div>
+      <div class="body">
+        <strong>SeccompIo（可选）</strong>
+        <p style="margin:6px 0 0;color:var(--muted);font-size:14px;">
+          设置页打开「Seccomp 路径重定向」后，
+          <code>IOCore</code> 调 <code>NativeCore.enableSeccompIo()</code> →
+          <code>SeccompIo_install()</code>。
+          之后无论是否走 libc，只要 SVC 的 NR 在白名单里，就会被 trap。
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">3</div>
+      <div class="body">
+        <strong>实际叠加效果</strong>
+        <p style="margin:6px 0 0;color:var(--muted);font-size:14px;">
+          走 libc 的调用：先被 Gum 改路径，再进内核时仍会被 seccomp 拦一次（IP 不在安全页）。
+          这是「正确但贵」的双重覆盖；手写 SVC 则只有 seccomp 这一层。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <figure class="rel" aria-label="调用路径示意">
+    <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" role="img">
+      <rect width="760" height="220" fill="#17191F" rx="12"/>
+      <text x="28" y="36" fill="#C6A36A" font-size="13" font-family="sans-serif">路径类调用</text>
+      <rect x="28" y="56" width="120" height="40" rx="8" fill="#0C0D11" stroke="#2C2E34"/>
+      <text x="52" y="81" fill="#F3F0E8" font-size="13" font-family="sans-serif">Guest App</text>
+      <path d="M148 76 H190" stroke="#C6A36A" stroke-width="1.5" marker-end="url(#a)"/>
+      <rect x="190" y="40" width="140" height="72" rx="8" fill="#0C0D11" stroke="#C6A36A"/>
+      <text x="214" y="70" fill="#F3F0E8" font-size="12" font-family="sans-serif">Gum libc hook</text>
+      <text x="208" y="90" fill="#9A948A" font-size="11" font-family="sans-serif">redirectPath</text>
+      <path d="M330 76 H372" stroke="#C6A36A" stroke-width="1.5"/>
+      <rect x="372" y="40" width="140" height="72" rx="8" fill="#0C0D11" stroke="#2C2E34"/>
+      <text x="400" y="70" fill="#F3F0E8" font-size="12" font-family="sans-serif">svc #0</text>
+      <text x="392" y="90" fill="#9A948A" font-size="11" font-family="sans-serif">任意发出点</text>
+      <path d="M512 76 H554" stroke="#C6A36A" stroke-width="1.5"/>
+      <rect x="554" y="40" width="170" height="72" rx="8" fill="#0C0D11" stroke="#C6A36A"/>
+      <text x="576" y="70" fill="#F3F0E8" font-size="12" font-family="sans-serif">seccomp filter</text>
+      <text x="568" y="90" fill="#9A948A" font-size="11" font-family="sans-serif">TRAP / ALLOW</text>
+      <path d="M260 112 V148 H640 V112" stroke="#2C2E34" stroke-width="1.2" fill="none" stroke-dasharray="4 3"/>
+      <text x="28" y="168" fill="#9A948A" font-size="12" font-family="sans-serif">绕过 libc 的 raw SVC</text>
+      <path d="M160 160 H372" stroke="#C6A36A" stroke-width="1.5" stroke-dasharray="5 3"/>
+      <text x="28" y="200" fill="#9A948A" font-size="12" font-family="sans-serif">SIGSYS → 改路径 → 安全页再 svc → 回写 x0</text>
+      <defs>
+        <marker id="a" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#C6A36A"/>
+        </marker>
+      </defs>
+    </svg>
+    <figcaption>Gum 管符号入口；seccomp 管真正的 SVC 指令，两者共同保证路径落在沙箱。</figcaption>
+  </figure>
+
+  <h2 id="seccomp">seccomp-bpf 过滤器</h2>
+  <p>
+    安装入口在 <code>SeccompIo_install()</code>（<code>hook/seccomp_io.cpp</code>）。
+    先 <code>PR_SET_NO_NEW_PRIVS</code>，再 <code>PR_SET_SECCOMP / SECCOMP_MODE_FILTER</code>。
+    过滤器只做三件事：
+  </p>
+  <ol>
+    <li>非 AArch64 → <code>ALLOW</code>（防御性）。</li>
+    <li>指令指针落在「安全页」4K 范围内 → <code>ALLOW</code>（避免回放时二次 trap）。</li>
+    <li>系统调用号属于路径白名单 → <code>SECCOMP_RET_TRAP</code>；其余 → <code>ALLOW</code>。</li>
+  </ol>
+  <pre><code>// 伪代码：过滤器逻辑
+if (arch != AARCH64)            return ALLOW;
+if (ip ∈ safe_page[4K])         return ALLOW;
+if (nr ∈ {openat, fstatat, …})  return TRAP;
+return ALLOW;</code></pre>
+  <p>
+    IP 白名单用的是把 <code>instruction_pointer</code> 低 12 位清零后与安全页基址比较，
+    这样 stub 里任何一条指令发出的 SVC 都放行。
+  </p>
+  <div class="note">
+    aarch64 上 <code>newfstatat</code> 的 NR 宏名是 <code>__NR_newfstatat</code>，
+    代码里把它别名成 <code>__NR_fstatat</code>，避免 NDK 头文件里没有旧名字导致编译失败。
+  </div>
+
+  <h2 id="sigsys">SIGSYS 处理函数</h2>
+  <p>
+    <code>SECCOMP_RET_TRAP</code> 会向进程投递 <code>SIGSYS</code>（信号 31），
+    携带 <code>SA_SIGINFO</code>。handler 从 <code>ucontext_t</code> 读寄存器：
+  </p>
+  <table>
+    <thead>
+      <tr><th>寄存器</th><th>含义</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>x8</code></td><td>系统调用号</td></tr>
+      <tr><td><code>x0…x5</code></td><td>参数（对 openat：dirfd / path / flags / mode…）</td></tr>
+      <tr><td>返回后的 <code>x0</code></td><td>handler 写回的返回值；内核已把 PC 指到 SVC 下一条</td></tr>
+    </tbody>
+  </table>
+  <p>处理顺序：</p>
+  <ol>
+    <li>确认是路径类 NR；否则从安全页原样回放或返回 <code>-ENOSYS</code>。</li>
+    <li>用线程局部缓冲调用 <code>IO::redirectPath</code> 改写 path 参数指针。</li>
+    <li>调用安全页上的 <code>g_safe_syscall6</code> 真正进内核。</li>
+    <li>把返回值写进 <code>uc_mcontext.regs[0]</code>，恢复执行。</li>
+  </ol>
+  <p>
+    重入用 <code>thread_local g_in_handler</code> 保护：handler 里若再触发路径 SVC
+    （例如打日志），只做安全页回放、不再改写，避免死循环或误返回错误码。
+  </p>
+
+  <h2 id="safe">安全页：如何避免二次 trap</h2>
+  <p>
+    若在 SIGSYS handler 里再次执行 <code>svc #0</code>，而 IP 仍落在普通代码段，
+    过滤器会再次 TRAP → 无限嵌套。解决办法是：
+  </p>
+  <ol>
+    <li><code>mmap</code> 一页匿名内存，写入一小段 AArch64 stub；</li>
+    <li><code>mprotect(PROT_READ|PROT_EXEC)</code>；</li>
+    <li>过滤器对「IP ∈ 该页」直接 <code>ALLOW</code>。</li>
+  </ol>
+  <pre><code>// stub 语义：long f(n,a0,a1,a2,a3,a4,a5)
+mov x8, x0
+mov x0, x1
+mov x1, x2
+mov x2, x3
+mov x3, x4
+mov x4, x5
+mov x5, x6
+svc #0
+ret</code></pre>
+  <p>
+    机器码常量写在 <code>kSafeSyscallStub[]</code>，装载后
+    <code>__builtin___clear_cache</code>，再按函数指针调用。
+  </p>
+
+  <h2 id="sentry">与崩溃 SDK 共存</h2>
+  <p>
+    小红书等 App 会加载 sentry / shadowhook，在初始化时
+    <code>sigaction</code> 一批信号。若把 <code>SIGSYS</code> 设回默认处理，
+    下一次被 trap 的 <code>openat</code> 就会直接把进程杀掉（日志里常见
+    <code>exited due to signal 31</code>），界面表现为启动黑屏 / 闪退。
+  </p>
+  <p>BBA 的应对：</p>
+  <ol>
+    <li>安装过滤器<strong>之前</strong>，用 Gum 锁住 libc 的 <code>sigaction</code> / <code>sigaction64</code>。</li>
+    <li>对 <code>sig == SIGSYS</code> 的请求：吞掉 act，只在需要时把当前 handler 填进 oldact。</li>
+    <li>然后再注册自己的 <code>seccomp_sigsys</code>，并置 <code>g_lock_sigsys = true</code>。</li>
+  </ol>
+  <div class="note">
+    只锁 SIGSYS，其它信号仍交给 guest；否则会和 ANR / crash 上报打架。
+  </div>
+
+  <h2 id="ui">配置开关</h2>
+  <p>
+    这条路径默认关闭：对每个路径 SVC 做用户态 trap 成本不低，也可能和个别 ROM / SDK 冲突。
+  </p>
+  <table>
+    <thead>
+      <tr><th>层级</th><th>位置</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>设置 UI</td><td><code>setting.xml</code> → <code>seccomp_path_redirect</code></td></tr>
+      <tr><td>持久化</td><td><code>BlackBoxLoader.mSeccompPathRedirect</code></td></tr>
+      <tr><td>配置接口</td><td><code>ClientConfiguration.isSeccompPathRedirect()</code></td></tr>
+      <tr><td>启用时机</td><td><code>IOCore</code> 初始化 IO 重定向后调用 <code>enableSeccompIo()</code></td></tr>
+    </tbody>
+  </table>
+  <p>改开关后需要按提示重启模块进程，新 guest 进程才会装上过滤器。</p>
+
+  <h2 id="log">日志与验证</h2>
+  <p>开启后可用：</p>
+  <pre><code>adb logcat | grep SeccompIo</code></pre>
+  <p>典型输出：</p>
+  <pre><code>SeccompIo: locked sigaction(SIGSYS)
+SeccompIo: path SVC trap installed, safe_page=0x…
+SeccompIo: in  openat dirfd=… path=/data/user/0/… flags=0x…
+SeccompIo: out openat dirfd=… path=/data/user/0/com.android.bba/v0/… flags=0x…
+SeccompIo: ret openat = 91</code></pre>
+  <ul>
+    <li><code>in</code>：trap 时的原始参数</li>
+    <li><code>out</code>：<code>redirectPath</code> 之后</li>
+    <li><code>ret</code>：安全页回放的内核返回值</li>
+  </ul>
+  <p>
+    若只看到 <code>path SVC trap installed</code> 却没有 <code>in/out</code>，
+    说明当前构建还没打上参数日志，或 guest 根本没走到路径 SVC（极少见）。
+  </p>
+
+  <h2>小结</h2>
+  <p>
+    BBA 的 SVC 劫持不是改内核，也不是全局 ptrace：
+    而是用进程内 seccomp-bpf 把感兴趣的 NR 打成 SIGSYS，
+    在用户态改路径后再从「白名单 IP」的 stub 重新进内核。
+    Gum 覆盖常态 libc；seccomp 覆盖 raw SVC；再锁住 SIGSYS 的
+    <code>sigaction</code>，避免崩溃 SDK 把陷阱变成自杀开关。
+  </p>
+  <p>
+    相关源码：
+    <code>core/src/main/cpp/hook/seccomp_io.cpp</code>、
+    <code>file_system_hook.cpp</code>、
+    <code>io.cpp</code>；
+    设置入口见 App 模块 <code>SettingFragment</code>。
+  </p>
+</main>
+
+<footer>
+  BBA 文档 · SVC path redirect · 与 <a href="./vapp-runtime.html">VApp 运行时</a> 同系样式
+</footer>
+</body>
+</html>

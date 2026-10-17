@@ -385,7 +385,7 @@
   </tbody>
 </table>
 <p>前缀树取最长的目录前缀，并且只在路径段边界上命中，所以 <code>/data/data/&lt;包名&gt;/lib</code> 会落到 native 库目录，而不是被更短的数据目录盖住。<code>/sdcard/Pictures</code> 在黑名单里，不跟随整盘重定向。隐藏 Root 始终开启：常见 <code>su</code> 路径被指到不存在的 <code>*-fake</code> 文件，虚拟包管理器也不再列出 SuperSU 等旧的超级用户应用。</p>
-<p>同一套规则还要从 libc 生效，否则访客用 native 打开文件会绕过 Java。所以 <code>setupIO</code> 之后会挂钩文件系统、<code>UnixFileSystem</code>、<code>DexFile</code>、<code>VMClassLoader</code>、Binder 和 zlib。</p>
+<p>同一套规则还要从 libc 生效，否则访客用 native 打开文件会绕过 Java。所以 <code>setupIO</code> 之后会挂钩 <code>UnixFileSystem</code>（JNI）以及 libc 的 <code>openat</code> / <code>open</code> / <code>faccessat</code> / <code>fstatat</code> / <code>renameat</code> / <code>unlinkat</code> / <code>mkdirat</code> / <code>readlinkat</code>（Gum Interceptor，进同一套 <code>IO::redirectPath</code>），再加上 <code>DexFile</code>、Binder 和 zlib。默认仍拦不住 raw <code>svc #0</code>；设置里打开 <strong>Seccomp path redirect</strong> 后，会对路径类 NR 装 seccomp-bpf，在 <code>SIGSYS</code> 里改写路径并用安全页里的 trampoline 重入，作为可选兜底。</p>
 
 <h2 id="native">Native</h2>
 <p><code>libbba.so</code> 在 <code>JNI_OnLoad</code> 里注册 <code>NativeCore</code> 的本地方法。<code>init</code> 只做准备：记下 API 级别、缓存 <code>redirectPath</code> 和 <code>getCallingUid</code> 的方法 ID，初始化 JNI hook，并在 <code>:black</code> 里启动 Spindle。真正的 inline hook 推迟到 <code>setupIO</code>，也就是 VApp 绑定应用的时候。</p>
