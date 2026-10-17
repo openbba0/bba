@@ -297,11 +297,17 @@ public class PackageManagerCompat {
         if ((flags & PackageManager.GET_META_DATA) != 0) {
             ai.metaData = p.mAppMetaData;
         }
-        // Keep runtime paths on the real virtual tree. Spoofing dataDir/sourceDir
-        // breaks LoadedApk / Context before IO redirect is installed.
+        // dataDir stays on the real virtual tree. sourceDir is the preset path
+        // once the copied base.apk exists; IO redirect maps it before LoadedApk opens it.
         ai.dataDir = BEnvironment.getDataDir(ai.packageName, userId).getAbsolutePath();
         if (!p.installOption.isFlag(InstallOption.FLAG_SYSTEM)) {
             ai.nativeLibraryDir = BEnvironment.getAppLibDir(ai.packageName).getAbsolutePath();
+        }
+        boolean presetApk = p.installOption != null
+                && !p.installOption.isFlag(InstallOption.FLAG_SYSTEM)
+                && BEnvironment.getBaseApkDir(p.packageName).isFile();
+        if (presetApk) {
+            sourceDir = BEnvironment.getVisibleSourceDir(p.packageName);
         }
         ai.publicSourceDir = sourceDir;
         ai.sourceDir = sourceDir;
@@ -311,8 +317,13 @@ public class PackageManagerCompat {
 
         if (BuildCompat.isL()) {
             BRApplicationInfoL.get(ai)._set_primaryCpuAbi(Build.CPU_ABI);
-            BRApplicationInfoL.get(ai)._set_scanPublicSourceDir(BRApplicationInfoL.get(baseApplication).scanPublicSourceDir());
-            BRApplicationInfoL.get(ai)._set_scanSourceDir(BRApplicationInfoL.get(baseApplication).scanSourceDir());
+            if (presetApk) {
+                BRApplicationInfoL.get(ai)._set_scanPublicSourceDir(sourceDir);
+                BRApplicationInfoL.get(ai)._set_scanSourceDir(sourceDir);
+            } else {
+                BRApplicationInfoL.get(ai)._set_scanPublicSourceDir(BRApplicationInfoL.get(baseApplication).scanPublicSourceDir());
+                BRApplicationInfoL.get(ai)._set_scanSourceDir(BRApplicationInfoL.get(baseApplication).scanSourceDir());
+            }
         }
         if (BuildCompat.isN()) {
             ai.deviceProtectedDataDir = BEnvironment.getDeDataDir(p.packageName, userId).getAbsolutePath();

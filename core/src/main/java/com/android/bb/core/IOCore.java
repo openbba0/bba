@@ -108,9 +108,19 @@ public class IOCore {
     
 
     public void enableRedirect(Context context) {
+        enableRedirect(context.getPackageName(), context);
+    }
+
+    public void enableRedirect(String packageName) {
+        enableRedirect(packageName, BlackBoxCore.getContext());
+    }
+
+    private void enableRedirect(String packageName, Context context) {
         Map<String, String> rule = new LinkedHashMap<>();
         Set<String> blackRule = new HashSet<>();
-        String packageName = context.getPackageName();
+        if (packageName == null || context == null) {
+            return;
+        }
 
         try {
             int systemUserId = BlackBoxCore.getHostUserId();
@@ -124,6 +134,12 @@ public class IOCore {
 
             rule.put(String.format("/data/data/%s", packageName), physicalData);
             rule.put(String.format("/data/user/%d/%s", systemUserId, packageName), physicalData);
+
+            File baseApk = BEnvironment.getBaseApkDir(packageName);
+            if (baseApk.isFile()) {
+                rule.put(BEnvironment.getVisibleApkDir(packageName), baseApk.getParentFile().getAbsolutePath());
+            }
+
             FileUtils.mkdirs(physicalDe);
             rule.put(BEnvironment.getVisibleDeDataDir(packageName, systemUserId), physicalDe);
 

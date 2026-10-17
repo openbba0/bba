@@ -138,8 +138,13 @@ public class BEnvironment {
         return String.format(Locale.US, "/data/user_de/%d/%s", userId, packageName);
     }
 
+    /** Directory apps should see for the installed base APK. */
+    public static String getVisibleApkDir(String packageName) {
+        return String.format(Locale.US, "/data/app/%s-1", packageName);
+    }
+
     public static String getVisibleSourceDir(String packageName) {
-        return String.format(Locale.US, "/data/app/%s-1/base.apk", packageName);
+        return getVisibleApkDir(packageName) + "/base.apk";
     }
 
     public static String getVisibleNativeLibraryDir(String packageName) {

@@ -366,6 +366,10 @@ public class BActivityThread extends IBActivityThread.Stub {
 
         Object boundApplication = BRActivityThread.get(BlackBoxCore.mainThread()).mBoundApplication();
 
+        // Redirect the preset apk path before LoadedApk opens sourceDir.
+        NativeCore.init(Build.VERSION.SDK_INT);
+        IOCore.get().enableRedirect(packageName);
+
         Context packageContext = createPackageContext(applicationInfo);
         Object loadedApk = BRContextImpl.get(packageContext).mPackageInfo();
         BRLoadedApk.get(loadedApk)._set_mSecurityViolation(false);
@@ -393,10 +397,8 @@ public class BActivityThread extends IBActivityThread.Stub {
             BRCompatibility.get().setTargetSdkVersion(applicationInfo.targetSdkVersion);
         }
 
-        NativeCore.init(Build.VERSION.SDK_INT);
         MiuiRenderNodeGuard.install();
         assert packageContext != null;
-        IOCore.get().enableRedirect(packageContext);
 
         AppBindData bindData = new AppBindData();
         bindData.appInfo = applicationInfo;
